@@ -2,7 +2,7 @@
  * Welcome(로그인) 화면 — 기존 `pages/welcome/index.tsx` 구성을 따른다:
  * 로고 배너 → 소셜 로그인 아이콘(Apple은 iOS만, Google, Naver, Kakao) → 카테고리 칩(2026 / 모의 기출 / 과목별 / 소개) → 공개 콘텐츠 패널.
  * 바뀐 점: 로그인은 모두 Supabase(§7.3) — Apple(iOS 네이티브 → signInWithIdToken), Google·Kakao(브라우저 OAuth),
- * Naver(naver-auth Edge Function → magiclink). 광고 래퍼(AdMob) 제외.
+ * Naver(Supabase 커스텀 provider custom:naver). 광고 래퍼(AdMob) 제외.
  * 공개 패널: 2026·모의 기출은 kit ExamSearchPanel 재사용, 과목별(mandatory-section)·소개(info-section)는 아직 미이전.
  */
 import { useState } from 'react';
@@ -50,8 +50,10 @@ export default function WelcomeScreen() {
     setMessage(null);
     try {
       const r = await signInWithProvider(provider);
+      console.log(`[login] ${provider}:`, r.ok ? 'ok' : r.reason);
       if (!r.ok && r.reason !== 'cancelled') setMessage(`로그인하지 못했어요: ${r.reason}`);
     } catch (e) {
+      console.warn(`[login] ${provider} threw:`, e);
       setMessage(`로그인하지 못했어요: ${String((e as Error)?.message ?? e)}`);
     } finally {
       setBusy(null);
