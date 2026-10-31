@@ -1,0 +1,376 @@
+[
+ {
+  "step": "load"
+ },
+ {
+  "step": "canvasLoaded"
+ },
+ {
+  "timestamp": 1,
+  "actionType": "BACKGROUND",
+  "content": "{\"image\":\"https://img.example/bg.png\"}",
+  "obj": {
+   "image": "https://img.example/bg.png"
+  },
+  "imageWidth": 800
+ },
+ {
+  "actionType": "ACT_SUBS",
+  "content": "{}"
+ },
+ {
+  "actionType": "BACKGROUND_SUBS",
+  "content": "[\"a\"]"
+ },
+ {
+  "actionType": "ANIMATIONS",
+  "content": "{}"
+ },
+ {
+  "actionType": "FADEOUTS",
+  "content": "{}"
+ },
+ {
+  "actionType": "APPENDIX",
+  "content": "{}"
+ },
+ {
+  "actionType": "GROUPS",
+  "content": "[{\"id\":\"group:a-1\"},{\"id\":\"group:c-1\"}]"
+ },
+ {
+  "actionType": "SYNCS",
+  "content": "[]"
+ },
+ {
+  "actionType": "PREPS",
+  "content": "[{\"id\":\"preps:b-1\"}]"
+ },
+ {
+  "step": "play#0 0/epilogue"
+ },
+ {
+  "timestamp": 2,
+  "actionType": "ADD",
+  "content": "{\"id\":\"a\",\"type\":\"path\"}",
+  "obj": {
+   "id": "a",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#1 1/main"
+ },
+ {
+  "timestamp": 2,
+  "actionType": "EPILOGUE",
+  "content": "{\"id\":\"a\",\"type\":\"path\"}",
+  "obj": {
+   "id": "a",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#2 1/epilogue"
+ },
+ {
+  "timestamp": 3,
+  "actionType": "PROLOGUE",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}",
+  "obj": {
+   "id": "b",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#3 2/prologue"
+ },
+ {
+  "timestamp": 3,
+  "actionType": "ADD",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}",
+  "obj": {
+   "id": "b",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#4 2/main"
+ },
+ {
+  "timestamp": 4,
+  "actionType": "MODIFY",
+  "content": "{\"id\":\"a\",\"type\":\"path\",\"left\":10}",
+  "obj": {
+   "id": "a",
+   "type": "path",
+   "left": 10
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#5 3/main"
+ },
+ {
+  "timestamp": 4,
+  "actionType": "EPILOGUE",
+  "content": "{\"id\":\"a\",\"type\":\"path\",\"left\":10}",
+  "obj": {
+   "id": "a",
+   "type": "path",
+   "left": 10
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#6 3/epilogue"
+ },
+ {
+  "timestamp": 5,
+  "actionType": "CLEAN",
+  "content": "{\"id\":\"clean-1\"}",
+  "obj": {
+   "id": "clean-1"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#7 4/main"
+ },
+ {
+  "timestamp": 6,
+  "actionType": "ADD",
+  "content": "{\"id\":\"c\",\"type\":\"text\"}",
+  "obj": {
+   "id": "c",
+   "type": "text"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#8 5/main"
+ },
+ {
+  "timestamp": 6,
+  "actionType": "EPILOGUE",
+  "content": "{\"id\":\"c\",\"type\":\"text\"}",
+  "obj": {
+   "id": "c",
+   "type": "text"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#9 5/epilogue"
+ },
+ {
+  "timestamp": 1,
+  "actionType": "BACKGROUND",
+  "content": "{\"image\":\"https://img.example/bg.png\"}",
+  "obj": {
+   "image": "https://img.example/bg.png"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#10 0/epilogue"
+ },
+ {
+  "timestamp": 2,
+  "actionType": "ADD",
+  "content": "{\"id\":\"a\",\"type\":\"path\"}",
+  "obj": {
+   "id": "a",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#11 1/main"
+ },
+ {
+  "timestamp": 2,
+  "actionType": "EPILOGUE",
+  "content": "{\"id\":\"a\",\"type\":\"path\"}",
+  "obj": {
+   "id": "a",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#12 1/epilogue"
+ },
+ {
+  "timestamp": 3,
+  "actionType": "PROLOGUE",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}",
+  "obj": {
+   "id": "b",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#13 2/prologue"
+ },
+ {
+  "timestamp": 3,
+  "actionType": "ADD",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}",
+  "obj": {
+   "id": "b",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#14 2/main"
+ },
+ {
+  "timestamp": 4,
+  "actionType": "MODIFY",
+  "content": "{\"id\":\"a\",\"type\":\"path\",\"left\":10}",
+  "obj": {
+   "id": "a",
+   "type": "path",
+   "left": 10
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#15 3/main"
+ },
+ {
+  "timestamp": 4,
+  "actionType": "EPILOGUE",
+  "content": "{\"id\":\"a\",\"type\":\"path\",\"left\":10}",
+  "obj": {
+   "id": "a",
+   "type": "path",
+   "left": 10
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#16 3/epilogue"
+ },
+ {
+  "timestamp": 5,
+  "actionType": "CLEAN",
+  "content": "{\"id\":\"clean-1\"}",
+  "obj": {
+   "id": "clean-1"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#17 4/main"
+ },
+ {
+  "timestamp": 6,
+  "actionType": "ADD",
+  "content": "{\"id\":\"c\",\"type\":\"text\"}",
+  "obj": {
+   "id": "c",
+   "type": "text"
+  },
+  "imageWidth": 800
+ },
+ {
+  "timestamp": 3,
+  "actionType": "PROLOGUE",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}",
+  "obj": {
+   "id": "b",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "backward"
+ },
+ {
+  "actionType": "BACKWARD",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}"
+ },
+ {
+  "step": "play-after-backward"
+ },
+ {
+  "timestamp": 3,
+  "actionType": "PROLOGUE",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}",
+  "obj": {
+   "id": "b",
+   "type": "path"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "replayCurrent"
+ },
+ {
+  "timestamp": 3,
+  "actionType": "PROLOGUE",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}",
+  "obj": {
+   "id": "b",
+   "type": "path"
+  }
+ },
+ {
+  "timestamp": 6,
+  "actionType": "ADD",
+  "content": "{\"id\":\"c\",\"type\":\"text\"}",
+  "obj": {
+   "id": "c",
+   "type": "text"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "rangePlay from=4"
+ },
+ {
+  "timestamp": 1,
+  "actionType": "BACKGROUND",
+  "content": "{\"image\":\"https://img.example/bg.png\"}",
+  "obj": {
+   "image": "https://img.example/bg.png"
+  },
+  "imageWidth": 800
+ },
+ {
+  "actionType": "DEFAULT",
+  "obj": {
+   "id": "a",
+   "type": "path",
+   "left": 10
+  }
+ },
+ {
+  "actionType": "DEFAULT",
+  "obj": {
+   "id": "a",
+   "type": "path",
+   "left": 10
+  }
+ },
+ {
+  "timestamp": 6,
+  "actionType": "ADD",
+  "content": "{\"id\":\"c\",\"type\":\"text\"}",
+  "obj": {
+   "id": "c",
+   "type": "text"
+  }
+ },
+ {
+  "step": "end 5/main/start=4"
+ }
+]

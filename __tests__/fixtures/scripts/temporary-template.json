@@ -1,0 +1,40 @@
+[
+ {
+  "timestamp": 1000,
+  "content": "{\"image\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png?ts=1000\"}",
+  "actionType": "BACKGROUND",
+  "obj": {
+   "image": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png"
+  }
+ },
+ {
+  "timestamp": 2000,
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}",
+  "actionType": "ADD"
+ },
+ {
+  "timestamp": 1000,
+  "content": "{}",
+  "actionType": "SCENE_SUBS"
+ },
+ {
+  "timestamp": 1000,
+  "content": "[]",
+  "actionType": "BACKGROUND_SUBS"
+ },
+ {
+  "timestamp": 1000,
+  "content": "{}",
+  "actionType": "ANIMATIONS"
+ },
+ {
+  "timestamp": 1000,
+  "actionType": "SYNCS",
+  "content": "[]"
+ },
+ {
+  "timestamp": 1000,
+  "actionType": "PREPS",
+  "content": "[]"
+ }
+]

@@ -1,0 +1,65 @@
+[
+ {
+  "timestamp": 1,
+  "actionType": "BACKGROUND",
+  "content": "{\"image\":\"https://img.example/bg.png\"}",
+  "obj": {
+   "image": "https://img.example/bg.png"
+  }
+ },
+ {
+  "timestamp": 2,
+  "actionType": "ADD",
+  "content": "{\"id\":\"a\",\"type\":\"path\"}"
+ },
+ {
+  "timestamp": 3,
+  "actionType": "ADD",
+  "content": "{\"id\":\"b\",\"type\":\"path\"}"
+ },
+ {
+  "timestamp": 4,
+  "actionType": "MODIFY",
+  "content": "{\"id\":\"a\",\"type\":\"path\",\"left\":10}"
+ },
+ {
+  "timestamp": 5,
+  "actionType": "CLEAN",
+  "content": "{\"id\":\"clean-1\"}"
+ },
+ {
+  "timestamp": 6,
+  "actionType": "ADD",
+  "content": "{\"id\":\"c\",\"type\":\"text\"}"
+ },
+ {
+  "timestamp": 7,
+  "actionType": "BACKGROUND_SUBS",
+  "content": "[\"a\"]"
+ },
+ {
+  "timestamp": 7,
+  "actionType": "PREPS",
+  "content": "[{\"id\":\"preps:b-1\"}]"
+ },
+ {
+  "timestamp": 7,
+  "actionType": "GROUPS",
+  "content": "[{\"id\":\"group:a-1\"},{\"id\":\"group:c-1\"}]"
+ },
+ {
+  "timestamp": 7,
+  "actionType": "SYNCS",
+  "content": "[]"
+ },
+ {
+  "timestamp": 7,
+  "actionType": "ANIMATIONS",
+  "content": "{}"
+ },
+ {
+  "timestamp": 7,
+  "actionType": "SCENE_SUBS",
+  "content": "{}"
+ }
+]

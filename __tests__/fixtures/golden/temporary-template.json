@@ -1,0 +1,225 @@
+[
+ {
+  "step": "load"
+ },
+ {
+  "step": "canvasLoaded"
+ },
+ {
+  "timestamp": 1000,
+  "content": "{\"image\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png?ts=1000\"}",
+  "actionType": "BACKGROUND",
+  "obj": {
+   "image": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png"
+  },
+  "imageWidth": 800
+ },
+ {
+  "actionType": "ACT_SUBS",
+  "content": "{}"
+ },
+ {
+  "actionType": "BACKGROUND_SUBS",
+  "content": "[]"
+ },
+ {
+  "actionType": "ANIMATIONS",
+  "content": "{}"
+ },
+ {
+  "actionType": "FADEOUTS",
+  "content": "{}"
+ },
+ {
+  "actionType": "APPENDIX",
+  "content": "{}"
+ },
+ {
+  "actionType": "GROUPS",
+  "content": "[]"
+ },
+ {
+  "actionType": "SYNCS",
+  "content": "[]"
+ },
+ {
+  "actionType": "PREPS",
+  "content": "[]"
+ },
+ {
+  "step": "play#0 0/epilogue"
+ },
+ {
+  "timestamp": 2000,
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}",
+  "actionType": "ADD",
+  "obj": {
+   "type": "image",
+   "id": "id:1784542522320",
+   "src": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png",
+   "left": 1068.88,
+   "top": 1712.59,
+   "width": 192,
+   "height": 192
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#1 1/main"
+ },
+ {
+  "timestamp": 1000,
+  "content": "{\"image\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png?ts=1000\"}",
+  "actionType": "BACKGROUND",
+  "obj": {
+   "image": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#2 0/epilogue"
+ },
+ {
+  "timestamp": 2000,
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}",
+  "actionType": "ADD",
+  "obj": {
+   "type": "image",
+   "id": "id:1784542522320",
+   "src": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png",
+   "left": 1068.88,
+   "top": 1712.59,
+   "width": 192,
+   "height": 192
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#3 1/main"
+ },
+ {
+  "timestamp": 1000,
+  "content": "{\"image\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png?ts=1000\"}",
+  "actionType": "BACKGROUND",
+  "obj": {
+   "image": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png"
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#4 0/epilogue"
+ },
+ {
+  "timestamp": 2000,
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}",
+  "actionType": "ADD",
+  "obj": {
+   "type": "image",
+   "id": "id:1784542522320",
+   "src": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png",
+   "left": 1068.88,
+   "top": 1712.59,
+   "width": 192,
+   "height": 192
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "play#5 1/main"
+ },
+ {
+  "timestamp": 1000,
+  "content": "{\"image\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png?ts=1000\"}",
+  "actionType": "BACKGROUND",
+  "obj": {
+   "image": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png"
+  },
+  "imageWidth": 800
+ },
+ {
+  "timestamp": 2000,
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}",
+  "actionType": "ADD",
+  "obj": {
+   "type": "image",
+   "id": "id:1784542522320",
+   "src": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png",
+   "left": 1068.88,
+   "top": 1712.59,
+   "width": 192,
+   "height": 192
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "backward"
+ },
+ {
+  "actionType": "BACKWARD",
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}"
+ },
+ {
+  "step": "play-after-backward"
+ },
+ {
+  "timestamp": 2000,
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}",
+  "actionType": "ADD",
+  "obj": {
+   "type": "image",
+   "id": "id:1784542522320",
+   "src": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png",
+   "left": 1068.88,
+   "top": 1712.59,
+   "width": 192,
+   "height": 192
+  },
+  "imageWidth": 800
+ },
+ {
+  "step": "replayCurrent"
+ },
+ {
+  "timestamp": 2000,
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}",
+  "actionType": "ADD",
+  "obj": {
+   "type": "image",
+   "id": "id:1784542522320",
+   "src": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png",
+   "left": 1068.88,
+   "top": 1712.59,
+   "width": 192,
+   "height": 192
+  }
+ },
+ {
+  "step": "rangePlay from=0"
+ },
+ {
+  "timestamp": 1000,
+  "content": "{\"image\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png?ts=1000\"}",
+  "actionType": "BACKGROUND",
+  "obj": {
+   "image": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4242.png"
+  },
+  "imageWidth": 800
+ },
+ {
+  "timestamp": 2000,
+  "content": "{\"type\":\"image\",\"id\":\"id:1784542522320\",\"src\":\"https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png\",\"left\":1068.88,\"top\":1712.59,\"width\":192,\"height\":192}",
+  "actionType": "ADD",
+  "obj": {
+   "type": "image",
+   "id": "id:1784542522320",
+   "src": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/1784542521335.png",
+   "left": 1068.88,
+   "top": 1712.59,
+   "width": 192,
+   "height": 192
+  }
+ },
+ {
+  "step": "end 1/main/start=0"
+ }
+]
