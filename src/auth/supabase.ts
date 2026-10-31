@@ -6,7 +6,9 @@ import 'react-native-url-polyfill/auto';
 import { createClient, type Session } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';
 import { storage } from '../storage';
+import { authStore } from '../state/auth';
 import { createStore } from '../state/createStore';
+import { exchangeQoollaToken } from './qoollaToken';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -51,7 +53,23 @@ export function startSupabaseAuth() {
   supabase.auth.getSession().then(({ data }) =>
     supabaseAuthStore.dispatch({ status: data.session ? 'signedIn' : 'signedOut', session: data.session }),
   );
-  supabase.auth.onAuthStateChange((_event, session) =>
-    supabaseAuthStore.dispatch({ status: session ? 'signedIn' : 'signedOut', session }),
-  );
+  supabase.auth.onAuthStateChange((_event, session) => {
+    supabaseAuthStore.dispatch({ status: session ? 'signedIn' : 'signedOut', session });
+    // 로그인 직후(SIGNED_IN)와 앱 시작(INITIAL_SESSION) 모두: Supabase 세션은 있는데 기존 app-token이 없으면 교환한다.
+    if (session && !authStore.getState().appToken) syncQoollaToken(session);
+  });
+}
+
+let exchanging = false;
+function syncQoollaToken(session: Session) {
+  if (exchanging) return;
+  exchanging = true;
+  // onAuthStateChange 콜백 안에서 바로 await하지 않는다(Supabase 권장) — 다음 틱에 실행
+  setTimeout(() => {
+    exchangeQoollaToken(session)
+      .catch((e) => console.warn('[login] qoolla token exchange failed:', (e as Error)?.message ?? e))
+      .finally(() => {
+        exchanging = false;
+      });
+  }, 0);
 }
