@@ -41,7 +41,7 @@ export function TopicUnitList({ fetchers, topicId, onSelectUnit }: Props) {
   }, [fetchers, topicId]);
 
   if (error) return <Text style={styles.empty}>문제를 불러오지 못했어요. ({error})</Text>;
-  if (!topic) return <ActivityIndicator style={styles.center} color="#18181B" />;
+  if (!topic) return <ActivityIndicator style={styles.center} color="orange" />;
 
   const units = topic.units ?? [];
   const twoCol = width >= 600;
@@ -88,8 +88,8 @@ const styles = StyleSheet.create({
   card: { padding: 8, gap: 6, borderRadius: 8, borderWidth: 1, borderColor: '#D4D4D8', backgroundColor: '#FFFFFF' },
   cardLabel: { fontSize: 13, fontWeight: '500', color: '#52525B' },
   goBar: { position: 'absolute', right: 16, top: 8 },
-  go: { minHeight: 44, paddingHorizontal: 18, borderRadius: 10, backgroundColor: '#18181B', justifyContent: 'center' },
-  goText: { color: '#FFFFFF', fontSize: 15, fontWeight: '500' },
+  go: { minHeight: 38, paddingHorizontal: 18, borderRadius: 19, borderWidth: 2, borderColor: '#FFC256', backgroundColor: '#FFFFFF', justifyContent: 'center' },
+  goText: { color: 'darkorange', fontSize: 16, fontWeight: '600' },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },
   center: { padding: 32 },
   pressed: { opacity: 0.6 },

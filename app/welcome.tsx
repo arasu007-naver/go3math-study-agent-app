@@ -12,6 +12,7 @@ import { signInWithProvider, type OAuthProvider } from '@/src/auth/oauth';
 import { isSupabaseConfigured } from '@/src/auth/supabase';
 import { devGuestStore, useAuthGate } from '@/src/auth/useAuthGate';
 import { ExamSearchPanel } from '@/src/kit/exam-search/ExamSearchPanel';
+import { useDeviceMode } from '@/src/layout/deviceMode';
 import { storage } from '@/src/storage';
 import { uiStore } from '@/src/state/ui';
 
@@ -35,7 +36,7 @@ const CATEGORIES = [
 export default function WelcomeScreen() {
   const gate = useAuthGate();
   const { width } = useWindowDimensions();
-  const isTablet = width >= 600;
+  const isTablet = useDeviceMode() === 'tablet';
   const category = uiStore.useStore().currentPublicCategory;
   const [busy, setBusy] = useState<OAuthProvider | null>(null);
   const [message, setMessage] = useState<string | null>(null);

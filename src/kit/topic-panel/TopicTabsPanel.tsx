@@ -123,7 +123,7 @@ export function TopicTabsPanel({ fetchers, subjects, initialSubject, store, page
         })}
       </View>
       {loading ? (
-        <ActivityIndicator style={styles.center} color="#18181B" />
+        <ActivityIndicator style={styles.center} color="orange" />
       ) : error ? (
         <Text style={styles.empty}>주제를 불러오지 못했어요. ({error})</Text>
       ) : (
@@ -138,7 +138,7 @@ export function TopicTabsPanel({ fetchers, subjects, initialSubject, store, page
           ListFooterComponent={
             topics.length > 0 ? (
               <View style={styles.footer}>
-                {loadingMore ? <ActivityIndicator color="#18181B" /> : <Text style={styles.desc}>{`${page} / ${totalPages}`}</Text>}
+                {loadingMore ? <ActivityIndicator color="orange" /> : <Text style={styles.desc}>{`${page} / ${totalPages}`}</Text>}
               </View>
             ) : null
           }
@@ -166,10 +166,10 @@ export function resolveInitialSubject(
 const styles = StyleSheet.create({
   root: { flex: 1 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 12, backgroundColor: '#FFFFFF' },
-  chip: { minHeight: 36, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: '#A1A1AA', backgroundColor: '#FFFFFF' },
-  chipOn: { backgroundColor: '#18181B', borderColor: '#18181B' },
+  chip: { minHeight: 36, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: 'orange', backgroundColor: '#FFFFFF' },
+  chipOn: { backgroundColor: 'orange' },
   chipText: { fontSize: 14, color: '#18181B' },
-  chipTextOn: { color: '#FFFFFF' },
+  chipTextOn: { fontWeight: '700' },
   row: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#FFFFFF' },
   rowText: { flex: 1, gap: 4 },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#E4E4E7' },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   desc: { fontSize: 13, color: '#52525B' },
   chevron: { fontSize: 24, color: '#52525B' },
   conceptCard: { padding: 16, gap: 8, backgroundColor: '#FFFFFF' },
-  conceptLabel: { fontSize: 16, fontWeight: '700', color: '#18181B', textDecorationLine: 'underline' },
+  conceptLabel: { fontSize: 18, fontWeight: '700', color: 'orange', textDecorationLine: 'underline' },
   sep: { height: 1, backgroundColor: '#D4D4D8' },
   footer: { height: 44, alignItems: 'center', justifyContent: 'center' },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },

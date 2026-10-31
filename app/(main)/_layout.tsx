@@ -13,7 +13,7 @@ export default function MainLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.text,
+        tabBarActiveTintColor: colors.agentText,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: mode === 'tablet' ? { display: 'none' } : undefined,
       }}>

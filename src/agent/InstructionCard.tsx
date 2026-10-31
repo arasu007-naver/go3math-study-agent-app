@@ -44,16 +44,16 @@ export function InstructionCard({
 
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
-  label: { fontSize: 12, fontWeight: '700', color: colors.agent },
+  label: { fontSize: 12, fontWeight: '700', color: colors.agentText },
   labelTutor: { color: colors.tutor },
   tutorBox: { padding: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.line, backgroundColor: '#F4F4F5' },
   text: { fontSize: 16, lineHeight: 24, color: colors.text },
   choices: { gap: 8 },
-  btn: { minHeight: 44, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  btn: { minHeight: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
   btnPrimary: { backgroundColor: colors.agent, borderColor: colors.agent },
-  btnSecondary: { backgroundColor: colors.surface, borderColor: colors.border },
+  btnSecondary: { backgroundColor: colors.surface, borderColor: colors.agent },
   btnText: { fontSize: 15, color: colors.text },
-  btnTextPrimary: { color: colors.surface, fontWeight: '500' },
+  btnTextPrimary: { fontWeight: '700' },
   note: { fontSize: 12, color: colors.muted },
   pressed: { opacity: 0.7 },
 });

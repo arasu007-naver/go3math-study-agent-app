@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     bottom: 8,
     padding: 16,
     paddingTop: 4,
-    borderRadius: 16,
-    borderWidth: 2,
+    borderRadius: 12,
+    borderWidth: 1,
     borderColor: colors.agent,
     backgroundColor: colors.surface,
     shadowColor: '#000',
@@ -57,6 +57,6 @@ const styles = StyleSheet.create({
   },
   cardTutor: { borderColor: colors.tutor },
   grabArea: { height: 28, alignItems: 'center', justifyContent: 'center' },
-  grab: { width: 32, height: 4, borderRadius: 2, backgroundColor: colors.border },
+  grab: { width: 32, height: 4, borderRadius: 2, backgroundColor: colors.agent },
   oneLine: { fontSize: 14, color: colors.text, paddingBottom: 4 },
 });
