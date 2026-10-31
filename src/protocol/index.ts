@@ -103,6 +103,8 @@ export type AppEventPayloads = {
     query: { queryType: 'selection'; major: string; years: number[]; months: number[]; numbers: number[]; studyType: string };
   };
   back_requested: { from: string };
+  // 태블릿 drawer 하단 고정 메뉴 중 학습 흐름에 속하는 것(검색·공지). 화면 전환은 에이전트가 결정한다.
+  menu_selected: { menu: 'search' | 'notice' };
   app_state: { state: 'foreground' | 'background' };
   client_error: { where: string; message: string; commandId?: string };
 };

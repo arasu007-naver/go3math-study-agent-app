@@ -45,6 +45,14 @@ export class MockAgentTransport implements Transport {
       case 'topic_selected':
         this.onTopic(evt.payload.topicId, evt.payload.title);
         break;
+      case 'menu_selected':
+        if (evt.payload.menu === 'search') {
+          this.cmd('show_component', { componentId: 'exam_search', props: { mode: 'this_year' } });
+          this.say('검색 조건을 고르고 "가자"를 눌러 주세요.', [], 'info');
+        } else {
+          this.say('공지 화면은 준비 중이에요.', [], 'info');
+        }
+        break;
       case 'search_submitted': {
         const q = evt.payload.query;
         this.say(

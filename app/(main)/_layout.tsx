@@ -1,10 +1,14 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
+import { useAuthGate } from '@/src/auth/useAuthGate';
 import { useDeviceMode } from '@/src/layout/deviceMode';
 import { colors } from '@/src/ui/theme';
 
-// 폰: 하단 탭. 태블릿: 탭 바 없이 Stage 전체 + drawer(§4.2).
+// 폰: 하단 탭. 태블릿: 탭 바 없이 Stage 전체 + drawer(§4.2). 로그인 전이면 로그인 화면으로.
 export default function MainLayout() {
   const mode = useDeviceMode();
+  const gate = useAuthGate();
+  if (gate === 'loading') return null;
+  if (gate === 'signedOut') return <Redirect href="/welcome" />;
   return (
     <Tabs
       screenOptions={{

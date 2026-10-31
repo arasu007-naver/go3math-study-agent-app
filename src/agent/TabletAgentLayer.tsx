@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { router } from 'expo-router';
+import { logout } from '../auth/logout';
 import type { AgentSession, SessionSnapshot } from './session';
 import { InstructionCard } from './InstructionCard';
 import { drawerWidth } from '../layout/deviceMode';
@@ -75,7 +77,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
             <Text style={styles.closeText}>‹</Text>
           </Pressable>
         </View>
-        <ScrollView contentContainerStyle={{ gap: 16 }}>
+        <ScrollView style={styles.scroll} contentContainerStyle={{ gap: 16 }}>
           {ins ? (
             <InstructionCard
               instruction={ins}
@@ -97,11 +99,31 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
             </View>
           )}
         </ScrollView>
+        <DrawerFooter session={session} />
       </Animated.View>
 
       {toastFor && ins?.messageId === toastFor && !open && (
         <TutorToast text={ins.text} onPress={openDrawer} onTimeout={() => setToastFor(null)} />
       )}
+    </View>
+  );
+}
+
+/** drawer 하단 고정 메뉴: 대화 영역(ScrollView) 밖에 있어 스크롤해도 위치가 바뀌지 않는다. */
+function DrawerFooter({ session }: { session: AgentSession }) {
+  const items: { label: string; onPress(): void }[] = [
+    { label: '검색', onPress: () => session.emit('menu_selected', { menu: 'search' }) },
+    { label: '공지', onPress: () => session.emit('menu_selected', { menu: 'notice' }) },
+    { label: '내 정보 관리', onPress: () => router.push('/profile') },
+    { label: '로그 아웃', onPress: () => void logout() },
+  ];
+  return (
+    <View style={styles.footer}>
+      {items.map((it) => (
+        <Pressable key={it.label} accessibilityRole="button" onPress={it.onPress} style={({ pressed }) => [styles.footerBtn, pressed && { opacity: 0.6 }]}>
+          <Text style={styles.footerText}>{it.label}</Text>
+        </Pressable>
+      ))}
     </View>
   );
 }
@@ -178,6 +200,10 @@ const styles = StyleSheet.create({
   closeBtn: { width: 44, height: 44, borderRadius: 10, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
   closeText: { fontSize: 24, color: colors.text, lineHeight: 26 },
   muted: { fontSize: 14, color: colors.muted },
+  scroll: { flex: 1 },
+  footer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.line },
+  footerBtn: { flexGrow: 1, flexBasis: '45%', minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  footerText: { fontSize: 14, color: colors.text },
   history: { gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 12 },
   historyTitle: { fontSize: 12, fontWeight: '700', color: colors.muted },
   historyItem: { fontSize: 14, color: '#3F3F46' },
