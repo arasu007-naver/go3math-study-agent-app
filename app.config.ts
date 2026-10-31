@@ -30,6 +30,12 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-dev-client',
+    // 태블릿 launch screen 로고: iPad 3배(300pt), Android 태블릿은 SplashScreen 원형 마스크(지름 192dp) 안에 들어가는 최대 144dp.
+    // expo-splash-screen보다 앞에 둬야 그 결과를 덮어쓴다(plugins/withTabletSplash.js 주석 참고).
+    [
+      './plugins/withTabletSplash',
+      { image: './assets/images/splash-icon.png', iosTabletWidth: 300, androidTabletWidth: 144, backgroundColor: '#ffffff' },
+    ],
     [
       'expo-splash-screen',
       {
@@ -37,6 +43,7 @@ const config: ExpoConfig = {
         imageWidth: 100, // 기존 BootSplash 로고 100×86pt, 흰 바탕 가운데
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
+        ios: { tabletImage: './assets/images/splash-icon.png' },
       },
     ],
   ],
