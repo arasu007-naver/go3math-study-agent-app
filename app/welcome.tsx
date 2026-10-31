@@ -1,7 +1,8 @@
 /**
  * Welcome(로그인) 화면 — 기존 `pages/welcome/index.tsx` 구성을 따른다:
  * 로고 배너 → 소셜 로그인 아이콘(Apple은 iOS만, Google, Naver, Kakao) → 카테고리 칩(2026 / 모의 기출 / 과목별 / 소개) → 공개 콘텐츠 패널.
- * 바뀐 점: 로그인은 Supabase(§7.3, Google·Kakao 브라우저 OAuth). Naver·Apple은 준비 중. 광고 래퍼(AdMob) 제외.
+ * 바뀐 점: 로그인은 모두 Supabase(§7.3) — Apple(iOS 네이티브 → signInWithIdToken), Google·Kakao(브라우저 OAuth),
+ * Naver(naver-auth Edge Function → magiclink). 광고 래퍼(AdMob) 제외.
  * 공개 패널: 2026·모의 기출은 kit ExamSearchPanel 재사용, 과목별(mandatory-section)·소개(info-section)는 아직 미이전.
  */
 import { useState } from 'react';
@@ -56,7 +57,6 @@ export default function WelcomeScreen() {
       setBusy(null);
     }
   };
-  const notReady = (name: string) => setMessage(`${name} 로그인은 준비 중이에요.`);
 
   const panel = () => {
     switch (category) {
@@ -76,7 +76,7 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={styles.oauthRow}>
-        {Platform.OS === 'ios' && <IconButton label="Apple로 로그인" source={icons.apple} onPress={() => notReady('Apple')} />}
+        {Platform.OS === 'ios' && <IconButton label="Apple로 로그인" source={icons.apple} busy={busy === 'apple'} onPress={() => login('apple')} />}
         <IconButton label="Google로 로그인" source={icons.google} busy={busy === 'google'} onPress={() => login('google')} />
         <IconButton label="네이버로 로그인" source={icons.naver} busy={busy === 'naver'} onPress={() => login('naver')} />
         <IconButton label="카카오로 로그인" source={icons.kakao} busy={busy === 'kakao'} onPress={() => login('kakao')} />

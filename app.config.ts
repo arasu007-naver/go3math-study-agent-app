@@ -16,6 +16,7 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: 'com.qoolla.student',
     appleTeamId: '6TW3Y4L9SX', // 기존 앱과 같은 팀(공개 식별자)
+    usesAppleSignIn: true, // Sign in with Apple entitlement(기존 앱과 같음)
     supportsTablet: true,
   },
   android: {
@@ -30,6 +31,7 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-dev-client',
+    'expo-apple-authentication',
     // 태블릿 launch screen 로고: iPad 3배(300pt), Android 태블릿은 SplashScreen 원형 마스크(지름 192dp) 안에 들어가는 최대 144dp.
     // expo-splash-screen보다 앞에 둬야 그 결과를 덮어쓴다(plugins/withTabletSplash.js 주석 참고).
     [
