@@ -6,9 +6,7 @@ import {
     StyleProp,
 } from 'react-native';
 import { WebView, WebViewProps } from 'react-native-webview';
-import Go3MathFetchingIndicator, {
-    Go3MathFetchingIndicatorProps,
-} from './loading-view/fetching-animation';
+import Go3MathLoader, { Go3MathLoaderProps } from './loading-view';
 
 interface QoollaWebViewProps extends WebViewProps {
     /** Style applied to the wrapping View (sizing / positioning). */
@@ -18,22 +16,20 @@ interface QoollaWebViewProps extends WebViewProps {
     /** Backdrop color shown behind the indicator while loading. */
     loadingBackgroundColor?: string;
     /** Override props for the brand fetching indicator (size/offset/duration). */
-    indicatorProps?: Go3MathFetchingIndicatorProps;
+    indicatorProps?: Go3MathLoaderProps;
 }
 
 // Defaults sized for a typical embedded WebView container (smaller than the
 // full-screen indicator). Callers can override per-instance via `indicatorProps`.
-const DEFAULT_INDICATOR_PROPS: Go3MathFetchingIndicatorProps = {
-    logoWidth: 140,
-    logoHeight: 43,
-    offset: 28,
-    duration: 700,
+const DEFAULT_INDICATOR_PROPS: Go3MathLoaderProps = {
+    width: 140,
+    style: { backgroundColor: 'transparent' },
 };
 
 /**
  * Wrapper around `react-native-webview` that:
  *   - defaults `javaScriptEnabled` to `true`
- *   - shows the brand `Go3MathFetchingIndicator` (wave-animated logo) until
+ *   - shows the brand `Go3MathLoader` (scale-pulsing logo) until
  *     `onLoadEnd` fires
  *   - re-shows the indicator when the WebView starts loading again
  *     (navigations, reload(), source change, etc.)
@@ -80,7 +76,7 @@ const QoollaWebView = forwardRef<WebView, QoollaWebViewProps>((props, ref) => {
                     style={[styles.loadingOverlay, { backgroundColor: loadingBackgroundColor }]}
                     pointerEvents="none"
                 >
-                    <Go3MathFetchingIndicator {...DEFAULT_INDICATOR_PROPS} {...indicatorProps} />
+                    <Go3MathLoader {...DEFAULT_INDICATOR_PROPS} {...indicatorProps} />
                 </View>
             )}
         </View>

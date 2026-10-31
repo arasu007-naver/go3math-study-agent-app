@@ -1,13 +1,10 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { blockingStore, localOverlayStore } from '../../../state/blocking';
-import QoollaLogoActivityIndicator from './qoolla-logo-activity-indicator';
+import Go3MathLoader from '.';
 
-// Horizontal wave animation params, sized for a compact overlay bubble.
-const WAVE_OFFSET = 16;
-const WAVE_DURATION = 700;
-const LOGO_WIDTH = 100;
-const LOGO_HEIGHT = 30;
+// Sized for a compact overlay bubble.
+const LOGO_WIDTH = 120;
 
 const GlobalLoadingOverlay = () => {
     const blockingIds = blockingStore.useStore();
@@ -21,13 +18,7 @@ const GlobalLoadingOverlay = () => {
     return (
         <View style={styles.overlay} pointerEvents="none">
             <View style={styles.bubble}>
-                <QoollaLogoActivityIndicator
-                    offset={WAVE_OFFSET}
-                    duration={WAVE_DURATION}
-                    logoWidth={LOGO_WIDTH}
-                    logoHeight={LOGO_HEIGHT}
-                    style={styles.indicator}
-                />
+                <Go3MathLoader width={LOGO_WIDTH} style={styles.indicator} />
             </View>
         </View>
     );
@@ -56,6 +47,8 @@ const styles = StyleSheet.create({
     },
     indicator: {
         flex: 0,
+        paddingVertical: 6,
+        backgroundColor: 'transparent',
     },
 });
 

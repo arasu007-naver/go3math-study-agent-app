@@ -21,7 +21,7 @@ Qoolla 에이전트 주도 수능 수학 학습 앱 (Expo SDK 54, Expo Router). 
 
 ## Supabase 로그인 (§7.3)
 
-- 프로젝트: `eppoiscttggzgcxtukln` (ap-south-1). `.env`(커밋 안 함)에 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`(`ANON_KEY`도 인식). EAS 빌드에는 같은 이름의 EAS 환경변수로 등록한다. service_role/secret 키는 앱에 넣지 않는다.
+- 프로젝트: `eppoiscttggzgcxtukln` (ap-south-1). `.env`(커밋 안 함)에 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`(`ANON_KEY`도 인식), `EXPO_PUBLIC_NAVER_CLIENT_ID`(네이버 공개 client id — Edge Function 시크릿 `NAVER_CLIENT_ID`와 같은 값). EAS 빌드에는 같은 이름의 EAS 환경변수로 등록한다. service_role/secret 키는 앱에 넣지 않는다.
 - 로그인: 카카오·Google은 Supabase 브라우저 OAuth(PKCE) → `com.qoolla.student://auth/callback`. 대시보드 Auth → URL Configuration → Redirect URLs에 `com.qoolla.student://**`를 등록해야 한다.
 - 기존 앱에서 업그레이드한 기기는 MMKV `app-token`이 있으면 로그인 화면을 건너뛴다.
 

@@ -59,12 +59,12 @@
 | `image-dynamic-dims/index.tsx` | 61 | — | — | ✅ | src/kit/ui/image-dynamic-dims.tsx |
 | `image-dynamic-dims/responsive-image.tsx` | 168 | — | — | ⛔ | 원본이 존재하지 않는 './ResponsiveImage'를 import(깨진 파일) |
 | `linking/index.tsx` | 55 |  Ctx Nav | — | ⏳ | M10 기능 동등성(비에이전트 모드 화면과 함께) |
-| `loading-view/fetching-animation.tsx` | 4 | — | — | ✅ | src/kit/ui/loading-view/ |
+| `loading-view/fetching-animation.tsx` | 4 | — | — | ✅ | `Go3MathLoader`(loading-view/index.tsx)로 통일 |
 | `loading-view/global-overlay.tsx` | 61 |  Ctx | — | ✅ | src/kit/ui/loading-view/global-overlay.tsx — AppCtx 대신 blockingStore·localOverlayStore |
-| `loading-view/index.tsx` | 56 | — | react-native-reanimated  | ✅ | src/kit/ui/loading-view/ |
-| `loading-view/qoolla-logo-activity-indicator.tsx` | 83 | — | react-native-reanimated  | ✅ | src/kit/ui/loading-view/ |
+| `loading-view/index.tsx` | 56 | — | react-native-reanimated  | ✅ | src/kit/ui/loading-view/index.tsx — 주황 SVG 로고 가운데 scale 반복, 로딩 뷰 단일화 |
+| `loading-view/qoolla-logo-activity-indicator.tsx` | 83 | — | react-native-reanimated  | ✅ | `Go3MathLoader`로 통일(좌우 흔들림 → scale) |
 | `loading-view/skeleton-placeholder.tsx` | 60 | — | — | ✅ | src/kit/ui/loading-view/ |
-| `loading-view/tablet.tsx` | 56 | — | react-native-reanimated  | ✅ | src/kit/ui/loading-view/ |
+| `loading-view/tablet.tsx` | 56 | — | react-native-reanimated  | ✅ | `Go3MathLoader`로 통일(폭은 deviceMode로) |
 | `logo/index.tsx` | 57 | — | react-native-reanimated react-native-ui-lib  | ⏳ | M10 기능 동등성(비에이전트 모드 화면과 함께) |
 | `logo/tablet-logo.tsx` | 47 | — | react-native-reanimated react-native-ui-lib  | ⏳ | M10 기능 동등성(비에이전트 모드 화면과 함께) |
 | `math-web-view/equ-memo-template.ts` | 74 | — | — | ✅ | src/kit/math/templates/ |
