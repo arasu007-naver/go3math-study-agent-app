@@ -11,7 +11,7 @@ import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
 import { apolloClient } from '../state/bootstrap';
 import { storage } from '../storage';
 
-const topicFetchers = createTopicFetchers(apolloClient);
+export const topicFetchers = createTopicFetchers(apolloClient);
 
 type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
 

@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { logout } from '../auth/logout';
+import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
+import { topicFetchers } from '../host/widgets';
+import { ResearchPanel } from '../kit/research/ResearchPanel';
+import { storage } from '../storage';
 import type { AgentSession, SessionSnapshot } from './session';
 import { InstructionCard } from './InstructionCard';
 import { drawerWidth } from '../layout/deviceMode';
@@ -9,8 +13,11 @@ import { colors } from '../ui/theme';
 
 // 태블릿 모드(§4.5, §4.6): 필요할 때만 왼쪽→오른쪽 drawer, 튜터 메시지는 우상단 toast.
 // 오버레이 루트는 box-none이라 drawer·핸들·toast 밖의 터치는 아래 Stage(캔버스)로 통과한다.
+// drawer 하단 '검색'은 ResearchPanel을 drawer 오른쪽 가운데에 붙은 dock으로 연다(Stage는 그대로).
 export const TOAST_MS = 6400;
 export const TOAST_PREVIEW_CHARS = 30;
+const DOCK_MAX_WIDTH = 640;
+const DOCK_HEIGHT_RATIO = 0.8;
 
 export function toastPreview(text: string): string {
   return text.length > TOAST_PREVIEW_CHARS ? `${text.slice(0, TOAST_PREVIEW_CHARS - 1)}…` : text;
@@ -22,6 +29,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   const ins = state.instruction;
 
   const [open, setOpen] = useState(false);
+  const [dock, setDock] = useState(false);
   const [toastFor, setToastFor] = useState<string | null>(null);
   const [unread, setUnread] = useState(false);
   const seen = useRef<string | null>(null);
@@ -42,6 +50,11 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     if (!ins) setOpen(false);
   }, [ins]);
 
+  // drawer가 닫히면 dock도 닫는다
+  useEffect(() => {
+    if (!open) setDock(false);
+  }, [open]);
+
   const openDrawer = () => {
     setToastFor(null);
     setUnread(false);
@@ -53,6 +66,10 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     Animated.timing(slide, { toValue: open ? 1 : 0, duration: 220, useNativeDriver: true }).start();
   }, [open, slide]);
   const translateX = slide.interpolate({ inputRange: [0, 1], outputRange: [-dw - 16, 0] });
+  const dockWidth = Math.min(DOCK_MAX_WIDTH, width - dw - 24);
+  const dockHeight = Math.round(height * DOCK_HEIGHT_RATIO);
+  // dock은 drawer의 자식이 아니라 형제로 둔다(Android는 부모 밖 자식에 터치가 가지 않음). drawer와 같은 값으로 함께 움직인다.
+  const dockTranslateX = slide.interpolate({ inputRange: [0, 1], outputRange: [-dw - dockWidth - 16, 0] });
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
@@ -99,8 +116,41 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
             </View>
           )}
         </ScrollView>
-        <DrawerFooter session={session} onClose={() => setOpen(false)} />
+        <DrawerFooter
+          session={session}
+          searchOpen={dock}
+          onToggleSearch={() => {
+            if (!dock) session.emit('menu_selected', { menu: 'search' });
+            setDock(!dock);
+          }}
+        />
       </Animated.View>
+
+      {dock && (
+        <Animated.View
+          accessibilityLabel="검색 dock"
+          style={[styles.dock, { left: dw, top: (height - dockHeight) / 2, width: dockWidth, height: dockHeight, transform: [{ translateX: dockTranslateX }] }]}>
+          <View style={styles.dockHead}>
+            <Text style={styles.drawerTitle}>검색</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="검색 닫기" onPress={() => setDock(false)} style={styles.closeBtn}>
+              <Text style={styles.closeText}>×</Text>
+            </Pressable>
+          </View>
+          <ResearchPanel
+            fetchers={topicFetchers}
+            topicSubjects={MATH_TOPIC_SUBJECTS}
+            store={storage}
+            onSubmitSearch={(query) => {
+              setDock(false);
+              session.emit('search_submitted', { query });
+            }}
+            onSelectTopic={(t) => {
+              setDock(false);
+              session.emit('topic_selected', { topicId: Number(t.id), title: t.title, source: 'research' });
+            }}
+          />
+        </Animated.View>
+      )}
 
       {toastFor && ins?.messageId === toastFor && !open && (
         <TutorToast text={ins.text} onPress={openDrawer} onTimeout={() => setToastFor(null)} />
@@ -110,10 +160,9 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
 }
 
 /** drawer 하단 고정 메뉴: 대화 영역(ScrollView) 밖에 있어 스크롤해도 위치가 바뀌지 않는다. */
-function DrawerFooter({ session, onClose }: { session: AgentSession; onClose(): void }) {
-  const items: { label: string; onPress(): void }[] = [
-    // 검색 패널은 Stage에 뜨므로 drawer를 닫아 가리지 않게 한다.
-    { label: '검색', onPress: () => { onClose(); session.emit('menu_selected', { menu: 'search' }); } },
+function DrawerFooter({ session, searchOpen, onToggleSearch }: { session: AgentSession; searchOpen: boolean; onToggleSearch(): void }) {
+  const items: { label: string; onPress(): void; on?: boolean }[] = [
+    { label: '검색', onPress: onToggleSearch, on: searchOpen },
     { label: '공지', onPress: () => session.emit('menu_selected', { menu: 'notice' }) },
     { label: '내 정보 관리', onPress: () => router.push('/profile') },
     { label: '로그 아웃', onPress: () => void logout() },
@@ -121,7 +170,12 @@ function DrawerFooter({ session, onClose }: { session: AgentSession; onClose(): 
   return (
     <View style={styles.footer}>
       {items.map((it) => (
-        <Pressable key={it.label} accessibilityRole="button" onPress={it.onPress} style={({ pressed }) => [styles.footerBtn, pressed && { opacity: 0.6 }]}>
+        <Pressable
+          key={it.label}
+          accessibilityRole="button"
+          accessibilityState={it.on !== undefined ? { selected: it.on } : undefined}
+          onPress={it.onPress}
+          style={({ pressed }) => [styles.footerBtn, it.on && styles.footerBtnOn, pressed && { opacity: 0.6 }]}>
           <Text style={styles.footerText}>{it.label}</Text>
         </Pressable>
       ))}
@@ -204,7 +258,25 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   footer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.agent },
   footerBtn: { flexGrow: 1, flexBasis: '45%', minHeight: 44, borderRadius: 22, borderWidth: 0, backgroundColor: '#E5E5E5', alignItems: 'center', justifyContent: 'center' },
+  footerBtnOn: { backgroundColor: colors.agent },
   footerText: { fontSize: 14, color: colors.text },
+  dock: {
+    position: 'absolute',
+    paddingTop: 8,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderColor: colors.agent,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 6, height: 0 },
+    elevation: 11,
+  },
+  dockHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
   history: { gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 12 },
   historyTitle: { fontSize: 12, fontWeight: '700', color: colors.muted },
   historyItem: { fontSize: 14, color: '#3F3F46' },
