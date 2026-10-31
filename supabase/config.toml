@@ -1,0 +1,7 @@
+# Supabase CLI Local / Deployment Configuration for go3math-study-agent-app
+
+[functions.naver-auth]
+enabled = true
+verify_jwt = false
+import_map = "./functions/naver-auth/deno.json"
+entrypoint = "./functions/naver-auth/index.ts"

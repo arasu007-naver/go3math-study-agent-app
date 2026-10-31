@@ -77,7 +77,7 @@ export default function WelcomeScreen() {
       <View style={styles.oauthRow}>
         {Platform.OS === 'ios' && <IconButton label="Apple로 로그인" source={icons.apple} onPress={() => notReady('Apple')} />}
         <IconButton label="Google로 로그인" source={icons.google} busy={busy === 'google'} onPress={() => login('google')} />
-        <IconButton label="네이버로 로그인" source={icons.naver} onPress={() => notReady('네이버')} />
+        <IconButton label="네이버로 로그인" source={icons.naver} busy={busy === 'naver'} onPress={() => login('naver')} />
         <IconButton label="카카오로 로그인" source={icons.kakao} busy={busy === 'kakao'} onPress={() => login('kakao')} />
       </View>
       {message && <Text style={styles.message}>{message}</Text>}
