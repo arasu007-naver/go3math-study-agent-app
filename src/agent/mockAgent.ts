@@ -47,8 +47,8 @@ export class MockAgentTransport implements Transport {
         break;
       case 'menu_selected':
         if (evt.payload.menu === 'search') {
-          this.cmd('show_component', { componentId: 'exam_search', props: { mode: 'this_year' } });
-          this.say('검색 조건을 고르고 "가자"를 눌러 주세요.', [], 'info');
+          // 안내(say)는 보내지 않는다 — 새 instruction이 drawer를 다시 열어 검색 패널을 가리기 때문.
+          this.cmd('show_component', { componentId: 'research', props: {} });
         } else {
           this.say('공지 화면은 준비 중이에요.', [], 'info');
         }

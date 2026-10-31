@@ -4,6 +4,7 @@ import type { AgentSession } from '../agent/session';
 import { createTopicFetchers } from '../adapters/topicFetchers';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { ExamSearchPanel, type ExamSearchMode } from '../kit/exam-search/ExamSearchPanel';
+import { ResearchPanel, type ResearchCategory } from '../kit/research/ResearchPanel';
 import type { ExamSelection } from '../kit/exam-search/query';
 import { TopicTabsPanel } from '../kit/topic-panel/TopicTabsPanel';
 import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
@@ -50,8 +51,22 @@ function ExamSearchWidget({ props, session }: WidgetProps) {
   );
 }
 
+function ResearchWidget({ props, session }: WidgetProps) {
+  return (
+    <ResearchPanel
+      fetchers={topicFetchers}
+      topicSubjects={MATH_TOPIC_SUBJECTS}
+      store={storage}
+      initialCategory={props.category as ResearchCategory | undefined}
+      onSubmitSearch={(query) => session.emit('search_submitted', { query })}
+      onSelectTopic={(t) => session.emit('topic_selected', { topicId: Number(t.id), title: t.title, source: 'research' })}
+    />
+  );
+}
+
 export const widgets: Record<string, (p: WidgetProps) => ReactElement> = {
   topic_list: TopicListWidget,
   problem_preview: ProblemPreviewWidget,
   exam_search: ExamSearchWidget,
+  research: ResearchWidget,
 };

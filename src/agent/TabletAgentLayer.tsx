@@ -99,7 +99,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
             </View>
           )}
         </ScrollView>
-        <DrawerFooter session={session} />
+        <DrawerFooter session={session} onClose={() => setOpen(false)} />
       </Animated.View>
 
       {toastFor && ins?.messageId === toastFor && !open && (
@@ -110,9 +110,10 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
 }
 
 /** drawer 하단 고정 메뉴: 대화 영역(ScrollView) 밖에 있어 스크롤해도 위치가 바뀌지 않는다. */
-function DrawerFooter({ session }: { session: AgentSession }) {
+function DrawerFooter({ session, onClose }: { session: AgentSession; onClose(): void }) {
   const items: { label: string; onPress(): void }[] = [
-    { label: '검색', onPress: () => session.emit('menu_selected', { menu: 'search' }) },
+    // 검색 패널은 Stage에 뜨므로 drawer를 닫아 가리지 않게 한다.
+    { label: '검색', onPress: () => { onClose(); session.emit('menu_selected', { menu: 'search' }); } },
     { label: '공지', onPress: () => session.emit('menu_selected', { menu: 'notice' }) },
     { label: '내 정보 관리', onPress: () => router.push('/profile') },
     { label: '로그 아웃', onPress: () => void logout() },

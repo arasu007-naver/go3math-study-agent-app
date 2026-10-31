@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { DeviceMode } from '../layout/deviceMode';
 
 // 명세서 §4.4: show_component는 registry에 있는 id만 허용하고 props를 zod로 검증한다.
-// M3: topic_list / problem_preview / exam_search가 kit 패널 + 실데이터(조회 전용)로 동작한다. 나머지 id는 unsupported.
+// M3: topic_list / problem_preview / exam_search / research가 kit 패널 + 실데이터(조회 전용)로 동작한다. 나머지 id는 unsupported.
 export type RegistryEntry = { propsSchema: z.ZodTypeAny; mode: 'both' | DeviceMode };
 
 export const registry: Record<string, RegistryEntry> = {
@@ -32,6 +32,11 @@ export const registry: Record<string, RegistryEntry> = {
         .partial()
         .optional(),
     }),
+  },
+  // 검색 카테고리 칩 + 세부 선택(기존 research 화면). drawer '검색' 메뉴에 에이전트가 띄운다.
+  research: {
+    mode: 'both',
+    propsSchema: z.object({ category: z.enum(['recent', 'pre', 'mentor']).optional() }),
   },
 };
 

@@ -36,6 +36,7 @@ export const SayCmdSchema = envelope(
 export const COMPONENT_IDS = [
   'topic_list',
   'exam_search',
+  'research',
   'problem_preview',
   'record_calendar',
   'study_timeline',
@@ -96,7 +97,7 @@ export type AppEventPayloads = {
   ack: { ok: boolean; stage: 'received' | 'applied' | 'failed'; code?: AckCode; message?: string };
   choice_selected: { messageId: string; choiceId: string };
   student_text: { text: string };
-  topic_selected: { topicId: number; title?: string; source: 'topic_list' | 'exam_search' };
+  topic_selected: { topicId: number; title?: string; source: 'topic_list' | 'exam_search' | 'research' };
   unit_selected: { topicId: number; unitIdx: number };
   // §4.4 exam_search 위젯 이벤트. 과제 생성·문제 조회는 서버가 이 쿼리로 수행한다.
   search_submitted: {
