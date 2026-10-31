@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { router } from 'expo-router';
+import { createNoticeFetchers } from '../adapters/noticeFetchers';
 import { logout } from '../auth/logout';
+import { useMyInfo } from '../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { topicFetchers } from '../host/widgets';
+import { NoticesPanel } from '../kit/notices/NoticesPanel';
+import { MyInfoPanel } from '../kit/profile/MyInfoPanel';
 import { ResearchPanel } from '../kit/research/ResearchPanel';
+import { apolloClient } from '../state/bootstrap';
 import { storage } from '../storage';
 import type { AgentSession, SessionSnapshot } from './session';
 import { InstructionCard } from './InstructionCard';
@@ -13,11 +17,15 @@ import { colors } from '../ui/theme';
 
 // 태블릿 모드(§4.5, §4.6): 필요할 때만 왼쪽→오른쪽 drawer, 튜터 메시지는 우상단 toast.
 // 오버레이 루트는 box-none이라 drawer·핸들·toast 밖의 터치는 아래 Stage(캔버스)로 통과한다.
-// drawer 하단 '검색'은 ResearchPanel을 drawer 오른쪽 가운데에 붙은 dock으로 연다(Stage는 그대로).
+// drawer 하단 '검색'·'공지'·'내 정보 관리'는 해당 패널을 drawer 오른쪽 가운데에 붙은 dock으로 연다(Stage는 그대로).
 export const TOAST_MS = 6400;
 export const TOAST_PREVIEW_CHARS = 30;
 const DOCK_MAX_WIDTH = 640;
 const DOCK_HEIGHT_RATIO = 0.8;
+
+export type DockKind = 'search' | 'notice' | 'profile';
+const DOCK_TITLES: Record<DockKind, string> = { search: '검색', notice: '공지', profile: '내 정보' };
+const noticeFetchers = createNoticeFetchers(apolloClient);
 
 export function toastPreview(text: string): string {
   return text.length > TOAST_PREVIEW_CHARS ? `${text.slice(0, TOAST_PREVIEW_CHARS - 1)}…` : text;
@@ -29,7 +37,8 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   const ins = state.instruction;
 
   const [open, setOpen] = useState(false);
-  const [dock, setDock] = useState(false);
+  const [dock, setDock] = useState<DockKind | null>(null);
+  const myInfo = useMyInfo();
   const [toastFor, setToastFor] = useState<string | null>(null);
   const [unread, setUnread] = useState(false);
   const seen = useRef<string | null>(null);
@@ -52,7 +61,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
 
   // drawer가 닫히면 dock도 닫는다
   useEffect(() => {
-    if (!open) setDock(false);
+    if (!open) setDock(null);
   }, [open]);
 
   const openDrawer = () => {
@@ -117,38 +126,41 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
           )}
         </ScrollView>
         <DrawerFooter
-          session={session}
-          searchOpen={dock}
-          onToggleSearch={() => {
-            if (!dock) session.emit('menu_selected', { menu: 'search' });
-            setDock(!dock);
+          dock={dock}
+          onToggleDock={(kind) => {
+            if (dock === kind) return setDock(null);
+            // 검색·공지는 학습 흐름에 속하므로 에이전트에 알린다(프로토콜 menu_selected). 내 정보는 앱 안에서만.
+            if (kind !== 'profile') session.emit('menu_selected', { menu: kind });
+            setDock(kind);
           }}
         />
       </Animated.View>
 
       {dock && (
         <Animated.View
-          accessibilityLabel="검색 dock"
+          accessibilityLabel={`${DOCK_TITLES[dock]} dock`}
           style={[styles.dock, { left: dw, top: (height - dockHeight) / 2, width: dockWidth, height: dockHeight, transform: [{ translateX: dockTranslateX }] }]}>
           <View style={styles.dockHead}>
-            <Text style={styles.drawerTitle}>검색</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="검색 닫기" onPress={() => setDock(false)} style={styles.closeBtn}>
+            <Text style={styles.drawerTitle}>{DOCK_TITLES[dock]}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel={`${DOCK_TITLES[dock]} 닫기`} onPress={() => setDock(null)} style={styles.closeBtn}>
               <Text style={styles.closeText}>×</Text>
             </Pressable>
           </View>
-          <ResearchPanel
+          {dock === 'notice' && <NoticesPanel fetchers={noticeFetchers} />}
+          {dock === 'profile' && <MyInfoPanel info={myInfo} onSignOut={() => void logout()} />}
+          {dock === 'search' && <ResearchPanel
             fetchers={topicFetchers}
             topicSubjects={MATH_TOPIC_SUBJECTS}
             store={storage}
             onSubmitSearch={(query) => {
-              setDock(false);
+              setDock(null);
               session.emit('search_submitted', { query });
             }}
             onSelectTopic={(t) => {
-              setDock(false);
+              setDock(null);
               session.emit('topic_selected', { topicId: Number(t.id), title: t.title, source: 'research' });
             }}
-          />
+          />}
         </Animated.View>
       )}
 
@@ -160,11 +172,11 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
 }
 
 /** drawer 하단 고정 메뉴: 대화 영역(ScrollView) 밖에 있어 스크롤해도 위치가 바뀌지 않는다. */
-function DrawerFooter({ session, searchOpen, onToggleSearch }: { session: AgentSession; searchOpen: boolean; onToggleSearch(): void }) {
+function DrawerFooter({ dock, onToggleDock }: { dock: DockKind | null; onToggleDock(kind: DockKind): void }) {
   const items: { label: string; onPress(): void; on?: boolean }[] = [
-    { label: '검색', onPress: onToggleSearch, on: searchOpen },
-    { label: '공지', onPress: () => session.emit('menu_selected', { menu: 'notice' }) },
-    { label: '내 정보 관리', onPress: () => router.push('/profile') },
+    { label: '검색', onPress: () => onToggleDock('search'), on: dock === 'search' },
+    { label: '공지', onPress: () => onToggleDock('notice'), on: dock === 'notice' },
+    { label: '내 정보 관리', onPress: () => onToggleDock('profile'), on: dock === 'profile' },
     { label: '로그 아웃', onPress: () => void logout() },
   ];
   return (

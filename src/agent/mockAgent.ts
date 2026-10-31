@@ -50,7 +50,7 @@ export class MockAgentTransport implements Transport {
           // 검색 패널은 앱이 drawer 옆 dock으로 연다. drawer가 열려 있으므로 안내만 바꾼다.
           this.say('검색 조건을 고르고 "가자"를 누르거나, 주제/묶음에서 주제를 골라 주세요.', [], 'info');
         } else {
-          this.say('공지 화면은 준비 중이에요.', [], 'info');
+          this.say('공지 사항을 확인해 보세요.', [], 'info');
         }
         break;
       case 'search_submitted': {
