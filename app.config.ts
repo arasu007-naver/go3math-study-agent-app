@@ -1,9 +1,9 @@
 import type { ExpoConfig } from 'expo/config';
 
 // 명세서 §3.3.2. 비밀값은 process.env / EAS 환경변수로만 주입한다.
-// TODO(v0.4.4): 아이콘·스플래시·표시 이름은 기존 앱 자산으로 교체 (현재는 Expo 템플릿 자산).
+// v0.4.4: 아이콘은 기존 앱 AppIcon 1024.png 그대로(Android도 기존처럼 비-adaptive 아이콘). 표시 이름 'Go3 Math'. TODO: 스플래시 교체.
 const config: ExpoConfig = {
-  name: 'Qoolla',
+  name: 'Go3 Math', // 홈 화면 표시 이름(iOS CFBundleDisplayName · Android app_name)
   slug: 'go3-math-brand-new-error',
   owner: 'arasu0070',
   version: '3.0.0',
@@ -15,16 +15,11 @@ const config: ExpoConfig = {
   // orientation 미지정(v0.4.3): 앱 전역 방향 고정 없음
   ios: {
     bundleIdentifier: 'com.qoolla.student',
+    appleTeamId: '6TW3Y4L9SX', // 기존 앱과 같은 팀(공개 식별자)
     supportsTablet: true,
   },
   android: {
     package: 'com.qoolla.student',
-    adaptiveIcon: {
-      backgroundColor: '#E6F4FE',
-      foregroundImage: './assets/images/android-icon-foreground.png',
-      backgroundImage: './assets/images/android-icon-background.png',
-      monochromeImage: './assets/images/android-icon-monochrome.png',
-    },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
   },
