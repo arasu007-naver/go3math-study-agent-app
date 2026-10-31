@@ -1,7 +1,7 @@
 import type { ExpoConfig } from 'expo/config';
 
 // 명세서 §3.3.2. 비밀값은 process.env / EAS 환경변수로만 주입한다.
-// v0.4.4: 아이콘은 기존 앱 AppIcon 1024.png 그대로(Android도 기존처럼 비-adaptive 아이콘). 표시 이름 'Go3 Math'. TODO: 스플래시 교체.
+// v0.4.4: 아이콘은 기존 앱 AppIcon 1024.png 그대로(Android도 기존처럼 비-adaptive 아이콘). 표시 이름 'Go3 Math', 스플래시 로고는 기존 assets/bootsplash/logo@4x.png.
 const config: ExpoConfig = {
   name: 'Go3 Math', // 홈 화면 표시 이름(iOS CFBundleDisplayName · Android app_name)
   slug: 'go3-math-brand-new-error',
@@ -34,7 +34,7 @@ const config: ExpoConfig = {
       'expo-splash-screen',
       {
         image: './assets/images/splash-icon.png',
-        imageWidth: 200,
+        imageWidth: 100, // 기존 BootSplash 로고 100×86pt, 흰 바탕 가운데
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
       },
