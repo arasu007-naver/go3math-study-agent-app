@@ -4,8 +4,9 @@ import { widgets } from './widgets';
 import { colors } from '../ui/theme';
 
 const logo = require('../../assets/images/welcome/go3math-one-line-logo.png');
+const emptyLogo = require('../../assets/images/splash-icon.png'); // launch screen과 같은 로고(400×342)
 
-// 콘텐츠 영역(컴포넌트 호스트). 한 시점에 위젯 1개, 에이전트 명령으로만 교체된다(§4.1).
+// 콘텐츠 영역(컴포넌트 호스트). 한 시점에 위젯 1개, 에이전트 명령으로만 교체된다(§4.1). 위젯이 없으면 가운데 로고만 보인다.
 export function Stage({ state, session }: { state: SessionSnapshot; session: AgentSession }) {
   const view = state.stage;
   const Widget = view ? widgets[view.componentId] : undefined;
@@ -32,7 +33,9 @@ export function Stage({ state, session }: { state: SessionSnapshot; session: Age
         {Widget && view ? (
           <Widget props={view.props} session={session} />
         ) : (
-          <Text style={styles.empty}>{state.connected ? '에이전트가 준비 중이에요…' : '에이전트에 연결하는 중…'}</Text>
+          <View style={styles.empty}>
+            <Image source={emptyLogo} resizeMode="contain" style={styles.emptyLogo} accessibilityLabel="Go3Math" />
+          </View>
         )}
       </View>
     </View>
@@ -49,5 +52,6 @@ const styles = StyleSheet.create({
   status: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   fallback: { margin: 12, padding: 12, borderRadius: 8, backgroundColor: '#FEF3C7', color: colors.text, fontSize: 14 },
   body: { flex: 1 },
-  empty: { padding: 24, fontSize: 14, color: colors.muted },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyLogo: { width: 200, height: 200 * (342 / 400) },
 });

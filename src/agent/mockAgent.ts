@@ -81,7 +81,6 @@ export class MockAgentTransport implements Transport {
       { id: 'pick_topic', label: '주제 목록에서 고르기' },
       { id: 'search_exam', label: '10월 모의고사 검색' },
     ]);
-    this.showTopics();
   }
 
   private onChoice(choiceId: string) {
