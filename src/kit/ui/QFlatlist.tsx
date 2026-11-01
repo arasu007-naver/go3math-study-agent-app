@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { colors, type } from '../../ui/theme';
 import {
     FlatList,
     View,
@@ -112,9 +113,8 @@ const styles = StyleSheet.create({
         zIndex: 9999,
     },
     toastText: {
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 14,
+        color: colors.onAccent,
+        ...type.bodyStrong,
     },
 });
 

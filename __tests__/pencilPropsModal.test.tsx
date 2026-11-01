@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { PaperProvider } from 'react-native-paper';
 import PencilPropsModal from '../src/kit/canvas/note-canvas/pencil-props-modal';
 
 const initialMetrics = {
@@ -13,9 +12,7 @@ const initialMetrics = {
 const renderWithProviders = (ui: React.ReactElement) => {
     return render(
         <SafeAreaProvider initialMetrics={initialMetrics}>
-            <PaperProvider>
-                {ui}
-            </PaperProvider>
+            {ui}
         </SafeAreaProvider>
     );
 };

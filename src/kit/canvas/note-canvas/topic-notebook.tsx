@@ -6,7 +6,6 @@
 
 import { useContext, FC, forwardRef, useEffect, useState, useRef, useImperativeHandle, useMemo } from "react";
 import {
-    ScrollView,
     StatusBar,
     StyleSheet,
     View, Image, Dimensions,
@@ -20,7 +19,9 @@ import QoollaWebView from '../../ui/web-view';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { Modal as PaperModal, Portal } from 'react-native-paper';
 import PencilPropsModal from './pencil-props-modal';
-import { colors, radius, shadow } from '../../../ui/theme';
+import { colors, radius, shadow, type } from '../../../ui/theme';
+import { CanvasChrome, canvasTool } from '../CanvasChrome';
+import { canvasStyles } from './canvasStyles';
 import ReactNativeBlobUtil from 'react-native-blob-util'
 import GoButton from '../../ui/go-button';
 import topicCanvasTemplate from '../templates/topic-canvas-template';
@@ -375,12 +376,6 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
         <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
                 <Portal>
-                    <PencilPropsModal
-                        visible={visiblePencilProps}
-                        onDismiss={hidePencilPropsModal}
-                        renderWidthOptions={drawPencilWidthOptions}
-                        renderColorOptions={drawPencilColorOptions}
-                    />
                     <PaperModal visible={isToastVisible} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 720, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: colors.card, borderRadius: radius.lg, ...shadow.float }}>
                         <View style={{ flex: 1 }}>
                             {popupUrl && (
@@ -405,40 +400,7 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                         </View>
                     </PaperModal>
                 </Portal>
-                <ScrollView
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false} // 스크롤바 숨기기 (선택 사항)
-                    contentContainerStyle={styles.buttonContainerStyle}
-                    style={styles.horizontalScrollView}
-                >
-                    <GoButton onPress={() => {
-                        setVisiblePencilProps(true);
-                    }} title={canvasStrokeColor + ' : ' + canvasStrokeWidth}
-                        color={canvasStrokeColor}
-                        textColor={canvasStrokeColor}
-                        rippleColor={canvasStrokeColor}
-                        style={{ marginRight: 12 }}
-                    />
-                    <GoButton title={'보드 지우기'}
-                        onPress={() => {
-                            sendBoardAction({
-                                actionType: "RESET"
-                            })
-                        }} />
-                    <GoButton title={'내 필기 지우기'}
-                        onPress={() => {
-                            sendBoardAction({
-                                actionType: "ERASE_WRITTEN"
-                            })
-                        }} />
-                    <GoButton title={'풀이 올리기'} onPress={() => {
-                        sendBoardAction({
-                            actionType: "SAVE"
-                        })
-                    }} />
-
-                </ScrollView>
-                <View style={{ flex: 1, width: width, padding: 3, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }} >
+                <View style={[canvasStyles.frame, { width: width }]} >
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['*']}
@@ -465,6 +427,23 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                     }}
                     style={styles.fixedDrawerButton} // 스타일 적용
                 />}
+                {/* 기존 상단 버튼 줄을 하단 가운데 떠 있는 툴바로 옮겼다(design-spec P2-1). 부르는 함수·액션은 같다. */}
+                <CanvasChrome
+                    tools={[canvasTool('color', `펜 색·굵기 (${canvasStrokeColor} : ${canvasStrokeWidth})`), canvasTool('clearBoard', '보드 지우기'), canvasTool('clearMemo', '내 필기 지우기'), canvasTool('save', '풀이 올리기')]}
+                    strokeColor={canvasStrokeColor}
+                    onSelectTool={(id) => {
+                        if (id === 'color') setVisiblePencilProps(true);
+                        else if (id === 'clearBoard') sendBoardAction({ actionType: "RESET" });
+                        else if (id === 'clearMemo') sendBoardAction({ actionType: "ERASE_WRITTEN" });
+                        else if (id === 'save') sendBoardAction({ actionType: "SAVE" });
+                    }}>
+                    <PencilPropsModal
+                        visible={visiblePencilProps}
+                        onDismiss={hidePencilPropsModal}
+                        renderWidthOptions={drawPencilWidthOptions}
+                        renderColorOptions={drawPencilColorOptions}
+                    />
+                </CanvasChrome>
 
             </View>
         </View>
@@ -526,7 +505,7 @@ const styles = StyleSheet.create({
     },
     emptyListStyle: {
         padding: 10,
-        fontSize: 18,
+        ...type.heading,
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100%',
@@ -539,7 +518,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5',
     },
     header: {
-        fontSize: 24,
+        ...type.heading,
         fontWeight: 'bold',
         marginBottom: 20,
         textAlign: 'center',
@@ -566,7 +545,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between', // Pushes the button to the bottom
     },
     dialogTitle: {
-        fontSize: 18,
+        ...type.heading,
         fontWeight: 'bold',
         marginBottom: 10,
         backgroundColor: 'white'

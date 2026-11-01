@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 import { colors, layout, motion, radius, shadow, space, type } from '../../ui/theme';
@@ -31,11 +31,17 @@ export function DrawerFooter({ active, onPress }: { active: DockKind | null; onP
   const activeIdx = FOOTER_ITEMS.findIndex((it) => it.kind === active);
 
   const x = useSharedValue(0);
+  const placed = useRef(false);
   useEffect(() => {
     if (activeIdx < 0 || !segW) return;
     const to = space.xxs + activeIdx * segW;
-    x.value = reduce ? to : withSpring(to, motion.spring);
+    // 처음 나타날 때(폭을 처음 잴 때·비활성에서 활성으로)는 제자리에 두고, 칸을 옮길 때만 spring으로 움직인다
+    x.value = reduce || !placed.current ? to : withSpring(to, motion.spring);
+    placed.current = true;
   }, [activeIdx, segW, reduce, x]);
+  useEffect(() => {
+    if (activeIdx < 0) placed.current = false;
+  }, [activeIdx]);
   const pillStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
 
   return (

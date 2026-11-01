@@ -2,10 +2,11 @@
  * 재생 툴바 — 기존 `pages/notebook/topic-note/components/PlaybackToolbar.tsx` 이식.
  * 바뀐 점: navigation.goBack() 대신 onExit 콜백(에이전트 주도라 back_requested로 올림),
  * 모듈 레벨 Dimensions 폭 대신 부모 폭을 따르는 레이아웃.
+ * design-spec P2-1: 버튼 줄은 PlaybackControls로 분리했고, PlaybackToolbar는 FloatingToolbar 재생 모드를 감싸는 호환 래퍼다.
  */
 import type { FC } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FloatingToolbar } from '../canvas/FloatingToolbar';
 import GoButton from '../ui/go-button';
 import { sleep } from './useScriptPlayer';
 
@@ -24,7 +25,8 @@ type Props = {
   onShowWorkouts: () => void;
 };
 
-export const PlaybackToolbar: FC<Props> = ({
+/** 재생 버튼 줄(컨테이너 스타일 없음) — FloatingToolbar의 재생 모드가 그대로 담는다 */
+export const PlaybackControls: FC<Props> = ({
   startIdx,
   currentCutIdx,
   subCutMode,
@@ -38,8 +40,6 @@ export const PlaybackToolbar: FC<Props> = ({
   onPlay,
   onShowWorkouts,
 }) => {
-  const insets = useSafeAreaInsets();
-
   const exitFeedbackMode = async () => {
     if (feedbackMode) {
       setFeedbackMode(false);
@@ -48,11 +48,7 @@ export const PlaybackToolbar: FC<Props> = ({
   };
 
   return (
-    <ScrollView
-      horizontal={true}
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.buttonContainerStyle}
-      style={[styles.horizontalScrollView, { marginBottom: Math.max(insets.bottom, 12) }]}>
+    <>
       <GoButton title={'나가기'} onPress={onExit} />
       <GoButton title={'내 이전 풀이'} onPress={onShowWorkouts} />
       <GoButton
@@ -83,11 +79,11 @@ export const PlaybackToolbar: FC<Props> = ({
           onPlay();
         }}
       />
-    </ScrollView>
+    </>
   );
 };
 
-const styles = StyleSheet.create({
-  buttonContainerStyle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', flexGrow: 1 },
-  horizontalScrollView: { maxHeight: 48, height: 36, padding: 3, alignSelf: 'stretch', marginHorizontal: 16 },
-});
+export const PlaybackToolbar: FC<Props> = (props) => {
+  const insets = useSafeAreaInsets();
+  return <FloatingToolbar mode="playback" playback={props} insets={{ left: 0, right: 0, bottom: insets.bottom }} />;
+};

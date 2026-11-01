@@ -13,12 +13,12 @@ const emptyLogo = require('../../assets/images/splash-icon.png'); // launch scre
 export function Stage({ state, session }: { state: SessionSnapshot; session: AgentSession }) {
   const view = state.stage;
   const Widget = view ? widgets[view.componentId] : undefined;
-  // 태블릿에서 drawer를 접으면 왼쪽에 레일이 남으므로 헤더(로고)를 레일 오른쪽으로 민다
+  // 태블릿에서 drawer를 접으면 왼쪽에 레일이 남으므로 Stage(헤더·문제 목록)를 레일 오른쪽으로 민다
   const mode = useDeviceMode();
 
   return (
-    <View style={styles.root}>
-      <View style={[styles.header, mode === 'tablet' && styles.headerTablet]}>
+    <View style={[styles.root, mode === 'tablet' && styles.rootTablet]}>
+      <View style={styles.header}>
         <View style={styles.title}>
           <Image source={logo} resizeMode="contain" style={styles.logo} accessibilityLabel="Go3Math" />
         </View>
@@ -41,7 +41,7 @@ export function Stage({ state, session }: { state: SessionSnapshot; session: Age
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface },
   header: { height: layout.headerH, flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.md, backgroundColor: 'transparent' },
-  headerTablet: { paddingLeft: layout.gutter * 2 + layout.chatRail },
+  rootTablet: { paddingLeft: layout.gutter + layout.chatRail },
   title: { flex: 1, paddingLeft: 4 },
   logo: { height: 32, width: 32 * (987 / 242) },
   status: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },

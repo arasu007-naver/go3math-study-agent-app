@@ -14,8 +14,9 @@ import { ExamSearchPanel } from '@/src/kit/exam-search/ExamSearchPanel';
 import { useDeviceMode } from '@/src/layout/deviceMode';
 import { storage } from '@/src/storage';
 import { uiStore } from '@/src/state/ui';
+import { colors, type } from '@/src/ui/theme';
 
-const ORANGE = 'orange';
+const ORANGE = colors.accent;
 const logo = require('@/assets/images/welcome/go3math-one-line-logo.png');
 const icons = {
   apple: require('@/assets/images/welcome/apple.png'),
@@ -124,12 +125,12 @@ const styles = StyleSheet.create({
   oauthRow: { height: 72, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   iconBtn: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
   icon: { width: 48, height: 48, resizeMode: 'contain' },
-  message: { fontSize: 13, color: '#B45309', paddingHorizontal: 16, textAlign: 'center' },
+  message: { ...type.body, color: colors.accentText, paddingHorizontal: 16, textAlign: 'center' },
   chips: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
   chip: { minHeight: 36, minWidth: 64, paddingHorizontal: 14, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  chipText: { fontSize: 14, color: '#18181B' },
-  panel: { flex: 1, alignSelf: 'stretch', marginHorizontal: 12, marginBottom: 8, borderRadius: 9, borderWidth: 1, borderColor: ORANGE, overflow: 'hidden' },
-  pending: { padding: 24, fontSize: 14, color: '#52525B' },
+  chipText: { ...type.body, color: colors.text },
+  panel: { flex: 1, alignSelf: 'stretch', marginHorizontal: 12, marginBottom: 8, borderRadius: 9, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' },
+  pending: { padding: 24, ...type.body, color: colors.muted },
   devSkip: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  devSkipText: { fontSize: 13, color: '#52525B', textDecorationLine: 'underline' },
+  devSkipText: { ...type.body, color: colors.muted, textDecorationLine: 'underline' },
 });
