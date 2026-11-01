@@ -1,8 +1,7 @@
 /**
  * Welcome(로그인) 화면 — 기존 `pages/welcome/index.tsx` 구성을 따른다:
  * 로고 배너 → 소셜 로그인 아이콘(Apple은 iOS만, Google, Naver, Kakao) → 카테고리 칩(2026 / 모의 기출 / 과목별 / 소개) → 공개 콘텐츠 패널.
- * 바뀐 점: 로그인은 모두 Supabase(§7.3) — Apple(iOS 네이티브 → signInWithIdToken), Google·Kakao(브라우저 OAuth),
- * Naver(Supabase 커스텀 provider custom:naver). 광고 래퍼(AdMob) 제외.
+ * 로그인은 기존 앱과 같음 — 각 네이티브 SDK 토큰을 www.qoolla.com /api/hello로 교환(src/auth/oauth.ts). 광고 래퍼(AdMob) 제외.
  * 공개 패널: 2026·모의 기출은 kit ExamSearchPanel 재사용, 과목별(mandatory-section)·소개(info-section)는 아직 미이전.
  */
 import { useState } from 'react';
@@ -10,7 +9,6 @@ import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Text, View, 
 import { Redirect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithProvider, type OAuthProvider } from '@/src/auth/oauth';
-import { isSupabaseConfigured } from '@/src/auth/supabase';
 import { devGuestStore, useAuthGate } from '@/src/auth/useAuthGate';
 import { ExamSearchPanel } from '@/src/kit/exam-search/ExamSearchPanel';
 import { useDeviceMode } from '@/src/layout/deviceMode';
@@ -45,7 +43,6 @@ export default function WelcomeScreen() {
   if (gate === 'signedIn') return <Redirect href="/" />;
 
   const login = async (provider: OAuthProvider) => {
-    if (!isSupabaseConfigured) return setMessage('Supabase 설정(EXPO_PUBLIC_SUPABASE_URL / PUBLISHABLE_KEY)이 없어요.');
     setBusy(provider);
     setMessage(null);
     try {

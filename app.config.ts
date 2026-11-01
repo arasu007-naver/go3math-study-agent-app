@@ -32,6 +32,10 @@ const config: ExpoConfig = {
     'expo-router',
     'expo-dev-client',
     'expo-apple-authentication',
+    // 소셜 로그인 SDK — 기존 앱(qoolla-student-app)과 같은 앱 키·URL 스킴(공개 식별자)
+    ['@react-native-seoul/kakao-login', { kakaoAppKey: 'c1097c6dc3f50d32de009614c4d7071a' }],
+    ['@react-native-seoul/naver-login', { urlScheme: 'com.qoolla.student' }],
+    ['@react-native-google-signin/google-signin', { iosUrlScheme: 'com.googleusercontent.apps.121794604621-3pqp7qd3tea1mpvhlo1ma4vd34r11r55' }],
     // 태블릿 launch screen 로고: iPad 3배(300pt), Android 태블릿은 SplashScreen 원형 마스크(지름 192dp) 안에 들어가는 최대 144dp.
     // expo-splash-screen보다 앞에 둬야 그 결과를 덮어쓴다(plugins/withTabletSplash.js 주석 참고).
     [

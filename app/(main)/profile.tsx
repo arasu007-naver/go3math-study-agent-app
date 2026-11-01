@@ -2,18 +2,15 @@ import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logout } from '@/src/auth/logout';
-import { supabaseAuthStore } from '@/src/auth/supabase';
 import { devGuestStore } from '@/src/auth/useAuthGate';
 import { authStore } from '@/src/state/auth';
 import { colors } from '@/src/ui/theme';
 
 // 내 정보 관리(최소): 로그인 방식 확인과 로그아웃. 프로필 변경 등은 M10.
 export default function ProfileScreen() {
-  const sb = supabaseAuthStore.useStore();
   const legacy = authStore.useStore();
   const guest = devGuestStore.useStore();
-  const user = sb.session?.user;
-  const via = user ? `Supabase (${user.app_metadata?.provider ?? '?'})` : legacy.appToken ? '기존 앱 토큰' : guest ? '개발용 둘러보기' : '-';
+  const via = legacy.appToken ? '기존 앱 토큰' : guest ? '개발용 둘러보기' : '-';
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.ground }}>
@@ -24,7 +21,7 @@ export default function ProfileScreen() {
         </Pressable>
         <Text style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>내 정보</Text>
         <Text style={{ fontSize: 14, color: colors.muted }}>로그인: {via}</Text>
-        {!!user?.email && <Text style={{ fontSize: 14, color: colors.text }}>{user.email}</Text>}
+        {!!legacy.email && <Text style={{ fontSize: 14, color: colors.text }}>{legacy.email}</Text>}
         <Pressable
           accessibilityRole="button"
           onPress={() => void logout()}

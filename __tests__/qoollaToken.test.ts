@@ -1,4 +1,4 @@
-import { exchangeQoollaToken } from '../src/auth/qoollaToken';
+import { helloQoolla } from '../src/auth/qoollaToken';
 import { authStore } from '../src/state/auth';
 
 const mockStore = new Map<string, string>();
@@ -7,26 +7,27 @@ jest.mock('react-native-mmkv', () => ({
 }));
 const store = mockStore;
 
-const session = { access_token: 'sb-access' } as any;
-
-describe('exchangeQoollaToken', () => {
+describe('helloQoolla', () => {
   afterEach(() => {
     store.clear();
     authStore.dispatch({ type: 'SIGN_OUT' });
   });
 
-  it('posts the Supabase token and stores the returned app-token under the legacy key', async () => {
+  it('posts the social token like the legacy app and stores the returned app-token under the legacy key', async () => {
     const fetchMock = jest.fn(async () => ({ ok: true, status: 200, json: async () => ({ token: 'app-jwt', user: { name: '재성', email: 'a@b.c', imageUrl: 'i' } }) }));
     global.fetch = fetchMock as any;
-    await exchangeQoollaToken(session);
-    expect(fetchMock).toHaveBeenCalledWith('https://www.qoolla.com/api/hello-supabase', expect.objectContaining({ method: 'POST', headers: expect.objectContaining({ Authorization: 'Bearer sb-access' }) }));
+    await helloQoolla('kakao-id-token', 'kakao');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://www.qoolla.com/api/hello',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ provider: 'kakao', password: 'kakao-id-token' }) }),
+    );
     expect(store.get('app-token')).toBe('app-jwt');
-    expect(authStore.getState()).toMatchObject({ appToken: 'app-jwt', name: '재성', email: 'a@b.c', isAuthenticated: true });
+    expect(authStore.getState()).toMatchObject({ appToken: 'app-jwt', name: '재성', email: 'a@b.c' });
   });
 
   it('throws and stores nothing when the server rejects', async () => {
-    global.fetch = jest.fn(async () => ({ ok: false, status: 401, json: async () => ({ error: 'invalid_supabase_token' }) })) as any;
-    await expect(exchangeQoollaToken(session)).rejects.toThrow('hello-supabase 401: invalid_supabase_token');
+    global.fetch = jest.fn(async () => ({ ok: false, status: 401, json: async () => ({ error: 'You are withdrawed' }) })) as any;
+    await expect(helloQoolla('t', 'naver')).rejects.toThrow('hello 401: You are withdrawed');
     expect(store.get('app-token')).toBeUndefined();
     expect(authStore.getState().appToken).toBeNull();
   });
