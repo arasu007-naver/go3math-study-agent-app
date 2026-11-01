@@ -2,20 +2,22 @@
  * 개인 사서함(내 쪽지함) — 기존 `components/panels/profile/my-tablet-memos.tsx`의 쪽지 카드 목록을 fetcher 주입형으로 재작성.
  * 보존: 요청 유형별 제목(주황) · 부제(요청 내용) · 답변 내용(빨강) · 문제 해설 요청의 문제 이미지 · 작성 시각,
  * 카드 사이 연주황 구분선, 페이지 단위 더 불러오기, 당겨서 새로고침.
- * 아직 안 옮김: 개선 요청 쪽지 쓰기(입력창), '읽음' 표시(setLastMemoVisitFlag), 답변 첨부 PDF 보기('가자 !!!').
+ * 답변 첨부 PDF(response.fileLink, 비밀번호 response.sub)는 카드나 '가자 !!!'를 누르면 PdfViewerModal로 연다(기존 PDFViewPage 이동 대신).
+ * 아직 안 옮김: 개선 요청 쪽지 쓰기(입력창), '읽음' 표시(setLastMemoVisitFlag·onConfirmResponse).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import moment from 'moment';
 import { UNITIMAGE } from '../../config/api.constants';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
+import { PdfViewerModal, type PdfDoc } from '../ui/PdfViewerModal';
 
 export type PrivateMessage = {
   id: number | string;
   requestType: string;
   content?: string | null;
   writtenAt?: string | number | null;
-  response?: { id: number | string; content?: string | null; fileLink?: string | null } | null;
+  response?: { id: number | string; content?: string | null; fileLink?: string | null; sub?: string | null } | null;
 };
 
 export interface MessageBoxFetchers {
@@ -81,6 +83,7 @@ export function MessageBoxPanel({ fetchers, pageSize = MESSAGE_PAGE_SIZE }: { fe
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageWidth, setImageWidth] = useState(0);
+  const [pdf, setPdf] = useState<PdfDoc | null>(null);
   const requestId = useRef(0);
 
   const load = useCallback(
@@ -136,18 +139,26 @@ export function MessageBoxPanel({ fetchers, pageSize = MESSAGE_PAGE_SIZE }: { fe
           ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footer} color="orange" /> : null}
           renderItem={({ item }) => {
             const d = describeMessage(item);
+            const fileLink = item.response?.fileLink;
             return (
-              <View style={styles.card}>
+              <Pressable
+                disabled={!fileLink}
+                onPress={() => fileLink && setPdf({ url: fileLink, password: item.response?.sub })}
+                style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
                 <Text style={styles.title}>{d.title}</Text>
                 {!!d.subtitle && <Text style={styles.subtitle} numberOfLines={item.requestType === 'PDF_REQUEST' ? 1 : 3}>{d.subtitle}</Text>}
                 {!!d.image && imageWidth > 0 && <DynamicDimensionsImage source={{ uri: d.image }} width={imageWidth} />}
                 {!!d.response && <Text style={item.requestType.startsWith('UNIT_CLASS') ? styles.subtitle : styles.response}>{d.response}</Text>}
-                {item.writtenAt != null && <Text style={styles.date}>{moment(Number(item.writtenAt)).format('YYYY/MM/DD HH:mm')}</Text>}
-              </View>
+                <View style={styles.actions}>
+                  {item.writtenAt != null && <Text style={styles.date}>{moment(Number(item.writtenAt)).format('YYYY/MM/DD HH:mm')}</Text>}
+                  {!!fileLink && <Text style={styles.go}>가자 !!!</Text>}
+                </View>
+              </Pressable>
             );
           }}
         />
       )}
+      <PdfViewerModal doc={pdf} onClose={() => setPdf(null)} />
     </View>
   );
 }
@@ -159,7 +170,11 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', color: 'orange' },
   subtitle: { fontSize: 14, color: '#000000' },
   response: { fontSize: 14, color: 'red' },
+  pressed: { opacity: 0.6 },
+  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   date: { fontSize: 11, color: '#000000' },
+  // 기존 GoButton('가자 !!!')
+  go: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: 'orange', color: 'orange', fontWeight: '700', overflow: 'hidden' },
   // 기존 cardDivider
   divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },

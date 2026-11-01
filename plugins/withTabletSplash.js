@@ -6,13 +6,13 @@
  * - iOS: expo-splash-screen의 `ios.tabletImage`가 iPad용 이미지(tablet_image*)를 imageset에 넣는다.
  *   SplashScreen.storyboard의 이미지 뷰는 크기 제약 없이 이미지의 고유 크기(pt)를 쓰므로,
  *   iPad 이미지만 `iosTabletWidth` pt로 다시 만들면 iPad에서만 그 크기로 보인다.
- * - Android: 짧은 변 600dp 이상(drawable-sw600dp-*)에 큰 로고를 둔다. Android 12+ SplashScreen은
- *   288dp 캔버스를 지름 192dp 원으로 잘라 보여 주므로, 로고는 그 원 안에 들어가는 크기까지만 키울 수 있다.
+ * - Android: Android 12+ SplashScreen은 288dp 캔버스를 지름 192dp 원으로 잘라 보여 주므로 태블릿용 큰 로고(300dp)를
+ *   그릴 수 없다. 짧은 변 600dp 이상(drawable-sw600dp-*)에는 흰 바탕만 두고, 로고는 앱의 TabletLaunchOverlay가 그린다.
  */
 const fs = require('fs');
 const path = require('path');
 const { withDangerousMod, IOSConfig } = require('expo/config-plugins');
-const { generateImageAsync, generateImageBackgroundAsync, compositeImagesAsync } = require('@expo/image-utils');
+const { generateImageAsync, generateImageBackgroundAsync } = require('@expo/image-utils');
 
 const CACHE = 'tablet-splash';
 const ANDROID_DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
@@ -23,7 +23,7 @@ async function squareImage(projectRoot, src, size) {
   return source;
 }
 
-const withTabletSplash = (config, { image, iosTabletWidth, androidTabletWidth, backgroundColor = '#ffffff' }) => {
+const withTabletSplash = (config, { image, iosTabletWidth, backgroundColor = '#ffffff' }) => {
   config = withDangerousMod(config, [
     'ios',
     async (config) => {
@@ -41,16 +41,13 @@ const withTabletSplash = (config, { image, iosTabletWidth, androidTabletWidth, b
   config = withDangerousMod(config, [
     'android',
     async (config) => {
-      const { projectRoot, platformProjectRoot } = config.modRequest;
+      const { platformProjectRoot } = config.modRequest;
       for (const [density, m] of Object.entries(ANDROID_DENSITIES)) {
         const canvas = ANDROID_CANVAS_DP * m;
-        const size = androidTabletWidth * m;
-        const background = await generateImageBackgroundAsync({ width: canvas, height: canvas, backgroundColor, resizeMode: 'cover' });
-        const foreground = await squareImage(projectRoot, image, size);
-        const composed = await compositeImagesAsync({ background, foreground, x: (canvas - size) / 2, y: (canvas - size) / 2 });
+        const blank = await generateImageBackgroundAsync({ width: canvas, height: canvas, backgroundColor, resizeMode: 'cover' });
         const dir = path.join(platformProjectRoot, `app/src/main/res/drawable-sw600dp-${density}`);
         await fs.promises.mkdir(dir, { recursive: true });
-        await fs.promises.writeFile(path.join(dir, 'splashscreen_logo.png'), composed);
+        await fs.promises.writeFile(path.join(dir, 'splashscreen_logo.png'), blank);
       }
       return config;
     },

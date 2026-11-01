@@ -9,3 +9,9 @@ jest.mock('react-native-mmkv', () => {
     }),
   };
 });
+
+// react-native-pdf는 react-native-blob-util 네이티브 모듈이 필요하므로 빈 뷰로 대체한다.
+jest.mock('react-native-pdf', () => {
+  const { View } = require('react-native');
+  return { __esModule: true, default: View };
+});

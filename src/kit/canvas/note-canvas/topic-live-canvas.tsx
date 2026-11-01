@@ -20,6 +20,7 @@ import uuid from 'react-native-uuid';
 import * as _ from 'lodash'
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { ActivityIndicator, Modal, Portal } from 'react-native-paper';
+import PencilPropsModal from './pencil-props-modal';
 import ReactNativeBlobUtil from 'react-native-blob-util'
 import GoButton from '../../ui/go-button';
 import liveClassCanvasTemplate from '../templates/live-class-canvas-template'
@@ -645,14 +646,12 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
         <FullScreenWrapper>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
                 <Portal>
-                    <Modal visible={visiblePencilProps} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxHeight: 180, maxWidth: 640, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'white', borderWidth: 2, borderColor: 'orange', borderRadius: 12 }}>
-                        <View style={{ flexDirection: 'row' }}>
-                            {drawPencilWidthOptions()}
-                        </View>
-                        <View style={{ flexDirection: 'row' }}>
-                            {drawPencilColorOptions()}
-                        </View>
-                    </Modal>
+                    <PencilPropsModal
+                        visible={visiblePencilProps}
+                        onDismiss={hideModal}
+                        renderWidthOptions={drawPencilWidthOptions}
+                        renderColorOptions={drawPencilColorOptions}
+                    />
                     <Modal visible={visiblePopup} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 960, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'white', borderWidth: 2, borderColor: 'orange', borderRadius: 12 }}>
                         <View style={{ flex: 1 }}>
                             {popupUrl && (

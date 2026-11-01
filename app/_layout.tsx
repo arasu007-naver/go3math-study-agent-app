@@ -7,6 +7,7 @@ import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import GlobalLoadingOverlay from '@/src/kit/ui/loading-view/global-overlay';
 import { apolloClient, bootstrap } from '@/src/state/bootstrap';
+import { TabletLaunchOverlay } from '@/src/ui/TabletLaunchOverlay';
 
 bootstrap();
 
@@ -21,6 +22,7 @@ export default function RootLayout() {
               <Stack screenOptions={{ headerShown: false }} />
               <GlobalLoadingOverlay />
               <StatusBar style="dark" />
+              <TabletLaunchOverlay />
             </BottomSheetModalProvider>
           </PaperProvider>
         </GestureHandlerRootView>

@@ -84,3 +84,12 @@ supabase functions deploy naver-auth --no-verify-jwt
    `com.qoolla.student://auth/callback?token_hash=...&type=magiclink&provider=naver` (302 Redirect)
 5. **클라이언트 세션 수립**:
    앱 콜백에서 `supabase.auth.verifyOtp({ token_hash, type: 'magiclink' })` 실행 → 로그인 완료!
+
+
+cd d:\QoollaWorkspace\go3math-study-agent-app
+supabase link --project-ref eppoiscttggzgcxtukln
+
+
+supabase functions deploy naver-auth --no-verify-jwt --project-ref eppoiscttggzgcxtukln
+
+supabase secrets set NAVER_CLIENT_ID=your_naver_client_id NAVER_CLIENT_SECRET=your_naver_client_secret --project-ref eppoiscttggzgcxtukln
