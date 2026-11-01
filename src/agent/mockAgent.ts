@@ -62,12 +62,8 @@ export class MockAgentTransport implements Transport {
         break;
       case 'task_selected':
         this.say('지난번에 보던 문제예요. 풀 문제를 고르고 연필 버튼을 눌러 이어서 풀어 보세요.', [], 'prompt');
-        // 주제 기록은 주제 문제 목록(problem_preview, collectionId = 주제 id), 나머지는 problem_list
-        if (evt.payload.taskType === 'topic' && evt.payload.collectionId != null) {
-          this.cmd('show_component', { componentId: 'problem_preview', props: { topicId: evt.payload.collectionId } });
-        } else {
-          this.cmd('show_component', { componentId: 'problem_list', props: { source: { kind: 'task', taskId: evt.payload.taskId } } });
-        }
+        // 모든 학습 기록(주제 포함)은 problem_list가 기록 종류에 맞게 문제를 모은다
+        this.cmd('show_component', { componentId: 'problem_list', props: { source: { kind: 'task', taskId: evt.payload.taskId } } });
         break;
       case 'problem_selected':
         this.say(`${evt.payload.index + 1}번 문제를 골랐어요. 연필 버튼을 눌러 풀어 보세요.`, [], 'prompt');

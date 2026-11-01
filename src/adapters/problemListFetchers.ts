@@ -2,11 +2,11 @@
 // - selection(기출 검색): task JSON을 검색 조건으로 getMemberMathPreExams → qPath 이미지
 // - collection(문제 모음): getUnitsOfMathCollection(collectionId) → units의 qPath 이미지
 // - bookmark(책갈피): task JSON의 units(sourceType·sourceId) → UNITIMAGE
-// 주제(topic) 기록은 problem_preview(TopicUnitList)가 보여주므로 여기서 다루지 않는다.
+// - topic(주제): GET_UNITS_IN_TOPIC(collectionId = 주제 id)의 JSON units → 기존 callGetTopicUnits와 같은 qPath 이미지
 import type { ApolloClient } from '@apollo/client';
-import { TASK_OF_ID } from '../api/graphql/queries';
+import { GET_UNITS_IN_TOPIC, TASK_OF_ID } from '../api/graphql/queries';
 import { getMemberMathPreExams, getUnitsOfMathCollection } from '../api/rest';
-import { UNITIMAGE } from '../config/api.constants';
+import { ESSAY_TITLE_PATH_PREFIX, UNITIMAGE } from '../config/api.constants';
 import type { Problem, ProblemListFetchers } from '../kit/problem-list/ProblemListPanel';
 import { describeTask, type TimelineTask } from '../kit/timeline/TimelinePanel';
 import { authStore } from '../state/auth';
@@ -49,6 +49,24 @@ export function createProblemListFetchers(client: ApolloClient): ProblemListFetc
             title,
             subtitle,
             problems: units.map((u) => ({ sourceType: u.sourceType, sourceId: u.sourceId, image: UNITIMAGE(u.sourceType, u.sourceId) ?? '' })),
+          };
+        }
+        case 'topic': {
+          const res = await client.query<{ getUnitsInTopic: string | null }>({
+            query: GET_UNITS_IN_TOPIC,
+            variables: { topicId: Number(task.collectionId) },
+            fetchPolicy: 'network-only',
+          });
+          const units: { sourceType: string; sourceId: number }[] = JSON.parse(res.data?.getUnitsInTopic ?? '[]');
+          return {
+            title,
+            subtitle,
+            problems: units.map((u) => ({
+              sourceType: u.sourceType,
+              sourceId: u.sourceId,
+              // 기존 callGetTopicUnits: 서술형은 제목 이미지(essay-title), 나머지는 UNITIMAGE와 같은 경로
+              image: u.sourceType === 'MATH_ESSAY' ? ESSAY_TITLE_PATH_PREFIX + u.sourceId + '.png' : UNITIMAGE(u.sourceType, u.sourceId) ?? '',
+            })),
           };
         }
         default:

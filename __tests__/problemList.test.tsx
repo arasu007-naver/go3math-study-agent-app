@@ -67,6 +67,22 @@ describe('problemListFetchers (legacy goNoteTab sources)', () => {
     expect(set.problems).toEqual([{ sourceType: 'PREMISE', sourceId: 33, image: expect.stringMatching(/\/premise\/33\.png$/) }]);
   });
 
+  it('topic task loads the topic units by collectionId', async () => {
+    const units = JSON.stringify([{ sourceType: 'UNIT', sourceId: 41 }, { sourceType: 'MATH_ESSAY', sourceId: 7 }]);
+    const c = {
+      query: jest.fn(async ({ variables }: any) =>
+        variables.taskId ? { data: { taskOfId: { id: 9, taskType: 'topic', collectionId: '15', topicTitle: '수열' } } } : { data: { getUnitsInTopic: units } },
+      ),
+    } as any;
+    const set = await createProblemListFetchers(c).fetchProblems({ kind: 'task', taskId: 9 });
+    expect(c.query).toHaveBeenLastCalledWith(expect.objectContaining({ variables: { topicId: 15 } }));
+    expect(set.title).toBe('📝 수열');
+    expect(set.problems).toEqual([
+      { sourceType: 'UNIT', sourceId: 41, image: expect.stringMatching(/41\.png$/) },
+      { sourceType: 'MATH_ESSAY', sourceId: 7, image: expect.stringMatching(/7\.png$/) },
+    ]);
+  });
+
   it('fails without a token or for an unknown task', async () => {
     authStore.dispatch({ type: 'SIGN_OUT' });
     await expect(createProblemListFetchers(client(null)).fetchProblems({ kind: 'exam_query', query })).rejects.toThrow('로그인이 필요해요');
