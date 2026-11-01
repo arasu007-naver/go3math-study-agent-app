@@ -105,7 +105,9 @@ export type AppEventPayloads = {
   };
   back_requested: { from: string };
   // 태블릿 drawer 하단 고정 메뉴 중 학습 흐름에 속하는 것(검색·공지). 화면 전환은 에이전트가 결정한다.
-  menu_selected: { menu: 'search' | 'notice' };
+  menu_selected: { menu: 'search' | 'notice' | 'timeline' };
+  // 타임라인 카드의 '가자!!!'. 학습 기록(task)을 다시 여는 방법은 에이전트가 결정한다.
+  task_selected: { taskId: number; taskType: string; collectionId?: number };
   app_state: { state: 'foreground' | 'background' };
   client_error: { where: string; message: string; commandId?: string };
 };

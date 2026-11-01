@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { createNoticeFetchers } from '../adapters/noticeFetchers';
+import { createTimelineFetchers } from '../adapters/timelineFetchers';
 import { logout } from '../auth/logout';
 import { useMyInfo } from '../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
@@ -8,6 +9,7 @@ import { topicFetchers } from '../host/widgets';
 import { NoticesPanel } from '../kit/notices/NoticesPanel';
 import { MyInfoPanel } from '../kit/profile/MyInfoPanel';
 import { ResearchPanel } from '../kit/research/ResearchPanel';
+import { TimelinePanel } from '../kit/timeline/TimelinePanel';
 import { apolloClient } from '../state/bootstrap';
 import { storage } from '../storage';
 import type { AgentSession, SessionSnapshot } from './session';
@@ -17,15 +19,17 @@ import { colors } from '../ui/theme';
 
 // 태블릿 모드(§4.5, §4.6): 필요할 때만 왼쪽→오른쪽 drawer, 튜터 메시지는 우상단 toast.
 // 오버레이 루트는 box-none이라 drawer·핸들·toast 밖의 터치는 아래 Stage(캔버스)로 통과한다.
-// drawer 하단 '검색'·'공지'·'내 정보 관리'는 해당 패널을 drawer 오른쪽 가운데에 붙은 dock으로 연다(Stage는 그대로).
+// drawer 하단 '타임라인'·'검색'·'공지'·'내 정보 관리'는 해당 패널을 drawer 오른쪽 가운데에 붙은 dock으로 연다(Stage는 그대로).
+// 홈 진입(로그인 직후·앱 시작) 시에는 drawer와 타임라인 dock을 열어 둔다.
 export const TOAST_MS = 6400;
 export const TOAST_PREVIEW_CHARS = 30;
 const DOCK_MAX_WIDTH = 640;
 const DOCK_HEIGHT_RATIO = 0.8;
 
-export type DockKind = 'search' | 'notice' | 'profile';
-const DOCK_TITLES: Record<DockKind, string> = { search: '검색', notice: '공지', profile: '내 정보' };
+export type DockKind = 'timeline' | 'search' | 'notice' | 'profile';
+const DOCK_TITLES: Record<DockKind, string> = { timeline: '타임라인', search: '검색', notice: '공지', profile: '내 정보' };
 const noticeFetchers = createNoticeFetchers(apolloClient);
+const timelineFetchers = createTimelineFetchers(apolloClient);
 
 export function toastPreview(text: string): string {
   return text.length > TOAST_PREVIEW_CHARS ? `${text.slice(0, TOAST_PREVIEW_CHARS - 1)}…` : text;
@@ -36,8 +40,8 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   const dw = drawerWidth(width, height);
   const ins = state.instruction;
 
-  const [open, setOpen] = useState(false);
-  const [dock, setDock] = useState<DockKind | null>(null);
+  const [open, setOpen] = useState(true);
+  const [dock, setDock] = useState<DockKind | null>('timeline');
   const myInfo = useMyInfo();
   const [toastFor, setToastFor] = useState<string | null>(null);
   const [unread, setUnread] = useState(false);
@@ -55,8 +59,11 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     }
   }, [ins]);
 
+  // instruction이 사라지면 닫는다(처음부터 없을 때는 홈 진입용으로 연 drawer를 그대로 둔다)
+  const prevIns = useRef(ins);
   useEffect(() => {
-    if (!ins) setOpen(false);
+    if (prevIns.current && !ins) setOpen(false);
+    prevIns.current = ins;
   }, [ins]);
 
   // drawer가 닫히면 dock도 닫는다
@@ -129,7 +136,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
           dock={dock}
           onToggleDock={(kind) => {
             if (dock === kind) return setDock(null);
-            // 검색·공지는 학습 흐름에 속하므로 에이전트에 알린다(프로토콜 menu_selected). 내 정보는 앱 안에서만.
+            // 타임라인·검색·공지는 학습 흐름에 속하므로 에이전트에 알린다(프로토콜 menu_selected). 내 정보는 앱 안에서만.
             if (kind !== 'profile') session.emit('menu_selected', { menu: kind });
             setDock(kind);
           }}
@@ -146,6 +153,19 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
               <Text style={styles.closeText}>×</Text>
             </Pressable>
           </View>
+          {dock === 'timeline' && (
+            <TimelinePanel
+              fetchers={timelineFetchers}
+              onSelectTask={(t) => {
+                setDock(null);
+                session.emit('task_selected', {
+                  taskId: Number(t.id),
+                  taskType: t.taskType,
+                  ...(t.collectionId != null ? { collectionId: Number(t.collectionId) } : {}),
+                });
+              }}
+            />
+          )}
           {dock === 'notice' && <NoticesPanel fetchers={noticeFetchers} />}
           {dock === 'profile' && <MyInfoPanel info={myInfo} onSignOut={() => void logout()} />}
           {dock === 'search' && <ResearchPanel
@@ -174,6 +194,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
 /** drawer 하단 고정 메뉴: 대화 영역(ScrollView) 밖에 있어 스크롤해도 위치가 바뀌지 않는다. */
 function DrawerFooter({ dock, onToggleDock }: { dock: DockKind | null; onToggleDock(kind: DockKind): void }) {
   const items: { label: string; onPress(): void; on?: boolean }[] = [
+    { label: '타임라인', onPress: () => onToggleDock('timeline'), on: dock === 'timeline' },
     { label: '검색', onPress: () => onToggleDock('search'), on: dock === 'search' },
     { label: '공지', onPress: () => onToggleDock('notice'), on: dock === 'notice' },
     { label: '내 정보 관리', onPress: () => onToggleDock('profile'), on: dock === 'profile' },
