@@ -19,8 +19,10 @@ describe('research widget registry', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { resolveComponent } = require('../src/host/registry');
   it('accepts an optional category preset and rejects unknown ones', () => {
-    expect(resolveComponent('research', {}, 'tablet')).toEqual({ ok: true, props: {} });
+    expect(resolveComponent('research', {}, 'phone')).toEqual({ ok: true, props: {} });
     expect(resolveComponent('research', { category: 'pre' }, 'phone')).toEqual({ ok: true, props: { category: 'pre' } });
-    expect(resolveComponent('research', { category: 'topic' }, 'tablet')).toMatchObject({ ok: false, code: 'invalid_props' });
+    expect(resolveComponent('research', { category: 'topic' }, 'phone')).toMatchObject({ ok: false, code: 'invalid_props' });
+    // 태블릿은 drawer '검색' dock이 맡는다
+    expect(resolveComponent('research', {}, 'tablet')).toMatchObject({ ok: false, code: 'unsupported' });
   });
 });

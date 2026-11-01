@@ -38,6 +38,7 @@ export const COMPONENT_IDS = [
   'exam_search',
   'research',
   'problem_preview',
+  'problem_list',
   'record_calendar',
   'study_timeline',
   'solve_canvas',
@@ -99,6 +100,8 @@ export type AppEventPayloads = {
   student_text: { text: string };
   topic_selected: { topicId: number; title?: string; source: 'topic_list' | 'exam_search' | 'research' };
   unit_selected: { topicId: number; unitIdx: number };
+  // problem_list 위젯에서 고른 문제(index는 목록 안 순서, 0부터)
+  problem_selected: { index: number; sourceType: string; sourceId: number; taskId?: number };
   // §4.4 exam_search 위젯 이벤트. 과제 생성·문제 조회는 서버가 이 쿼리로 수행한다.
   search_submitted: {
     query: { queryType: 'selection'; major: string; years: number[]; months: number[]; numbers: number[]; studyType: string };

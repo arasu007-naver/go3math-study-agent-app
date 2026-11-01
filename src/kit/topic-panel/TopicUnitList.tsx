@@ -2,18 +2,21 @@
  * 주제 상세(문제 목록 + 가자) — 기존 `components/panels/topic/tablet.tsx`를 의존성 주입형으로 재작성.
  * 동작 보존: STUDY_TOPIC으로 문제 목록 표시, "가자"는 스크립트 있는 첫 문제(없으면 첫 문제)를 고른다(handleGoPress).
  * 바뀐 점: navigation.navigate(TopicNotebook|Notebook) 대신 onSelectUnit 콜백, AppCtx TOPIC dispatch 없음.
+ * 오른쪽 아래 연필 버튼(onSolve, 선택)은 1번 문제부터 풀이 화면을 연다.
  * 제외: 책갈피 추가(ADD_BOOKMARK 쓰기 — M3는 읽기 전용, 화면 동등성 단계에서 추가).
  */
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { UNITIMAGE } from '../../config/api.constants';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
+import { PencilFab } from '../ui/PencilFab';
 import type { TopicDetail, TopicPanelFetchers, TopicUnit } from './types';
 
 type Props = {
   fetchers: Pick<TopicPanelFetchers, 'fetchTopic'>;
   topicId: number;
   onSelectUnit(a: { unitIdx: number; unit: TopicUnit }): void;
+  onSolve?(a: { unitIdx: number; topic: TopicDetail }): void;
 };
 
 /** 기존 handleGoPress: releaseScriptUrl이 있는 첫 문제, 없으면 0번 */
@@ -22,7 +25,7 @@ export function pickGoUnitIndex(units: TopicUnit[]): number {
   return idx === -1 ? 0 : idx;
 }
 
-export function TopicUnitList({ fetchers, topicId, onSelectUnit }: Props) {
+export function TopicUnitList({ fetchers, topicId, onSelectUnit, onSolve }: Props) {
   const { width } = useWindowDimensions();
   const [topic, setTopic] = useState<TopicDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +80,7 @@ export function TopicUnitList({ fetchers, topicId, onSelectUnit }: Props) {
           </Pressable>
         </View>
       )}
+      {onSolve && units.length > 0 && <PencilFab onPress={() => onSolve({ unitIdx: 0, topic })} />}
     </View>
   );
 }

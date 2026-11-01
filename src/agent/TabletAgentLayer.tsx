@@ -50,17 +50,21 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   const [unread, setUnread] = useState(false);
   const seen = useRef<string | null>(null);
 
-  // 새 instruction 도착 시: 응답 필요 또는 기본 흐름 → drawer 바로 열기, 그 밖의 튜터 메시지 → toast
+  const stageId = state.stage?.componentId;
+  const problemStage = stageId === 'problem_list' || stageId === 'problem_preview';
+
+  // 새 instruction 도착 시: 응답 필요 또는 기본 흐름 → drawer 바로 열기, 그 밖의 튜터 메시지 → toast.
+  // Stage에 문제 목록이 떠 있는 동안은 응답이 필요 없는 안내도 toast로(문제를 가리지 않게).
   useEffect(() => {
     if (!ins || seen.current === ins.messageId) return;
     seen.current = ins.messageId;
-    if (ins.source === 'tutor' && !ins.requiresResponse) {
+    if (!ins.requiresResponse && (ins.source === 'tutor' || problemStage)) {
       setToastFor(ins.messageId);
       setUnread(true);
     } else {
       setOpen(true);
     }
-  }, [ins]);
+  }, [ins, problemStage]);
 
   // instruction이 사라지면 닫는다(처음부터 없을 때는 홈 진입용으로 연 drawer를 그대로 둔다)
   const prevIns = useRef(ins);
@@ -68,6 +72,12 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     if (prevIns.current && !ins) setOpen(false);
     prevIns.current = ins;
   }, [ins]);
+
+  // Stage에 문제 목록이 뜰 때마다(이미 문제 목록이 떠 있어도 새 show_component면) 문제를 보며 풀 수 있게 drawer를 닫는다
+  const stage = state.stage;
+  useEffect(() => {
+    if (stage && (stage.componentId === 'problem_list' || stage.componentId === 'problem_preview')) setOpen(false);
+  }, [stage]);
 
   // drawer가 닫히면 dock도 닫는다
   useEffect(() => {
@@ -186,7 +196,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
       )}
 
       {toastFor && ins?.messageId === toastFor && !open && (
-        <TutorToast text={ins.text} onPress={openDrawer} onTimeout={() => setToastFor(null)} />
+        <TutorToast label={ins.source === 'tutor' ? '튜터 메시지' : '에이전트'} text={ins.text} onPress={openDrawer} onTimeout={() => setToastFor(null)} />
       )}
     </View>
   );
@@ -217,7 +227,7 @@ function DrawerFooter({ dock, onToggleDock }: { dock: DockKind | null; onToggleD
   );
 }
 
-function TutorToast({ text, onPress, onTimeout }: { text: string; onPress(): void; onTimeout(): void }) {
+function TutorToast({ label, text, onPress, onTimeout }: { label: string; text: string; onPress(): void; onTimeout(): void }) {
   const remaining = useRef(TOAST_MS);
   const startedAt = useRef(Date.now());
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -240,12 +250,12 @@ function TutorToast({ text, onPress, onTimeout }: { text: string; onPress(): voi
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="튜터 메시지 열기"
+      accessibilityLabel={`${label} 열기`}
       onPress={onPress}
       onPressIn={pause}
       onPressOut={run}
       style={styles.toast}>
-      <Text style={styles.toastLabel}>튜터 메시지</Text>
+      <Text style={styles.toastLabel}>{label}</Text>
       <Text style={styles.toastText}>{toastPreview(text)}</Text>
     </Pressable>
   );

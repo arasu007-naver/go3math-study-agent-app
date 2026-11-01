@@ -61,12 +61,18 @@ describe('show_topic_list (M3)', () => {
   const cmd = (payload: unknown) => ({ v: 1, id: 'c1', sessionId: 's', seq: 1, ts: 't', kind: 'show_topic_list', payload });
 
   it('renders topic_list for subject and exam sources', () => {
-    let r = routeCommand(initialRouterState, cmd({ source: { kind: 'subject', subject: 'CALCULUS' } }), 'tablet');
+    let r = routeCommand(initialRouterState, cmd({ source: { kind: 'subject', subject: 'CALCULUS' } }), 'phone');
     expect(r.ack?.payload.ok).toBe(true);
     expect(r.state.stage).toEqual({ componentId: 'topic_list', props: { subject: 'CALCULUS' } });
 
     r = routeCommand(initialRouterState, cmd({ source: { kind: 'exam', year: 2026, month: 10 } }), 'phone');
     expect(r.state.stage?.props).toMatchObject({ filter: { year: 2026, month: 10 } });
+  });
+
+  it('is phone-only: the tablet Stage shows only problem lists', () => {
+    const r = routeCommand(initialRouterState, cmd({ source: { kind: 'subject', subject: 'CALCULUS' } }), 'tablet');
+    expect(r.ack?.payload).toMatchObject({ ok: false, code: 'unsupported' });
+    expect(r.state.stage).toBeNull();
   });
 
   it('rejects ids source as unsupported with a fallback', () => {

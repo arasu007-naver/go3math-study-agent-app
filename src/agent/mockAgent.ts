@@ -11,6 +11,7 @@ export class MockAgentTransport implements Transport {
   private sent: { seq: number; data: string }[] = [];
   private timers: ReturnType<typeof setTimeout>[] = [];
   private greeted = false;
+  private mode: 'phone' | 'tablet' = 'tablet';
 
   constructor(private readonly opts: { tutorDelayMs?: number } = {}) {}
 
@@ -31,6 +32,7 @@ export class MockAgentTransport implements Transport {
     const evt = JSON.parse(data) as { kind: string; payload: Record<string, any> };
     switch (evt.kind) {
       case 'hello': {
+        this.mode = evt.payload.device?.mode ?? this.mode;
         const last = evt.payload.resume?.lastAgentSeq ?? 0;
         this.sent.filter((m) => m.seq > last).forEach((m) => this.deliver(m.data));
         if (!this.greeted) {
@@ -53,19 +55,32 @@ export class MockAgentTransport implements Transport {
           this.say('공지 사항을 확인해 보세요.', [], 'info');
         }
         break;
-      case 'search_submitted': {
-        const q = evt.payload.query;
-        this.say(
-          `${q.major} · ${q.years.join(',')}년 ${q.months.join(',')}월 · ${q.numbers.length}문항 조건을 받았어요. 문제 조회는 에이전트 서버(M5)가 맡아요.`,
-          [{ id: 'pick_topic', label: '주제 목록으로' }],
-          'info',
-        );
+      // 안내를 먼저 보내고 문제 목록을 띄운다(앱은 문제 목록이 뜨면 drawer를 닫는다)
+      case 'search_submitted':
+        this.say('검색 조건에 맞는 문제예요. 풀 문제를 고르고 연필 버튼을 눌러 풀어 보세요.', [], 'prompt');
+        this.cmd('show_component', { componentId: 'problem_list', props: { source: { kind: 'exam_query', query: evt.payload.query } } });
         break;
-      }
+      case 'task_selected':
+        this.say('지난번에 보던 문제예요. 풀 문제를 고르고 연필 버튼을 눌러 이어서 풀어 보세요.', [], 'prompt');
+        // 주제 기록은 주제 문제 목록(problem_preview, collectionId = 주제 id), 나머지는 problem_list
+        if (evt.payload.taskType === 'topic' && evt.payload.collectionId != null) {
+          this.cmd('show_component', { componentId: 'problem_preview', props: { topicId: evt.payload.collectionId } });
+        } else {
+          this.cmd('show_component', { componentId: 'problem_list', props: { source: { kind: 'task', taskId: evt.payload.taskId } } });
+        }
+        break;
+      case 'problem_selected':
+        this.say(`${evt.payload.index + 1}번 문제를 골랐어요. 연필 버튼을 눌러 풀어 보세요.`, [], 'prompt');
+        break;
       case 'unit_selected':
         this.say(`${evt.payload.unitIdx + 1}번 문제예요. 연습장에 풀고 사진을 올려 주세요.`, [], 'prompt');
         break;
       case 'back_requested':
+        // 문제 목록에서 뒤로 → 빈 Stage(가운데 로고)
+        if (evt.payload.from === 'problem_list') {
+          this.cmd('close_component', {});
+          break;
+        }
         this.showTopics();
         this.say('주제 목록으로 돌아왔어요. 다른 주제를 골라 볼까요?');
         break;
@@ -84,7 +99,10 @@ export class MockAgentTransport implements Transport {
   }
 
   private onChoice(choiceId: string) {
-    if (choiceId === 'pick_topic') {
+    // 태블릿 Stage는 문제 목록만 띄운다 → 주제·기출 검색은 drawer '검색' dock으로 안내
+    if (this.mode === 'tablet' && (choiceId === 'pick_topic' || choiceId === 'search_exam')) {
+      this.say("아래 '검색' 메뉴에서 주제를 고르거나 기출 조건을 골라 '가자'를 눌러 주세요.", [], 'info');
+    } else if (choiceId === 'pick_topic') {
       this.showTopics();
       this.say('목록에서 공부할 주제를 눌러 주세요.', [], 'info');
     } else if (choiceId === 'search_exam') {

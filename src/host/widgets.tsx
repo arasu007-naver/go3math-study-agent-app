@@ -1,19 +1,31 @@
 // 위젯 = kit 패널을 감싸는 얇은 어댑터(§4.4): fetcher 주입, kit 콜백 → 에이전트 이벤트 변환, 프리셋 반영.
 import type { ReactElement } from 'react';
+import { router } from 'expo-router';
 import type { AgentSession } from '../agent/session';
+import { createProblemListFetchers } from '../adapters/problemListFetchers';
 import { createTopicFetchers } from '../adapters/topicFetchers';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { ExamSearchPanel, type ExamSearchMode } from '../kit/exam-search/ExamSearchPanel';
 import { ResearchPanel, type ResearchCategory } from '../kit/research/ResearchPanel';
 import type { ExamSelection } from '../kit/exam-search/query';
+import { ProblemListPanel, type ProblemSource } from '../kit/problem-list/ProblemListPanel';
 import { TopicTabsPanel } from '../kit/topic-panel/TopicTabsPanel';
 import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
+import { UNITIMAGE } from '../config/api.constants';
 import { apolloClient } from '../state/bootstrap';
+import { solveStore, type SolveProblem } from '../state/solve';
 import { storage } from '../storage';
 
 export const topicFetchers = createTopicFetchers(apolloClient);
+const problemListFetchers = createProblemListFetchers(apolloClient);
 
 type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
+
+/** 문제 목록의 연필 버튼: 문제 묶음을 넘기고 풀이 화면(/notebook)으로 */
+function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number) {
+  solveStore.dispatch({ title, problems, index, taskId, topicId });
+  router.push('/notebook');
+}
 
 function TopicListWidget({ props, session }: WidgetProps) {
   return (
@@ -35,6 +47,34 @@ function ProblemPreviewWidget({ props, session }: WidgetProps) {
       fetchers={topicFetchers}
       topicId={topicId}
       onSelectUnit={({ unitIdx }) => session.emit('unit_selected', { topicId, unitIdx })}
+      onSolve={({ unitIdx, topic }) =>
+        openNotebook(
+          topic.title,
+          topic.units.map((u) => ({ sourceType: u.sourceType, sourceId: u.sourceId, image: UNITIMAGE(u.sourceType, u.sourceId) ?? '' })),
+          unitIdx,
+          undefined,
+          topicId,
+        )
+      }
+    />
+  );
+}
+
+function ProblemListWidget({ props, session }: WidgetProps) {
+  const source = props.source as ProblemSource;
+  return (
+    <ProblemListPanel
+      fetchers={problemListFetchers}
+      source={source}
+      onSelectProblem={({ index, problem }) =>
+        session.emit('problem_selected', {
+          index,
+          sourceType: problem.sourceType,
+          sourceId: problem.sourceId,
+          ...(source.kind === 'task' ? { taskId: source.taskId } : {}),
+        })
+      }
+      onSolve={({ index, set }) => openNotebook(set.title, set.problems, index, source.kind === 'task' ? source.taskId : undefined)}
     />
   );
 }
@@ -67,6 +107,7 @@ function ResearchWidget({ props, session }: WidgetProps) {
 export const widgets: Record<string, (p: WidgetProps) => ReactElement> = {
   topic_list: TopicListWidget,
   problem_preview: ProblemPreviewWidget,
+  problem_list: ProblemListWidget,
   exam_search: ExamSearchWidget,
   research: ResearchWidget,
 };

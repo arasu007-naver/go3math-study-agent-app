@@ -3,6 +3,7 @@
 import { PROTOCOL_VERSION, newId, type AppEvent, type AppEventKind, type AppEventPayloads } from '../protocol';
 import { initialRouterState, resolveInstruction, routeCommand, type RouterState } from './commandRouter';
 import type { DeviceMode } from '../layout/deviceMode';
+import { registry } from '../host/registry';
 
 export interface Transport {
   connect(handlers: { onOpen(): void; onMessage(data: string): void; onClose(): void }): void;
@@ -119,7 +120,13 @@ export class AgentSession {
           appVersion: this.opts.appVersion,
           protocolVersion: PROTOCOL_VERSION,
           device: d,
-          capabilities: { components: ['topic_list', 'problem_preview', 'exam_search'], canvas: false, camera: false, scriptPlayback: false },
+          // 이 기기 모드에서 Stage에 띄울 수 있는 위젯(태블릿은 문제 목록뿐, registry mode)
+          capabilities: {
+            components: Object.keys(registry).filter((id) => registry[id].mode === 'both' || registry[id].mode === d.mode),
+            canvas: false,
+            camera: false,
+            scriptPlayback: false,
+          },
           resume: { lastAgentSeq: this.state.lastAgentSeq },
         },
       } satisfies AppEvent<'hello'>),
