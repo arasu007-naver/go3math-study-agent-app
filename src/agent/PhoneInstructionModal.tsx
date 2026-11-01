@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { AgentSession, SessionSnapshot } from './session';
 import { InstructionCard } from './InstructionCard';
-import { colors } from '../ui/theme';
+import { colors, layout, radius, shadow, space, type } from '../ui/theme';
 
 // 폰 모드: 하단 탭 내비게이터 바로 위 하단 모달(§4.5). 자기 영역만 터치를 받는다.
 export function PhoneInstructionModal({ state, session }: { state: SessionSnapshot; session: AgentSession }) {
@@ -12,7 +12,7 @@ export function PhoneInstructionModal({ state, session }: { state: SessionSnapsh
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
-      <View accessibilityLabel="에이전트 instruction" style={[styles.card, ins.source === 'tutor' && styles.cardTutor]}>
+      <View accessibilityLabel="에이전트 instruction" style={styles.card}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={collapsed ? '모달 펼치기' : '모달 접기'}
@@ -37,24 +37,21 @@ export function PhoneInstructionModal({ state, session }: { state: SessionSnapsh
   );
 }
 
+// design-spec P1-7: 하단 탭 바로 위에 붙는 흰 시트(위 모서리만 둥글게), 테두리 대신 그림자. 위치·열림 조건은 그대로.
 const styles = StyleSheet.create({
   card: {
     position: 'absolute',
-    left: 8,
-    right: 8,
-    bottom: 8,
-    padding: 16,
-    paddingTop: 4,
-    borderRadius: 12,
-    backgroundColor: colors.surface,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: -4 },
-    elevation: 8,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: space.lg,
+    paddingTop: space.xs,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    backgroundColor: colors.card,
+    ...shadow.float,
   },
-  cardTutor: {},
-  grabArea: { height: 28, alignItems: 'center', justifyContent: 'center' },
-  grab: { width: 32, height: 4, borderRadius: 2, backgroundColor: colors.agent },
-  oneLine: { fontSize: 14, color: colors.text, paddingBottom: 4 },
+  grabArea: { height: layout.hit - space.lg, alignItems: 'center', justifyContent: 'center' },
+  grab: { width: 36, height: 4, borderRadius: radius.pill, backgroundColor: colors.lineStrong },
+  oneLine: { ...type.body, color: colors.text, paddingBottom: space.xs },
 });

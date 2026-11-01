@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Instruction } from './commandRouter';
-import { colors } from '../ui/theme';
+import { colors, layout, radius, space, type } from '../ui/theme';
 
 // 튜터/기본 instruction 공용 렌더러 — 폰 하단 모달과 태블릿 drawer가 같이 쓴다(§4.5).
 export function InstructionCard({
@@ -42,18 +42,19 @@ export function InstructionCard({
   );
 }
 
+// design-spec P1-7: 테두리 없는 카드. 주 행동 버튼만 주황(accent), 보조 버튼은 회색 면. 튜터 문구는 카드 위 카드라 cardMuted 면.
 const styles = StyleSheet.create({
-  wrap: { gap: 12 },
-  label: { fontSize: 12, fontWeight: '700', color: colors.agentText },
-  labelTutor: { color: colors.tutor },
-  tutorBox: { padding: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.line, backgroundColor: '#F4F4F5' },
-  text: { fontSize: 16, lineHeight: 24, color: colors.text },
-  choices: { gap: 8 },
-  btn: { minHeight: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
-  btnPrimary: { backgroundColor: colors.accent, borderColor: colors.accent },
-  btnSecondary: { backgroundColor: colors.surface, borderColor: colors.line },
-  btnText: { fontSize: 15, color: colors.text },
-  btnTextPrimary: { fontWeight: '700' },
-  note: { fontSize: 12, color: colors.muted },
+  wrap: { gap: space.sm },
+  label: { ...type.caption, color: colors.muted },
+  labelTutor: { color: colors.text },
+  tutorBox: { padding: space.md, borderRadius: radius.md, backgroundColor: colors.cardMuted },
+  text: { ...type.body, fontSize: type.title.fontSize, lineHeight: type.title.lineHeight, color: colors.text }, // 읽는 글이라 크기는 title, 굵기는 body
+  choices: { gap: space.sm },
+  btn: { minHeight: layout.hit, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
+  btnPrimary: { backgroundColor: colors.accent },
+  btnSecondary: { backgroundColor: colors.cardMuted },
+  btnText: { ...type.bodyStrong, color: colors.text },
+  btnTextPrimary: { color: colors.onAccent },
+  note: { ...type.caption, color: colors.muted },
   pressed: { opacity: 0.7 },
 });

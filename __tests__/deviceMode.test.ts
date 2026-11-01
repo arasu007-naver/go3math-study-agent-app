@@ -28,8 +28,10 @@ describe('device mode (§4.7.1)', () => {
   });
 
   it('caps the drawer at 40% on near-square screens', () => {
-    expect(drawerWidth(1194, 834)).toBe(420);
-    expect(drawerWidth(750, 832)).toBeCloseTo(280); // 36% clamped to min 280, within 40% (300)
-    expect(drawerWidth(673, 841)).toBeCloseTo(269.2); // 40% wins over the 280 minimum
+    expect(drawerWidth(1194, 834)).toBeCloseTo(358.2); // iPad 11" landscape: 30%
+    expect(drawerWidth(834, 1194)).toBe(300); // portrait: 30% = 250.2 → min 300
+    expect(drawerWidth(884, 1104)).toBe(300); // Fold open: min 300, under the 40% cap (353.6)
+    expect(drawerWidth(1366, 1024)).toBe(400); // max 400
+    expect(drawerWidth(673, 841)).toBeCloseTo(269.2); // 40% wins over the 300 minimum
   });
 });

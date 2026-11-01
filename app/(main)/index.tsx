@@ -5,6 +5,7 @@ import { PhoneInstructionModal } from '@/src/agent/PhoneInstructionModal';
 import { TabletAgentLayer } from '@/src/agent/TabletAgentLayer';
 import { Stage } from '@/src/host/Stage';
 import { useDeviceMode } from '@/src/layout/deviceMode';
+import { colors } from '@/src/ui/theme';
 
 // 에이전트 홈: Stage + 모드별 instruction 오버레이.
 export default function AgentHome() {
@@ -12,7 +13,7 @@ export default function AgentHome() {
   const mode = useDeviceMode();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={mode === 'tablet' ? ['top', 'bottom'] : ['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={mode === 'tablet' ? ['top', 'bottom'] : ['top']}>
       <View style={{ flex: 1 }}>
         <Stage state={state} session={session} />
         {mode === 'phone' ? (
