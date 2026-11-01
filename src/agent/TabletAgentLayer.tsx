@@ -14,6 +14,7 @@ import { apolloClient } from '../state/bootstrap';
 import { storage } from '../storage';
 import type { AgentSession, SessionSnapshot } from './session';
 import { DockWrapper } from './DockWrapper';
+import { EDGE_TAB_HEIGHT, EDGE_TAB_WIDTH, EdgeTab } from './EdgeTab';
 import { InstructionCard } from './InstructionCard';
 import { drawerWidth } from '../layout/deviceMode';
 import { colors } from '../ui/theme';
@@ -81,19 +82,27 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     Animated.timing(slide, { toValue: open ? 1 : 0, duration: 220, useNativeDriver: true }).start();
   }, [open, slide]);
   const translateX = slide.interpolate({ inputRange: [0, 1], outputRange: [-dw - 16, 0] });
+  // drawer 닫기 탭: drawer 오른쪽 가운데에 붙는 형제 요소(부모 밖이면 Android에서 터치가 안 감). dock이 열리면 그 아래에 가려진다.
+  const closeTabX = slide.interpolate({ inputRange: [0, 1], outputRange: [-dw - EDGE_TAB_WIDTH - 16, 0] });
+  const tabTop = height / 2 - EDGE_TAB_HEIGHT / 2;
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
       {!open && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={unread ? '에이전트 drawer 열기 (읽지 않은 메시지 있음)' : '에이전트 drawer 열기'}
+        <EdgeTab
+          direction="open"
+          label={unread ? '에이전트 drawer 열기 (읽지 않은 메시지 있음)' : '에이전트 drawer 열기'}
           onPress={openDrawer}
-          style={[styles.handle, { top: height / 2 - 56 }]}>
-          <View style={styles.handleBar} />
+          style={{ left: 0, top: tabTop }}>
           {unread && <View style={styles.dot} />}
-        </Pressable>
+        </EdgeTab>
       )}
+
+      <Animated.View
+        pointerEvents={open ? 'box-none' : 'none'}
+        style={{ position: 'absolute', left: dw, top: tabTop, transform: [{ translateX: closeTabX }] }}>
+        <EdgeTab direction="close" label="drawer 닫기" onPress={() => setOpen(false)} style={{ position: 'relative' }} />
+      </Animated.View>
 
       <Animated.View
         pointerEvents={open ? 'auto' : 'none'}
@@ -238,21 +247,6 @@ function TutorToast({ text, onPress, onTimeout }: { text: string; onPress(): voi
 }
 
 const styles = StyleSheet.create({
-  handle: {
-    position: 'absolute',
-    left: 0,
-    width: 28,
-    height: 112,
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-    borderWidth: 1,
-    borderLeftWidth: 0,
-    borderColor: colors.agent,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  handleBar: { width: 4, height: 40, borderRadius: 2, backgroundColor: colors.agent },
   dot: { position: 'absolute', top: 8, right: 6, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.unread },
   drawer: {
     position: 'absolute',
