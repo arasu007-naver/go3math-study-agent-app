@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { PencilFab } from '../ui/PencilFab';
+import { colors } from '../../ui/theme';
 
 /** 출처: 타임라인 학습 기록(task) 또는 기출 검색 조건(검색 dock · exam_search의 '가자') */
 export type ProblemSource =
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, fontWeight: '700', color: 'orange' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 12, paddingBottom: 280 },
   card: { padding: 8, gap: 6, borderRadius: 8, borderWidth: 1, borderColor: '#D4D4D8', backgroundColor: '#FFFFFF' },
-  cardOn: { borderColor: 'orange', borderWidth: 2 },
+  cardOn: { borderColor: colors.accent, borderWidth: 2 },
   cardLabel: { fontSize: 13, fontWeight: '500', color: '#52525B' },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },
   center: { padding: 32 },

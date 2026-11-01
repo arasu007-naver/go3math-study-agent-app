@@ -2,6 +2,7 @@
 import { createElement } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { PdfDoc } from './PdfViewerModal';
+import { colors } from '../../ui/theme';
 
 export type { PdfDoc };
 
@@ -27,7 +28,7 @@ export function PdfViewerModal({ doc, onClose }: { doc: PdfDoc | null; onClose()
 const styles = StyleSheet.create({
   backdrop: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.4)' },
   root: { width: '100%', height: '100%', borderRadius: 12, overflow: 'hidden', backgroundColor: '#FFFFFF' },
-  header: { height: 52, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: 1, borderColor: 'orange' },
+  header: { height: 52, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: 1, borderColor: colors.line },
   title: { flex: 1, fontSize: 16, fontWeight: '700', color: '#18181B' },
   closeText: { fontSize: 15, color: 'orange', fontWeight: '700' },
 });

@@ -12,6 +12,7 @@ import { UNITIMAGE } from '../../config/api.constants';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { PdfViewerModal, type PdfDoc } from '../ui/PdfViewerModal';
 import { SkeletonCards } from '../ui/SkeletonCards';
+import { colors } from '../../ui/theme';
 
 export type PrivateMessage = {
   id: number | string;
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   date: { fontSize: 11, color: '#000000' },
   // 기존 GoButton('가자 !!!')
-  go: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: 'orange', color: 'orange', fontWeight: '700', overflow: 'hidden' },
+  go: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: colors.accent, color: colors.accentText, fontWeight: '700', overflow: 'hidden' },
   // 기존 cardDivider
   divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },

@@ -20,6 +20,7 @@ import QoollaWebView from '../../ui/web-view';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { Modal as PaperModal, Portal } from 'react-native-paper';
 import PencilPropsModal from './pencil-props-modal';
+import { colors, radius, shadow } from '../../../ui/theme';
 import ReactNativeBlobUtil from 'react-native-blob-util'
 import GoButton from '../../ui/go-button';
 import topicCanvasTemplate from '../templates/topic-canvas-template';
@@ -380,7 +381,7 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                         renderWidthOptions={drawPencilWidthOptions}
                         renderColorOptions={drawPencilColorOptions}
                     />
-                    <PaperModal visible={isToastVisible} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 720, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'white', borderWidth: 2, borderColor: 'orange', borderRadius: 12 }}>
+                    <PaperModal visible={isToastVisible} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 720, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: colors.card, borderRadius: radius.lg, ...shadow.float }}>
                         <View style={{ flex: 1 }}>
                             {popupUrl && (
                                 <QoollaWebView
@@ -392,7 +393,7 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                             )}
                         </View>
                     </PaperModal>
-                    <PaperModal visible={visibleMemoPopup} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 480, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'white', borderWidth: 2, borderColor: 'orange', borderRadius: 12 }}>
+                    <PaperModal visible={visibleMemoPopup} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 480, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: colors.card, borderRadius: radius.lg, ...shadow.float }}>
                         <View style={{ flex: 1 }}>
                             <WebView
                                 ref={webMemoViewRef}
@@ -437,7 +438,7 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                     }} />
 
                 </ScrollView>
-                <View style={{ flex: 1, width: width, padding: 3, borderWidth: 2, borderColor: 'orange', borderRadius: 6 }} >
+                <View style={{ flex: 1, width: width, padding: 3, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }} >
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['*']}
@@ -501,7 +502,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: 'orange',
+        backgroundColor: colors.accent,
         position: 'absolute',
         bottom: 10,
         right: 10,
@@ -584,7 +585,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 20, // 하단에서 20px
         right: 20,   // 왼쪽에서 20px
-        backgroundColor: 'orange', // 버튼 배경색
+        backgroundColor: colors.accent, // 버튼 배경색
         borderRadius: 30, // 원형 버튼 (width/height의 절반)
         width: 60,
         height: 60,

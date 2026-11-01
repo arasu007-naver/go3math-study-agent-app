@@ -1,6 +1,7 @@
 import React, { FC, ReactNode } from 'react';
 import { StyleSheet, View, StyleProp, ViewStyle } from 'react-native';
 import { Modal, Portal } from 'react-native-paper';
+import { colors, radius, shadow } from '../../../ui/theme';
 
 export interface PencilPropsModalProps {
     visible: boolean;
@@ -62,10 +63,9 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     modalContent: {
-        backgroundColor: 'white',
-        borderWidth: 2,
-        borderColor: 'orange',
-        borderRadius: 12,
+        backgroundColor: colors.card,
+        borderRadius: radius.lg,
+        ...shadow.float,
         padding: 12,
         alignSelf: 'flex-start',
     },

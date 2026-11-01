@@ -14,6 +14,7 @@ import { WebView } from 'react-native-webview';
 import { useIsFocused } from '@react-navigation/native';
 import { Modal, Portal } from 'react-native-paper';
 import PencilPropsModal from './pencil-props-modal';
+import { colors, radius, shadow } from '../../../ui/theme';
 import GoButton from '../../ui/go-button';
 import classCanvasTemplate from '../templates/whiteboard-canvas-template';
 import { AppCtx } from './legacy';
@@ -165,7 +166,7 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
                     <GoButton title={'내 풀이 저장'}
                         onPress={() => sendBoardActionLocal({ actionType: "SAVE" })} />
                 </ScrollView>
-                <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderWidth: 2, borderColor: 'orange', borderRadius: 6 }}>
+                <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['*']}

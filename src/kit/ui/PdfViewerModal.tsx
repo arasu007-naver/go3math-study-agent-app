@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Pdf from 'react-native-pdf';
+import { colors } from '../../ui/theme';
 
 export type PdfDoc = { url: string; password?: string | null };
 
@@ -47,9 +48,9 @@ export function PdfViewerModal({ doc, onClose }: { doc: PdfDoc | null; onClose()
 const styles = StyleSheet.create({
   backdrop: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.4)' },
   root: { width: '100%', height: '100%', borderRadius: 12, overflow: 'hidden', backgroundColor: '#FFFFFF' },
-  header: { height: 52, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: 1, borderColor: 'orange' },
+  header: { height: 52, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: 1, borderColor: colors.line },
   title: { flex: 1, fontSize: 16, fontWeight: '700', color: '#18181B' },
-  close: { minHeight: 44, minWidth: 64, alignItems: 'center', justifyContent: 'center', borderRadius: 22, borderWidth: 1, borderColor: 'orange' },
+  close: { minHeight: 44, minWidth: 64, alignItems: 'center', justifyContent: 'center', borderRadius: 22, borderWidth: 1, borderColor: colors.accent },
   closeText: { fontSize: 15, color: 'orange', fontWeight: '700' },
   pdf: { flex: 1, backgroundColor: '#F4F4F5' },
   error: { padding: 24, fontSize: 14, color: '#52525B' },

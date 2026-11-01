@@ -1,10 +1,11 @@
 /**
  * 내 정보 패널 — 기존 `components/panels/profile/my-info-tablet.tsx`(+폰 `my-info.tsx`)의 프로필 카드 부분.
- * 보존: 아바타 64 · 주황 이름 · 이메일, 주황 테두리 카드.
+ * 보존: 아바타 64 · 주황 이름 · 이메일. 카드는 테두리 대신 옅은 회색 면(design-spec P0).
  * 바뀐 점: AppCtx 대신 props로 받는다. '나가기' 버튼은 없앴다(로그아웃은 drawer 하단 '로그 아웃').
  * 아직 안 옮김: '정보 변경'(ChangeProfilePage 필요). 쪽지 목록은 MessageBoxPanel.
  */
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { colors, radius, space } from '../../ui/theme';
 
 export const DEFAULT_AVATAR_URL = 'https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/public/go3math.png';
 
@@ -27,7 +28,7 @@ export function MyInfoPanel({ info }: { info: MyInfo }) {
 
 const styles = StyleSheet.create({
   root: { padding: 16, gap: 12, backgroundColor: '#FFFFFF' },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 12, borderWidth: 1, borderColor: 'orange', borderRadius: 6 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: space.lg, padding: space.md, borderRadius: radius.md, backgroundColor: colors.cardMuted },
   avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#E4E4E7' },
   text: { flex: 1, gap: 4 },
   name: { fontSize: 18, fontWeight: '600', color: 'darkorange' },

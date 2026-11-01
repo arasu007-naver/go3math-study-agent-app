@@ -10,6 +10,7 @@ import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View, 
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { SkeletonCards } from '../ui/SkeletonCards';
 import type { SubjectOption, TopicPanelFetchers, TopicSummary } from './types';
+import { colors } from '../../ui/theme';
 
 export const TOPIC_PAGE_SIZE = 12;
 export const SUBJECT_STORAGE_KEY = 'current-topic-subject';
@@ -167,7 +168,7 @@ export function resolveInitialSubject(
 const styles = StyleSheet.create({
   root: { flex: 1 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 12, backgroundColor: '#FFFFFF' },
-  chip: { minHeight: 36, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: 'orange', backgroundColor: '#FFFFFF' },
+  chip: { minHeight: 36, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: '#FFFFFF' },
   chipOn: { backgroundColor: 'orange' },
   chipText: { fontSize: 14, color: '#18181B' },
   chipTextOn: { fontWeight: '700' },

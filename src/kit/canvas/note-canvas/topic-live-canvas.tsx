@@ -21,6 +21,7 @@ import * as _ from 'lodash'
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { ActivityIndicator, Modal, Portal } from 'react-native-paper';
 import PencilPropsModal from './pencil-props-modal';
+import { colors, radius, shadow } from '../../../ui/theme';
 import ReactNativeBlobUtil from 'react-native-blob-util'
 import GoButton from '../../ui/go-button';
 import liveClassCanvasTemplate from '../templates/live-class-canvas-template'
@@ -652,7 +653,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                         renderWidthOptions={drawPencilWidthOptions}
                         renderColorOptions={drawPencilColorOptions}
                     />
-                    <Modal visible={visiblePopup} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 960, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'white', borderWidth: 2, borderColor: 'orange', borderRadius: 12 }}>
+                    <Modal visible={visiblePopup} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 960, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: colors.card, borderRadius: radius.lg, ...shadow.float }}>
                         <View style={{ flex: 1 }}>
                             {popupUrl && (
                                 <QoollaWebView
@@ -699,7 +700,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                     }} />
                 </ScrollView>
                 {studySequences.length > 0 ?
-                    <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderWidth: 2, borderColor: 'orange', borderRadius: 6 }} onLayout={onLayout}>
+                    <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }} onLayout={onLayout}>
                         <WebView
                             ref={webCanvasRef}
                             originWhitelist={['*']}
@@ -720,13 +721,13 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                         {visibleMemoPopup && memoMessage && (
                             <View style={styles.memoToast}>
                                 <TouchableOpacity onPress={() => setVisibleMemoPopup(false)} style={styles.memoToastClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                                    <Text style={{ fontSize: 18, color: '#ea580c' }}>✕</Text>
+                                    <Text style={{ fontSize: 18, color: colors.accentPress }}>✕</Text>
                                 </TouchableOpacity>
                                 <MathJaxWrapper statement={memoMessage.content} fontSize={48} color="#ea580c" fullView={true} autoSize={true} maxWidth={640} />
                             </View>
                         )}
-                    </View> : <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderWidth: 2, borderColor: 'orange', borderRadius: 6 }} >
-                        <ActivityIndicator size={'large'} color="orange" />
+                    </View> : <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }} >
+                        <ActivityIndicator size={'large'} color={colors.accent} />
                     </View>}
             </View>
         </FullScreenWrapper>
@@ -741,11 +742,9 @@ const styles = StyleSheet.create({
         width: 640,
         maxWidth: 640,
         padding: 12,
-        backgroundColor: 'white',
-        borderWidth: 2,
-        borderColor: 'orange',
-        borderRadius: 12,
-        elevation: 4,
+        backgroundColor: colors.card,
+        borderRadius: radius.lg,
+        ...shadow.float,
         zIndex: 10,
     },
     memoToastClose: {
@@ -764,7 +763,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         width: '100%',
         flexDirection: 'column',
-        backgroundColor: 'orange'
+        backgroundColor: colors.accent
     },
     mainComponentStyle: {
         flex: 1,
@@ -783,7 +782,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: 'orange',
+        backgroundColor: colors.accent,
         position: 'absolute',
         bottom: 10,
         right: 10,

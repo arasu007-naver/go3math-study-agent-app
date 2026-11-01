@@ -14,6 +14,7 @@ import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import GoButton from '@/src/kit/ui/go-button';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
+import { colors, radius } from '@/src/ui/theme';
 
 // 문제 풀이 화면: 기존 pages/notebook/index.tsx를 옮김. 패널은 note-canvas/notebook.tsx 그대로,
 // 하단 버튼 줄(나가기·목록·답안 예시·멘토링 요청·내 이전 풀이)과 그 모달·바텀시트도 기존 그대로다.
@@ -145,7 +146,7 @@ export default function NotebookScreen() {
       <BottomSheetModal ref={sheetRef}>
         <BottomSheetView>
           <View style={styles.bottomContainerStyle}>
-            <View style={{ flex: 1, height: height / 2 - 64, borderWidth: 1, borderColor: 'orange' }}>
+            <View style={{ flex: 1, height: height / 2 - 64, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
               {answerUrl && (
                 <WebView
                   originWhitelist={['*']}
@@ -165,7 +166,7 @@ export default function NotebookScreen() {
       <BottomSheetModal ref={workoutSheetListRef}>
         <BottomSheetView>
           <View style={styles.workoutSheetContainerStyle}>
-            <View style={{ flex: 1, height: height / 2 - 108, borderWidth: 1, borderColor: 'orange', width: width - 12 }}>
+            <View style={{ flex: 1, height: height / 2 - 108, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card, width: width - 12 }}>
               <FlatList
                 data={workoutNotes}
                 keyExtractor={(_, index) => 'workout-sheet-' + index}
