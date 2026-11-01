@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import moment from 'moment';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
+import { SkeletonCards } from '../ui/SkeletonCards';
 
 export type Notice = {
   id: number | string;
@@ -63,7 +64,7 @@ export function NoticesPanel({ fetchers, pageSize = NOTICE_PAGE_SIZE }: { fetche
   }, [load]);
 
   if (error && !notices) return <Text style={styles.empty}>공지를 불러오지 못했어요. ({error})</Text>;
-  if (!notices) return <ActivityIndicator style={styles.center} color="orange" />;
+  if (!notices) return <SkeletonCards lines={3} />;
 
   return (
     <FlatList
@@ -110,6 +111,5 @@ const styles = StyleSheet.create({
   // 기존 cardDivider
   divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },
-  center: { padding: 32 },
   footer: { padding: 12 },
 });

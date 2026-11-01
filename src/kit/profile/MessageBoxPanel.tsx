@@ -11,6 +11,7 @@ import moment from 'moment';
 import { UNITIMAGE } from '../../config/api.constants';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { PdfViewerModal, type PdfDoc } from '../ui/PdfViewerModal';
+import { SkeletonCards } from '../ui/SkeletonCards';
 
 export type PrivateMessage = {
   id: number | string;
@@ -118,7 +119,7 @@ export function MessageBoxPanel({ fetchers, pageSize = MESSAGE_PAGE_SIZE }: { fe
       {error && !messages ? (
         <Text style={styles.empty}>쪽지를 불러오지 못했어요. ({error})</Text>
       ) : !messages ? (
-        <ActivityIndicator style={styles.center} color="orange" />
+        <SkeletonCards count={3} button />
       ) : (
         <FlatList
           data={messages}
@@ -178,6 +179,5 @@ const styles = StyleSheet.create({
   // 기존 cardDivider
   divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },
-  center: { padding: 32 },
   footer: { padding: 12 },
 });

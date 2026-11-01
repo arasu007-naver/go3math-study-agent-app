@@ -46,6 +46,15 @@ describe('MessageBoxPanel', () => {
     expect(screen.queryByText('비밀번호: 1234')).toBeNull();
   });
 
+  it('shows the skeleton placeholder until the messages arrive', async () => {
+    let resolve!: (v: never[]) => void;
+    await render(<MessageBoxPanel fetchers={fetchers(() => new Promise((r) => (resolve = r)))} />);
+    expect(screen.getByLabelText('불러오는 중')).toBeTruthy();
+    resolve([]);
+    await waitFor(() => expect(screen.getByText('받은 쪽지가 없습니다.')).toBeTruthy());
+    expect(screen.queryByLabelText('불러오는 중')).toBeNull();
+  });
+
   it('shows the empty placeholder', async () => {
     await render(<MessageBoxPanel fetchers={fetchers(async () => [])} />);
     await waitFor(() => expect(screen.getByText('받은 쪽지가 없습니다.')).toBeTruthy());

@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
+import { SkeletonCards } from '../ui/SkeletonCards';
 import type { SubjectOption, TopicPanelFetchers, TopicSummary } from './types';
 
 export const TOPIC_PAGE_SIZE = 12;
@@ -123,7 +124,7 @@ export function TopicTabsPanel({ fetchers, subjects, initialSubject, store, page
         })}
       </View>
       {loading ? (
-        <ActivityIndicator style={styles.center} color="orange" />
+        <SkeletonCards count={6} lines={1} avatar divider={false} />
       ) : error ? (
         <Text style={styles.empty}>주제를 불러오지 못했어요. ({error})</Text>
       ) : (
@@ -181,6 +182,5 @@ const styles = StyleSheet.create({
   sep: { height: 1, backgroundColor: '#D4D4D8' },
   footer: { height: 44, alignItems: 'center', justifyContent: 'center' },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },
-  center: { padding: 32 },
   pressed: { opacity: 0.6 },
 });
