@@ -13,6 +13,7 @@ import { TimelinePanel } from '../kit/timeline/TimelinePanel';
 import { apolloClient } from '../state/bootstrap';
 import { storage } from '../storage';
 import type { AgentSession, SessionSnapshot } from './session';
+import { DockWrapper } from './DockWrapper';
 import { InstructionCard } from './InstructionCard';
 import { drawerWidth } from '../layout/deviceMode';
 import { colors } from '../ui/theme';
@@ -23,8 +24,6 @@ import { colors } from '../ui/theme';
 // 홈 진입(로그인 직후·앱 시작) 시에는 drawer와 타임라인 dock을 열어 둔다.
 export const TOAST_MS = 6400;
 export const TOAST_PREVIEW_CHARS = 30;
-const DOCK_MAX_WIDTH = 640;
-const DOCK_HEIGHT_RATIO = 0.8;
 
 export type DockKind = 'timeline' | 'search' | 'notice' | 'profile';
 const DOCK_TITLES: Record<DockKind, string> = { timeline: '타임라인', search: '검색', notice: '공지', profile: '내 정보' };
@@ -82,10 +81,6 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     Animated.timing(slide, { toValue: open ? 1 : 0, duration: 220, useNativeDriver: true }).start();
   }, [open, slide]);
   const translateX = slide.interpolate({ inputRange: [0, 1], outputRange: [-dw - 16, 0] });
-  const dockWidth = Math.min(DOCK_MAX_WIDTH, width - dw - 24);
-  const dockHeight = Math.round(height * DOCK_HEIGHT_RATIO);
-  // dock은 drawer의 자식이 아니라 형제로 둔다(Android는 부모 밖 자식에 터치가 가지 않음). drawer와 같은 값으로 함께 움직인다.
-  const dockTranslateX = slide.interpolate({ inputRange: [0, 1], outputRange: [-dw - dockWidth - 16, 0] });
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
@@ -144,15 +139,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
       </Animated.View>
 
       {dock && (
-        <Animated.View
-          accessibilityLabel={`${DOCK_TITLES[dock]} dock`}
-          style={[styles.dock, { left: dw, top: (height - dockHeight) / 2, width: dockWidth, height: dockHeight, transform: [{ translateX: dockTranslateX }] }]}>
-          <View style={styles.dockHead}>
-            <Text style={styles.drawerTitle}>{DOCK_TITLES[dock]}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel={`${DOCK_TITLES[dock]} 닫기`} onPress={() => setDock(null)} style={styles.closeBtn}>
-              <Text style={styles.closeText}>×</Text>
-            </Pressable>
-          </View>
+        <DockWrapper title={DOCK_TITLES[dock]} drawerWidth={dw} slide={slide} onClose={() => setDock(null)}>
           {dock === 'timeline' && (
             <TimelinePanel
               fetchers={timelineFetchers}
@@ -181,7 +168,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
               session.emit('topic_selected', { topicId: Number(t.id), title: t.title, source: 'research' });
             }}
           />}
-        </Animated.View>
+        </DockWrapper>
       )}
 
       {toastFor && ins?.messageId === toastFor && !open && (
@@ -293,23 +280,6 @@ const styles = StyleSheet.create({
   footerBtn: { flexGrow: 1, flexBasis: '45%', minHeight: 44, borderRadius: 22, borderWidth: 0, backgroundColor: '#E5E5E5', alignItems: 'center', justifyContent: 'center' },
   footerBtnOn: { backgroundColor: colors.agent },
   footerText: { fontSize: 14, color: colors.text },
-  dock: {
-    position: 'absolute',
-    paddingTop: 8,
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-    borderWidth: 1,
-    borderLeftWidth: 0,
-    borderColor: colors.agent,
-    backgroundColor: colors.surface,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    shadowOffset: { width: 6, height: 0 },
-    elevation: 11,
-  },
-  dockHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
   history: { gap: 8, borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 12 },
   historyTitle: { fontSize: 12, fontWeight: '700', color: colors.muted },
   historyItem: { fontSize: 14, color: '#3F3F46' },
