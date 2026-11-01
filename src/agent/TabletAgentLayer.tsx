@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { createMessageBoxFetchers } from '../adapters/messageBoxFetchers';
 import { createNoticeFetchers } from '../adapters/noticeFetchers';
 import { createTimelineFetchers } from '../adapters/timelineFetchers';
 import { logout } from '../auth/logout';
@@ -7,6 +8,7 @@ import { useMyInfo } from '../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { topicFetchers } from '../host/widgets';
 import { NoticesPanel } from '../kit/notices/NoticesPanel';
+import { MessageBoxPanel } from '../kit/profile/MessageBoxPanel';
 import { MyInfoPanel } from '../kit/profile/MyInfoPanel';
 import { ResearchPanel } from '../kit/research/ResearchPanel';
 import { TimelinePanel } from '../kit/timeline/TimelinePanel';
@@ -30,6 +32,7 @@ export type DockKind = 'timeline' | 'search' | 'notice' | 'profile';
 const DOCK_TITLES: Record<DockKind, string> = { timeline: '타임라인', search: '검색', notice: '공지', profile: '내 정보' };
 const noticeFetchers = createNoticeFetchers(apolloClient);
 const timelineFetchers = createTimelineFetchers(apolloClient);
+const messageBoxFetchers = createMessageBoxFetchers(apolloClient);
 
 export function toastPreview(text: string): string {
   return text.length > TOAST_PREVIEW_CHARS ? `${text.slice(0, TOAST_PREVIEW_CHARS - 1)}…` : text;
@@ -110,9 +113,6 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
         style={[styles.drawer, { width: dw, transform: [{ translateX }] }]}>
         <View style={styles.drawerHead}>
           <Text style={styles.drawerTitle}>에이전트</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="drawer 닫기" onPress={() => setOpen(false)} style={styles.closeBtn}>
-            <Text style={styles.closeText}>‹</Text>
-          </Pressable>
         </View>
         <ScrollView style={styles.scroll} contentContainerStyle={{ gap: 16 }}>
           {ins ? (
@@ -163,7 +163,12 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
             />
           )}
           {dock === 'notice' && <NoticesPanel fetchers={noticeFetchers} />}
-          {dock === 'profile' && <MyInfoPanel info={myInfo} onSignOut={() => void logout()} />}
+          {dock === 'profile' && (
+            <>
+              <MyInfoPanel info={myInfo} />
+              <MessageBoxPanel fetchers={messageBoxFetchers} />
+            </>
+          )}
           {dock === 'search' && <ResearchPanel
             fetchers={topicFetchers}
             topicSubjects={MATH_TOPIC_SUBJECTS}
@@ -264,10 +269,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 8, height: 0 },
     elevation: 12,
   },
-  drawerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  drawerHead: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   drawerTitle: { fontSize: 13, fontWeight: '700', color: colors.agentText },
-  closeBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.agent, alignItems: 'center', justifyContent: 'center' },
-  closeText: { fontSize: 24, color: colors.text, lineHeight: 26 },
   muted: { fontSize: 14, color: colors.muted },
   scroll: { flex: 1 },
   footer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.agent },
