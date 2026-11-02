@@ -11,16 +11,17 @@ import {
     View, Image, Dimensions,
     TouchableOpacity,
     FlatList,
-    Text
+    Text,
+    ActivityIndicator,
 } from "react-native";
 import { WebView } from 'react-native-webview';
 import QoollaWebView from '../../ui/web-view';
 import uuid from 'react-native-uuid';
 import * as _ from 'lodash'
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { ActivityIndicator, Modal, Portal } from 'react-native-paper';
+import { Sheet } from '../../../ui/Sheet';
 import PencilPropsModal from './pencil-props-modal';
-import { colors, radius, shadow, type } from '../../../ui/theme';
+import { colors, type } from '../../../ui/theme';
 import { CanvasChrome, canvasTool } from '../CanvasChrome';
 import { canvasStyles } from './canvasStyles';
 import ReactNativeBlobUtil from 'react-native-blob-util'
@@ -668,9 +669,8 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
     return (
         <FullScreenWrapper>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
-                <Portal>
-                    <Modal visible={visiblePopup} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 960, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: colors.card, borderRadius: radius.lg, ...shadow.float }}>
-                        <View style={{ flex: 1 }}>
+                <Sheet visible={visiblePopup} onDismiss={hideModal} style={[canvasStyles.popup, { maxHeight: 960 }]}>
+                        <View>
                             {popupUrl && (
                                 <QoollaWebView
                                     ref={webViewRef}
@@ -680,8 +680,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                                 />
                             )}
                         </View>
-                    </Modal>
-                </Portal>
+                </Sheet>
                 {studySequences.length > 0 ?
                     <View style={[canvasStyles.frame, { width: width }]} onLayout={onLayout}>
                         <WebView

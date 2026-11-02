@@ -1,9 +1,8 @@
 // @ts-nocheck
-/* eslint-disable */
 // qoolla-student-app/src/components/cards/image-adjust-card.tsx 그대로 옮김(풀이 화면의 목록·이전 풀이 카드)
 import React, { useState, useEffect, isValidElement, Children } from 'react';
-import { Image, View } from "react-native";
-import { Card, ActivityIndicator } from 'react-native-paper';
+import { ActivityIndicator, Image, View } from "react-native";
+import { colors, radius } from '../../../ui/theme';
 
 const ImageAdjustCard = ({ imgPath, index, children, imgWidth }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -23,9 +22,7 @@ const ImageAdjustCard = ({ imgPath, index, children, imgWidth }) => {
       });
   }, [imgPath, imgWidth]);
 
-  // react-native-paper Card.Actions clones children and injects `index`.
-  // React.Fragment only accepts `key`/`children`, so empty <>...</> (or any
-  // Fragment) as a direct Card.Actions child throws on iPad/diary.
+  // 빈 Fragment(<></>)는 버튼 줄로 그리지 않는다(paper Card.Actions 시절 크래시 회피 로직, 동작 유지).
   const actionChildren = Children.toArray(children).filter((child) => {
     if (child == null || child === false) return false;
     if (!isValidElement(child)) return true;
@@ -53,26 +50,25 @@ const ImageAdjustCard = ({ imgPath, index, children, imgWidth }) => {
       );
     });
     return (
-      <Card.Actions style={{ margin: 0, padding: 0, flexWrap: 'wrap' }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', margin: 0, padding: 0 }}>
         {wrapped}
-      </Card.Actions>
+      </View>
     );
   };
 
   return (
     <View style={{ width: '100%', alignItems: 'center' }}>
-      <Card
+      <View
         key={'img-card-' + index + '-' + imgPath}
-        elevation={0}
-        style={{ margin: 0, padding: 0, backgroundColor: 'white', width: '100%' }}
+        style={{ margin: 0, padding: 0, backgroundColor: colors.card, borderRadius: radius.md, width: '100%' }}
       >
-        <Card.Content style={{ padding: 0, margin:0,  justifyContent: 'center', alignItems: 'center' }}>
-            {isLoading?<ActivityIndicator size="large" color="orange" />
+        <View style={{ padding: 0, margin:0,  justifyContent: 'center', alignItems: 'center' }}>
+            {isLoading?<ActivityIndicator size="large" color={colors.accent} />
               :<Image source={{ uri: imgPath }} style={{width: imgWidth - 12, height: imageHeight }} resizeMode="contain" />}
-        </Card.Content>
+        </View>
         {renderActions()}
-      </Card>
-      <View style={{ height: 9, backgroundColor: 'rgba(255, 136, 0, 0.5)', width: '100%', marginTop: 8, borderRadius: 4.5 }} />
+      </View>
+      <View style={{ height: 9, backgroundColor: colors.accentSoftPress, width: '100%', marginTop: 8, borderRadius: radius.sm }} />
     </View>
   );
 }

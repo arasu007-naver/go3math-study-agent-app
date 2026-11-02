@@ -5,7 +5,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import GlobalLoadingOverlay from '@/src/kit/ui/loading-view/global-overlay';
 import { apolloClient, bootstrap } from '@/src/state/bootstrap';
@@ -29,16 +28,14 @@ export default function RootLayout() {
   return (
     <ApolloProvider client={apolloClient}>
       <SafeAreaProvider>
-        {/* 옮겨 온 note-canvas 패널이 react-native-paper의 Portal·Modal을, 풀이 화면 하단 버튼이 bottom-sheet 모달을 쓴다 */}
+        {/* 풀이 화면 하단 버튼이 bottom-sheet 모달을 쓴다(note-canvas 팝업은 RN Modal 기반 src/ui/Sheet) */}
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <PaperProvider>
-            <BottomSheetModalProvider>
-              <Stack screenOptions={{ headerShown: false }} />
-              <GlobalLoadingOverlay />
-              <StatusBar style="dark" />
-              <TabletLaunchOverlay />
-            </BottomSheetModalProvider>
-          </PaperProvider>
+          <BottomSheetModalProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+            <GlobalLoadingOverlay />
+            <StatusBar style="dark" />
+            <TabletLaunchOverlay />
+          </BottomSheetModalProvider>
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </ApolloProvider>

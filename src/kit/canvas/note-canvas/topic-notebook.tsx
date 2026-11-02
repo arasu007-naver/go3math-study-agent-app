@@ -11,15 +11,16 @@ import {
     View, Image, Dimensions,
     TouchableOpacity,
     FlatList,
-    Text
+    Text,
+    Pressable,
 } from "react-native";
-import { IconButton } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import QoollaWebView from '../../ui/web-view';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { Modal as PaperModal, Portal } from 'react-native-paper';
+import { Sheet } from '../../../ui/Sheet';
 import PencilPropsModal from './pencil-props-modal';
-import { colors, radius, shadow, type } from '../../../ui/theme';
+import { colors, type } from '../../../ui/theme';
 import { CanvasChrome, canvasTool } from '../CanvasChrome';
 import { canvasStyles } from './canvasStyles';
 import ReactNativeBlobUtil from 'react-native-blob-util'
@@ -375,9 +376,8 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
     return (
         <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
-                <Portal>
-                    <PaperModal visible={isToastVisible} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 720, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: colors.card, borderRadius: radius.lg, ...shadow.float }}>
-                        <View style={{ flex: 1 }}>
+                <Sheet visible={isToastVisible} onDismiss={hideModal} style={[canvasStyles.popup, { maxHeight: 720 }]}>
+                        <View>
                             {popupUrl && (
                                 <QoollaWebView
                                     ref={webPopupViewRef}
@@ -387,9 +387,9 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                                 />
                             )}
                         </View>
-                    </PaperModal>
-                    <PaperModal visible={visibleMemoPopup} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 480, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: colors.card, borderRadius: radius.lg, ...shadow.float }}>
-                        <View style={{ flex: 1 }}>
+                </Sheet>
+                <Sheet visible={visibleMemoPopup} onDismiss={hideModal} style={[canvasStyles.popup, { maxHeight: 480 }]}>
+                        <View>
                             <WebView
                                 ref={webMemoViewRef}
                                 originWhitelist={['*']}
@@ -398,8 +398,7 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                                 javaScriptEnabled={true}
                             />
                         </View>
-                    </PaperModal>
-                </Portal>
+                </Sheet>
                 <View style={[canvasStyles.frame, { width: width }]} >
                     <WebView
                         ref={webViewRef}
@@ -415,10 +414,9 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                         }}
                     />
                 </View>
-                {subCount > 0 && <IconButton
-                    icon="pencil-plus-outline" // MaterialCommunityIcons의 "menu" 아이콘
-                    size={30}
-                    iconColor="white"
+                {subCount > 0 && <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="보조 풀이 보기"
                     onPress={() => {
                         sendBoardAction({
                             actionType: "SHOW_SUBSTANTIALS",
@@ -426,7 +424,9 @@ const TopicNotebookCanvasPanel: FC = forwardRef((props, ref) => {
                         })
                     }}
                     style={styles.fixedDrawerButton} // 스타일 적용
-                />}
+                >
+                    <MaterialCommunityIcons name="pencil-plus-outline" size={30} color={colors.onAccent} />
+                </Pressable>}
                 {/* 기존 상단 버튼 줄을 하단 가운데 떠 있는 툴바로 옮겼다(design-spec P2-1). 부르는 함수·액션은 같다. */}
                 <CanvasChrome
                     tools={[canvasTool('color', `펜 색·굵기 (${canvasStrokeColor} : ${canvasStrokeWidth})`), canvasTool('clearBoard', '보드 지우기'), canvasTool('clearMemo', '내 필기 지우기'), canvasTool('save', '풀이 올리기')]}
@@ -575,7 +575,6 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 5,
-        // IconButton 자체는 안쪽 패딩이 있어서 View로 감싸지 않고 바로 스타일 적용해도 됨.
     },
 });
 
