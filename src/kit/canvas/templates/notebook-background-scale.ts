@@ -15,4 +15,8 @@ function notebookBackgroundScale(canvasWidth, imgWidth, imgHeight) {
     }
     return scale;
 }
+// 문제 배경 위치: 기존 qoolla-student-app 캔버스(live-class/topic)와 같은 top = left = 10 × (캔버스 높이 / 1920)
+function notebookBackgroundOffset(canvasHeight) {
+    return 10 * canvasHeight / 1920;
+}
 `;

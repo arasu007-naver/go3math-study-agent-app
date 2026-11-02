@@ -232,7 +232,10 @@ export default function classCanvasTemplate(width: number, height: number, cssWi
                         console.log('@@@@@@@@@@@ changeNotebookBackgroundImage: ', oImg);
                         // 너비 기준(폭의 절반), 그 높이가 1440을 넘으면 높이 1440 기준
                         var notebookScale = notebookBackgroundScale(canvasWidth, oImg.width, oImg.height);
+                        var notebookOffset = notebookBackgroundOffset(canvasHeight);
                         canvas.setBackgroundImage(oImg, canvas.renderAll.bind(canvas), {
+                            top: notebookOffset,
+                            left: notebookOffset,
                             scaleX: notebookScale,
                             scaleY: notebookScale,
                             backgroundImageOpacity: 1,

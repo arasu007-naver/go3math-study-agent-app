@@ -3,6 +3,7 @@ import classCanvasTemplate from '../src/kit/canvas/templates/whiteboard-canvas-t
 
 // 템플릿 안에서 쓰는 것과 같은 소스를 실행한다
 const scaleOf = new Function(`${NOTEBOOK_BG_SCALE_JS}; return notebookBackgroundScale;`)() as (cw: number, w: number, h: number) => number;
+const offsetOf = new Function(`${NOTEBOOK_BG_SCALE_JS}; return notebookBackgroundOffset;`)() as (ch: number) => number;
 
 describe('notebook background scale', () => {
   it('keeps the width-based scale (half the canvas width) for normal images', () => {
@@ -22,9 +23,16 @@ describe('notebook background scale', () => {
     expect(s).toBeCloseTo(1);
   });
 
+  it('places the background at top = left = 10 × (canvas height / 1920), like qoolla-student-app', () => {
+    expect(offsetOf(1920)).toBe(10);
+    expect(offsetOf(2400)).toBe(12.5);
+  });
+
   it('is embedded in the solve canvas template', () => {
     const html = classCanvasTemplate(1024, 1270);
     expect(html).toContain('function notebookBackgroundScale(');
     expect(html).toContain('notebookBackgroundScale(canvasWidth, oImg.width, oImg.height)');
+    expect(html).toContain('top: notebookOffset,');
+    expect(html).toContain('left: notebookOffset,');
   });
 });
