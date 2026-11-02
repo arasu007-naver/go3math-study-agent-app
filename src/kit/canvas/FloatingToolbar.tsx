@@ -49,7 +49,7 @@ export function FloatingToolbar({
       entering={reduce ? undefined : FadeInDown.duration(motion.base)}
       exiting={reduce ? undefined : FadeOutDown.duration(motion.fast)}
       pointerEvents="box-none"
-      style={[styles.wrap, { left: insets.left, right: insets.right, bottom: insets.bottom + layout.toolbarGap }]}>
+      style={[styles.wrap, { left: insets.left, right: insets.right, bottom: insets.bottom }]}>
       {/* 보이는 캔버스가 툴바보다 좁으면 가로 스크롤로 잘리지 않게 한다 */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.bar}>
@@ -93,7 +93,8 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', alignItems: 'center', zIndex: z.toolbar },
   // overflow visible: iOS에서 bar 그림자가 ScrollView 경계에 잘리지 않게(Android elevation은 padding 안에 들어간다)
   scroll: { flexGrow: 0, maxWidth: '100%', overflow: 'visible' },
-  scrollContent: { paddingHorizontal: space.sm, paddingVertical: space.md },
+  // 아래 여백 0: 툴바를 캔버스 맨 아래에 붙인다(2026-11-02 요청). 위쪽 padding은 iOS 그림자 자리
+  scrollContent: { paddingHorizontal: space.sm, paddingTop: space.md, paddingBottom: 0 },
   bar: {
     height: layout.toolbarH,
     flexDirection: 'row',

@@ -27,7 +27,7 @@ export function ToolPopover({
       <Animated.View
         entering={reduce ? undefined : FadeIn.duration(motion.fast)}
         exiting={reduce ? undefined : FadeOut.duration(motion.fast)}
-        style={[styles.card, { bottom: bottom + layout.toolbarGap + space.md + layout.toolbarH + space.sm }, style]}>
+        style={[styles.card, { bottom: bottom + layout.toolbarH + space.sm }, style]}>
         {children}
       </Animated.View>
     </View>
