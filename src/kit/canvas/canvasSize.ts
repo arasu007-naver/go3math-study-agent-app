@@ -8,10 +8,10 @@ export type Size = { width: number; height: number };
 
 /**
  * 풀이 캔버스가 화면에서 차지하는 크기(CSS px).
- * 폭 = 태블릿 전체 폭 - 6, 높이 = 전체 높이 - (상단 시스템 바 + 툴바 + 하단 시스템 바).
+ * 폭 = 태블릿 전체 폭 - 좌우 여백(6 × 2), 높이 = 전체 높이 - (상단 시스템 바 + 툴바 + 하단 시스템 바).
  */
 export function canvasScreenSize(window: Size, insets: { top: number; bottom: number }): Size {
-  return { width: window.width - 6, height: window.height - (insets.top + layout.toolbarH + insets.bottom) };
+  return { width: window.width - layout.canvasMargin * 2, height: window.height - (insets.top + layout.toolbarH + insets.bottom) };
 }
 
 /**

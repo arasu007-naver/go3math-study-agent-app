@@ -2,8 +2,8 @@ import { BOARD_HEIGHT, BOARD_WIDTH, canvasContextSize, canvasScreenSize } from '
 import classCanvasTemplate from '../src/kit/canvas/templates/whiteboard-canvas-template';
 
 describe('solve canvas size', () => {
-  it('screen = full width - 6, full height - (top bar + toolbar 52 + bottom bar)', () => {
-    expect(canvasScreenSize({ width: 1024, height: 1366 }, { top: 24, bottom: 20 })).toEqual({ width: 1018, height: 1366 - 24 - 52 - 20 });
+  it('screen = full width - 6px margins on both sides, full height - (top bar + toolbar 44 + bottom bar)', () => {
+    expect(canvasScreenSize({ width: 1024, height: 1366 }, { top: 24, bottom: 20 })).toEqual({ width: 1024 - 12, height: 1366 - 24 - 44 - 20 });
   });
 
   it('wider than 1280:1920 → context height 1920, width scaled by 1920/screen height', () => {

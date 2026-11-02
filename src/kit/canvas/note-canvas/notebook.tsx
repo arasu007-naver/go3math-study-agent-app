@@ -15,6 +15,7 @@ import { CanvasChrome, canvasTool } from '../CanvasChrome';
 import { canvasStyles } from './canvasStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { canvasContextSize, canvasScreenSize } from '../canvasSize';
+import { layout } from '../../../ui/theme';
 import GoButton from '../../ui/go-button';
 import classCanvasTemplate from '../templates/whiteboard-canvas-template';
 import { AppCtx } from './legacy';
@@ -143,7 +144,7 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
     return (
         <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
-                <View style={[canvasStyles.frame, { width: width, height: screenSize.height, flex: 0, paddingVertical: 0 }]}>
+                <View style={[canvasStyles.frame, { width: screenSize.width, height: screenSize.height, flex: 0, padding: 0, marginHorizontal: layout.canvasMargin }]}>
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['*']}

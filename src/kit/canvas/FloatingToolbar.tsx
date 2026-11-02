@@ -93,8 +93,8 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', alignItems: 'center', zIndex: z.toolbar },
   // overflow visible: iOS에서 bar 그림자가 ScrollView 경계에 잘리지 않게(Android elevation은 padding 안에 들어간다)
   scroll: { flexGrow: 0, maxWidth: '100%', overflow: 'visible' },
-  // 아래 여백 0: 툴바를 캔버스 맨 아래에 붙인다(2026-11-02 요청). 위쪽 padding은 iOS 그림자 자리
-  scrollContent: { paddingHorizontal: space.sm, paddingTop: space.md, paddingBottom: 0 },
+  // 위아래 여백 0: 툴바 높이 = 버튼 높이, 캔버스 맨 아래에 붙인다(2026-11-02 요청). 그림자는 scroll의 overflow visible로 그린다
+  scrollContent: { paddingHorizontal: space.sm, paddingVertical: 0 },
   bar: {
     height: layout.toolbarH,
     flexDirection: 'row',

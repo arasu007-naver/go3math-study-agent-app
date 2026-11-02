@@ -124,7 +124,8 @@ export const layout = {
   footerH: 56,
   footerIcon: 22, // 하단 바 아이콘
   footerItems: 6, // 공지·검색·타임라인·실황 수업·주간 공부·내 정보
-  toolbarH: 52,
+  toolbarH: 44, // 캔버스 툴바 높이 = 버튼 터치 영역(위아래 padding 없음)
+  canvasMargin: 6, // 풀이 캔버스 좌우 여백
   toolbarGap: 16, // 툴바와 하단 바/drawer/토스트 사이 최소 간격
   hit: 44, // 최소 터치 영역
   toastW: 360,
