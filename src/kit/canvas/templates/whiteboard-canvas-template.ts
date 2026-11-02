@@ -1,6 +1,11 @@
 import { NOTEBOOK_BG_SCALE_JS } from './notebook-background-scale';
 
-export default function classCanvasTemplate(width: number, height: number) {
+/**
+ * 풀이 화이트보드 HTML. width/height는 canvas context(좌표계) 크기, cssWidth/cssHeight는 화면에 보이는 크기.
+ * 둘이 다르면 fabric canvas를 CSS로만 줄여 보여 준다(좌표·저장 이미지는 context 기준). 포인터 좌표는 fabric이 CSS 배율을 되돌려 계산한다.
+ */
+export default function classCanvasTemplate(width: number, height: number, cssWidth: number = width, cssHeight: number = height) {
+    const cssScaled = cssWidth !== width || cssHeight !== height;
     return `
 <!DOCTYPE html>
 <html>
@@ -26,7 +31,9 @@ export default function classCanvasTemplate(width: number, height: number) {
     
 <script>
         const firstCommand = {"actionType": "NOTEBOOK", "obj": {"imageUrl": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4220.png"}}
-        var canvas = new fabric.Canvas('canvas');
+        // context가 화면보다 크면 레티나 배율을 끈다(1280×1920 이상 backing store가 기기 배율로 다시 커지지 않게)
+        var canvas = new fabric.Canvas('canvas', { enableRetinaScaling: ${cssScaled ? 'false' : 'true'} });
+        ${cssScaled ? `canvas.setDimensions({ width: '${cssWidth}px', height: '${cssHeight}px' }, { cssOnly: true });` : ''}
         const canvasWidth = ${width};
         const canvasHeight = ${height};
         var classBoardScript = [];

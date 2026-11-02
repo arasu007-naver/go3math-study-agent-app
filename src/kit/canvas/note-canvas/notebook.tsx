@@ -13,6 +13,8 @@ import { useIsFocused } from '@react-navigation/native';
 import PencilPropsModal from './pencil-props-modal';
 import { CanvasChrome, canvasTool } from '../CanvasChrome';
 import { canvasStyles } from './canvasStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { canvasContextSize, canvasScreenSize } from '../canvasSize';
 import GoButton from '../../ui/go-button';
 import classCanvasTemplate from '../templates/whiteboard-canvas-template';
 import { AppCtx } from './legacy';
@@ -32,6 +34,10 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
     const { loaded, saveWorkout, saveMentorRequestShot, screenActions } = props;
     const webViewRef = useRef(null);
     const { state } = useContext(AppCtx);
+    // 캔버스 화면 크기 = 전체 폭 - 6 × (전체 높이 - 상단 바 - 툴바 - 하단 바), context는 1280×1920 기준(canvasSize.ts)
+    const insets = useSafeAreaInsets();
+    const screenSize = canvasScreenSize({ width, height }, insets);
+    const contextSize = canvasContextSize(screenSize);
     const isFocused = useIsFocused();
     const unitHolder = useRef({
         sourceType: 'UNIT',
@@ -137,12 +143,12 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
     return (
         <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
-                <View style={[canvasStyles.frame, { width: width }]}>
+                <View style={[canvasStyles.frame, { width: width, height: screenSize.height, flex: 0, paddingVertical: 0 }]}>
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['*']}
-                        style={{ width: width - 6, height: height - 96 }}
-                        source={{ html: classCanvasTemplate(width - 6, height - 96) }}
+                        style={{ width: screenSize.width, height: screenSize.height }}
+                        source={{ html: classCanvasTemplate(contextSize.width, contextSize.height, screenSize.width, screenSize.height) }}
                         javaScriptEnabled={true}
                         onLoadEnd={() => loaded()}
                         onMessage={(event) => {
