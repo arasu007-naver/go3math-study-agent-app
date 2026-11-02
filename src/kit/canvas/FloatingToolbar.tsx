@@ -9,9 +9,12 @@ import { colors, layout, motion, radius, shadow, space, z } from '../../ui/theme
 export type ToolId = 'color' | 'clearBoard' | 'clearMemo' | 'save';
 
 export type FloatingTool = { id: ToolId; icon?: ReactNode; label: string; disabled?: boolean };
+/** 캔버스 화면(라우트)이 넘기는 화면 버튼(나가기·목록 등). 그리기 도구 앞에 놓이고 구분선으로 나뉜다. */
+export type FloatingAction = { id: string; icon: ReactNode; label: string; onPress(): void };
 
 export type FloatingToolbarProps = {
   mode: 'draw' | 'playback';
+  actions?: FloatingAction[];
   tools?: FloatingTool[];
   activeTool?: ToolId;
   onSelectTool?: (id: ToolId) => void;
@@ -30,6 +33,7 @@ const NO_INSETS = { left: 0, right: 0, bottom: 0 };
 
 export function FloatingToolbar({
   mode,
+  actions = [],
   tools = [],
   activeTool,
   onSelectTool,
@@ -49,6 +53,17 @@ export function FloatingToolbar({
       {/* 보이는 캔버스가 툴바보다 좁으면 가로 스크롤로 잘리지 않게 한다 */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.bar}>
+          {actions.map((a) => (
+            <Pressable
+              key={a.id}
+              onPress={a.onPress}
+              accessibilityRole="button"
+              accessibilityLabel={a.label}
+              style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}>
+              {a.icon}
+            </Pressable>
+          ))}
+          {actions.length > 0 && <View style={styles.divider} />}
           {mode === 'draw'
             ? tools.map((t) => {
                 const blocked = restricted?.has(t.id) ?? false;
@@ -93,5 +108,6 @@ const styles = StyleSheet.create({
   btnOn: { backgroundColor: colors.accentSoft },
   btnPressed: { backgroundColor: colors.accentSoftPress },
   btnOff: { opacity: 0.38 },
+  divider: { width: StyleSheet.hairlineWidth * 2, height: layout.footerIcon, backgroundColor: colors.line, marginHorizontal: space.xs },
   swatch: { width: 22, height: 22, borderRadius: radius.pill, borderWidth: 2, borderColor: colors.card, ...shadow.card },
 });

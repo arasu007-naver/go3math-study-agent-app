@@ -9,6 +9,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CREATE_RECORD, SEND_REQUEST_MESSAGE } from '@/src/api/graphql/mutations';
 import { UNIT_TRIES } from '@/src/api/graphql/queries';
 import { UNITANSWER } from '@/src/config/api.constants';
+import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
+import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import GoButton from '@/src/kit/ui/go-button';
@@ -17,7 +19,8 @@ import { solveStore, type SolveProblem } from '@/src/state/solve';
 import { colors, radius } from '@/src/ui/theme';
 
 // 문제 풀이 화면: 기존 pages/notebook/index.tsx를 옮김. 패널은 note-canvas/notebook.tsx 그대로,
-// 하단 버튼 줄(나가기·목록·답안 예시·멘토링 요청·내 이전 풀이)과 그 모달·바텀시트도 기존 그대로다.
+// 하단 버튼 줄(나가기·목록·답안 예시·내 이전 풀이)은 아이콘 버튼으로 캔버스 하단 가운데 툴바(펜 설정 등)에 합쳤다. 모달·바텀시트는 기존 그대로다.
+// '멘토링 요청' 버튼은 뺐다(2026-11-02 요청).
 // 기존 route.params(unit, units, topicId, taskId) 대신 solveStore에서 받는다. 나가면 Stage의 문제 목록은 그대로 남는다.
 type PanelHandle = { changeNotebookBackgroundImage(url: string): void; saveSnapshotForMentoring(): void };
 // 옮겨 온 패널은 FC로 선언된 forwardRef라 ref 타입이 없다 → 쓰는 쪽에서만 타입을 붙인다
@@ -26,6 +29,7 @@ const NotebookCanvasPanel = LegacyNotebookCanvasPanel as unknown as ComponentTyp
   loaded(): void;
   saveWorkout(imageUrl: string): void;
   saveMentorRequestShot(imageUrl: string): void;
+  screenActions?: FloatingAction[];
 }>;
 
 const { width, height } = Dimensions.get('window');
@@ -135,14 +139,13 @@ export default function NotebookScreen() {
         loaded={() => panelRef.current?.changeNotebookBackgroundImage(currentSheet.image)}
         saveWorkout={onSave}
         saveMentorRequestShot={onMentoringRequestSave}
+        screenActions={[
+          canvasAction('exit', '나가기', 'chevron-back', () => (router.canGoBack() ? router.back() : router.replace('/'))),
+          ...(units.length > 1 ? [canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true))] : []),
+          canvasAction('answer', '답안 예시', 'reader-outline', handlePresentModalPress),
+          canvasAction('workouts', '내 이전 풀이', 'images-outline', handlePresentWorkoutSheetListModalPress),
+        ]}
       />
-      <View style={styles.buttonContainerStyle}>
-        <GoButton title={'⬅️ 나가기'} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
-        {units.length > 1 && <GoButton title={'⬅️ 목록'} onPress={() => setSheetListVisible(true)} />}
-        <GoButton title={'답안 예시'} onPress={handlePresentModalPress} />
-        <GoButton title={'멘토링 요청'} onPress={() => panelRef.current?.saveSnapshotForMentoring()} />
-        <GoButton title={'내 이전 풀이'} onPress={handlePresentWorkoutSheetListModalPress} />
-      </View>
       <BottomSheetModal ref={sheetRef}>
         <BottomSheetView>
           <View style={styles.bottomContainerStyle}>
