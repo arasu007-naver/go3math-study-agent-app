@@ -9,14 +9,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CREATE_RECORD, SEND_REQUEST_MESSAGE } from '@/src/api/graphql/mutations';
 import { UNIT_TRIES } from '@/src/api/graphql/queries';
 import { UNITANSWER } from '@/src/config/api.constants';
+import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
+import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import GoButton from '@/src/kit/ui/go-button';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
+import { colors, radius } from '@/src/ui/theme';
 
 // 문제 풀이 화면: 기존 pages/notebook/index.tsx를 옮김. 패널은 note-canvas/notebook.tsx 그대로,
-// 하단 버튼 줄(나가기·목록·답안 예시·멘토링 요청·내 이전 풀이)과 그 모달·바텀시트도 기존 그대로다.
+// 하단 버튼 줄(나가기·목록·답안 예시·내 이전 풀이)은 아이콘 버튼으로 캔버스 하단 가운데 툴바(펜 설정 등)에 합쳤다. 모달·바텀시트는 기존 그대로다.
+// '멘토링 요청' 버튼은 뺐다(2026-11-02 요청).
 // 기존 route.params(unit, units, topicId, taskId) 대신 solveStore에서 받는다. 나가면 Stage의 문제 목록은 그대로 남는다.
 type PanelHandle = { changeNotebookBackgroundImage(url: string): void; saveSnapshotForMentoring(): void };
 // 옮겨 온 패널은 FC로 선언된 forwardRef라 ref 타입이 없다 → 쓰는 쪽에서만 타입을 붙인다
@@ -25,6 +29,7 @@ const NotebookCanvasPanel = LegacyNotebookCanvasPanel as unknown as ComponentTyp
   loaded(): void;
   saveWorkout(imageUrl: string): void;
   saveMentorRequestShot(imageUrl: string): void;
+  screenActions?: FloatingAction[];
 }>;
 
 const { width, height } = Dimensions.get('window');
@@ -134,18 +139,17 @@ export default function NotebookScreen() {
         loaded={() => panelRef.current?.changeNotebookBackgroundImage(currentSheet.image)}
         saveWorkout={onSave}
         saveMentorRequestShot={onMentoringRequestSave}
+        screenActions={[
+          canvasAction('exit', '나가기', 'chevron-back', () => (router.canGoBack() ? router.back() : router.replace('/'))),
+          ...(units.length > 1 ? [canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true))] : []),
+          canvasAction('answer', '답안 예시', 'reader-outline', handlePresentModalPress),
+          canvasAction('workouts', '내 이전 풀이', 'images-outline', handlePresentWorkoutSheetListModalPress),
+        ]}
       />
-      <View style={styles.buttonContainerStyle}>
-        <GoButton title={'⬅️ 나가기'} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
-        {units.length > 1 && <GoButton title={'⬅️ 목록'} onPress={() => setSheetListVisible(true)} />}
-        <GoButton title={'답안 예시'} onPress={handlePresentModalPress} />
-        <GoButton title={'멘토링 요청'} onPress={() => panelRef.current?.saveSnapshotForMentoring()} />
-        <GoButton title={'내 이전 풀이'} onPress={handlePresentWorkoutSheetListModalPress} />
-      </View>
       <BottomSheetModal ref={sheetRef}>
         <BottomSheetView>
           <View style={styles.bottomContainerStyle}>
-            <View style={{ flex: 1, height: height / 2 - 64, borderWidth: 1, borderColor: 'orange' }}>
+            <View style={{ flex: 1, height: height / 2 - 64, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
               {answerUrl && (
                 <WebView
                   originWhitelist={['*']}
@@ -165,7 +169,7 @@ export default function NotebookScreen() {
       <BottomSheetModal ref={workoutSheetListRef}>
         <BottomSheetView>
           <View style={styles.workoutSheetContainerStyle}>
-            <View style={{ flex: 1, height: height / 2 - 108, borderWidth: 1, borderColor: 'orange', width: width - 12 }}>
+            <View style={{ flex: 1, height: height / 2 - 108, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card, width: width - 12 }}>
               <FlatList
                 data={workoutNotes}
                 keyExtractor={(_, index) => 'workout-sheet-' + index}
@@ -192,7 +196,7 @@ export default function NotebookScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
+  root: { flex: 1, backgroundColor: colors.bg }, // 흰 캔버스 카드가 보이도록 옅은 회색 바닥(좌우 6px 여백)
   modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   listContainer: {
     backgroundColor: '#FFF',

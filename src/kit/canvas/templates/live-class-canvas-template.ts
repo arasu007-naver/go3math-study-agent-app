@@ -1,3 +1,5 @@
+import { NOTEBOOK_BG_SCALE_JS } from './notebook-background-scale';
+
 export default function liveClassCanvasTemplate(width: number, height: number, pencilColor: string, pencilWidth: number) {
     return `
 <!DOCTYPE html>
@@ -704,6 +706,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             
         };
 
+        ${NOTEBOOK_BG_SCALE_JS}
         function changeNotebookBackgroundImage(imageUrl) {
             console.log('changeNotebookBackgroundImage: ', imageUrl);
             canvas.isDrawingMode = true;
@@ -714,7 +717,8 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                     imageUrl,
                     function (oImg) {
                         console.log('@@@@@@@@@@@ changeNotebookBackgroundImage: ', oImg);
-                        var notebookScale = canvasWidth/(2*oImg.width)
+                        // 너비 기준(폭의 절반), 그 높이가 1440을 넘으면 높이 1440 기준
+                        var notebookScale = notebookBackgroundScale(canvasWidth, oImg.width, oImg.height);
                         canvas.setBackgroundImage(oImg, canvas.renderAll.bind(canvas), {
                             scaleX: notebookScale,
                             scaleY: notebookScale,

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, StyleSheet, useWindowDimensions } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, StyleSheet, useWindowDimensions } from 'react-native';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { initialMode } from '../layout/deviceMode';
 
 const logo = require('../../assets/images/splash-icon.png'); // 400×342
@@ -15,18 +16,17 @@ const FADE_MS = 300;
 export function TabletLaunchOverlay() {
   const { width, height } = useWindowDimensions();
   const [visible, setVisible] = useState(() => Platform.OS === 'android' && initialMode(width, height) === 'tablet');
-  const opacity = useRef(new Animated.Value(1)).current;
+  const opacity = useSharedValue(1);
+  const fade = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   useEffect(() => {
     if (!visible) return;
-    const anim = Animated.timing(opacity, { toValue: 0, duration: FADE_MS, delay: HOLD_MS, useNativeDriver: true });
-    anim.start(() => setVisible(false));
-    return () => anim.stop();
+    opacity.value = withDelay(HOLD_MS, withTiming(0, { duration: FADE_MS }, (done) => done && runOnJS(setVisible)(false)));
   }, [visible, opacity]);
 
   if (!visible) return null;
   return (
-    <Animated.View pointerEvents="none" style={[styles.root, { opacity }]}>
+    <Animated.View pointerEvents="none" style={[styles.root, fade]}>
       <Animated.Image source={logo} resizeMode="contain" style={styles.logo} accessibilityLabel="Go3Math" />
     </Animated.View>
   );

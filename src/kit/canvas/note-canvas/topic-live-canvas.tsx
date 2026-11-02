@@ -6,21 +6,24 @@
 
 import { useContext, FC, forwardRef, useEffect, useState, useRef, useMemo, useImperativeHandle } from "react";
 import {
-    ScrollView,
     StatusBar,
     StyleSheet,
     View, Image, Dimensions,
     TouchableOpacity,
     FlatList,
-    Text
+    Text,
+    ActivityIndicator,
 } from "react-native";
 import { WebView } from 'react-native-webview';
 import QoollaWebView from '../../ui/web-view';
 import uuid from 'react-native-uuid';
 import * as _ from 'lodash'
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { ActivityIndicator, Modal, Portal } from 'react-native-paper';
+import { Sheet } from '../../../ui/Sheet';
 import PencilPropsModal from './pencil-props-modal';
+import { colors, type } from '../../../ui/theme';
+import { CanvasChrome, canvasTool } from '../CanvasChrome';
+import { canvasStyles } from './canvasStyles';
 import ReactNativeBlobUtil from 'react-native-blob-util'
 import GoButton from '../../ui/go-button';
 import liveClassCanvasTemplate from '../templates/live-class-canvas-template'
@@ -645,15 +648,8 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
     return (
         <FullScreenWrapper>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
-                <Portal>
-                    <PencilPropsModal
-                        visible={visiblePencilProps}
-                        onDismiss={hideModal}
-                        renderWidthOptions={drawPencilWidthOptions}
-                        renderColorOptions={drawPencilColorOptions}
-                    />
-                    <Modal visible={visiblePopup} onDismiss={hideModal} style={{ position: 'absolute', top: 36, left: 18, maxWidth: 640, maxHeight: 960, padding: 12, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: 'white', borderWidth: 2, borderColor: 'orange', borderRadius: 12 }}>
-                        <View style={{ flex: 1 }}>
+                <Sheet visible={visiblePopup} onDismiss={hideModal} style={[canvasStyles.popup, { maxHeight: 960 }]}>
+                        <View>
                             {popupUrl && (
                                 <QoollaWebView
                                     ref={webViewRef}
@@ -663,43 +659,9 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                                 />
                             )}
                         </View>
-                    </Modal>
-                </Portal>
-                <ScrollView
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false} // 스크롤바 숨기기 (선택 사항)
-                    contentContainerStyle={styles.buttonContainerStyle}
-                    style={styles.horizontalScrollView}
-                >
-                    {/* <View style={styles.buttonContainerStyle}> */}
-                    <GoButton onPress={() => {
-                        setVisiblePencilProps(true);
-                    }} title={canvasStrokeColor + ' : ' + canvasStrokeWidth}
-                        color={canvasStrokeColor}
-                        textColor={canvasStrokeColor}
-                        rippleColor={canvasStrokeColor}
-                        style={{ marginRight: 12 }}
-                    />
-                    <GoButton title={'보드 지우기'}
-                        onPress={() => {
-                            sendBoardAction({
-                                actionType: "CLEAN_BOARD"
-                            })
-                        }} style={{ marginRight: 18 }} />
-                    <GoButton title={'내 필기 지우기'}
-                        onPress={() => {
-                            sendBoardAction({
-                                actionType: "CLEAN_MY_MEMO"
-                            })
-                        }} style={{ marginRight: 18 }} />
-                    <GoButton title={'내 풀이 저장'} onPress={() => {
-                        sendBoardAction({
-                            actionType: "SAVE"
-                        })
-                    }} />
-                </ScrollView>
+                </Sheet>
                 {studySequences.length > 0 ?
-                    <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderWidth: 2, borderColor: 'orange', borderRadius: 6 }} onLayout={onLayout}>
+                    <View style={[canvasStyles.frame, { width: width }]} onLayout={onLayout}>
                         <WebView
                             ref={webCanvasRef}
                             originWhitelist={['*']}
@@ -718,40 +680,39 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                             }}
                         />
                         {visibleMemoPopup && memoMessage && (
-                            <View style={styles.memoToast}>
-                                <TouchableOpacity onPress={() => setVisibleMemoPopup(false)} style={styles.memoToastClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                                    <Text style={{ fontSize: 18, color: '#ea580c' }}>✕</Text>
+                            <View style={canvasStyles.memoToast}>
+                                <TouchableOpacity onPress={() => setVisibleMemoPopup(false)} style={canvasStyles.memoToastClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                                    <Text style={canvasStyles.memoToastCloseText}>✕</Text>
                                 </TouchableOpacity>
                                 <MathJaxWrapper statement={memoMessage.content} fontSize={48} color="#ea580c" fullView={true} autoSize={true} maxWidth={640} />
                             </View>
                         )}
-                    </View> : <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderWidth: 2, borderColor: 'orange', borderRadius: 6 }} >
-                        <ActivityIndicator size={'large'} color="orange" />
+                    </View> : <View style={[canvasStyles.loading, { width: width }]} >
+                        <ActivityIndicator size={'large'} color={colors.accent} />
                     </View>}
+                {/* 기존 상단 버튼 줄을 하단 가운데 떠 있는 툴바로 옮겼다(design-spec P2-1). 부르는 함수·액션은 같다. */}
+                <CanvasChrome
+                    tools={[canvasTool('color', `펜 색·굵기 (${canvasStrokeColor} : ${canvasStrokeWidth})`), canvasTool('clearBoard', '보드 지우기'), canvasTool('clearMemo', '내 필기 지우기'), canvasTool('save', '내 풀이 저장')]}
+                    strokeColor={canvasStrokeColor}
+                    onSelectTool={(id) => {
+                        if (id === 'color') setVisiblePencilProps(true);
+                        else if (id === 'clearBoard') sendBoardAction({ actionType: "CLEAN_BOARD" });
+                        else if (id === 'clearMemo') sendBoardAction({ actionType: "CLEAN_MY_MEMO" });
+                        else if (id === 'save') sendBoardAction({ actionType: "SAVE" });
+                    }}>
+                    <PencilPropsModal
+                        visible={visiblePencilProps}
+                        onDismiss={hideModal}
+                        renderWidthOptions={drawPencilWidthOptions}
+                        renderColorOptions={drawPencilColorOptions}
+                    />
+                </CanvasChrome>
             </View>
         </FullScreenWrapper>
     );
 });
 
 const styles = StyleSheet.create({
-    memoToast: {
-        position: 'absolute',
-        top: 12,
-        right: 12,
-        width: 640,
-        maxWidth: 640,
-        padding: 12,
-        backgroundColor: 'white',
-        borderWidth: 2,
-        borderColor: 'orange',
-        borderRadius: 12,
-        elevation: 4,
-        zIndex: 10,
-    },
-    memoToastClose: {
-        alignSelf: 'flex-end',
-        marginBottom: 6,
-    },
     screenContainer: {
         flex: 1,
         backgroundColor: "white",
@@ -764,7 +725,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         width: '100%',
         flexDirection: 'column',
-        backgroundColor: 'orange'
+        backgroundColor: colors.accent
     },
     mainComponentStyle: {
         flex: 1,
@@ -783,7 +744,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: 'orange',
+        backgroundColor: colors.accent,
         position: 'absolute',
         bottom: 10,
         right: 10,
@@ -808,7 +769,7 @@ const styles = StyleSheet.create({
     },
     emptyListStyle: {
         padding: 10,
-        fontSize: 18,
+        ...type.heading,
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100%',

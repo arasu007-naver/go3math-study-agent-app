@@ -1,7 +1,7 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import type { AgentSession, SessionSnapshot } from '../agent/session';
 import { widgets } from './widgets';
-import { colors } from '../ui/theme';
+import { colors, layout, radius, space, type } from '../ui/theme';
 
 const logo = require('../../assets/images/welcome/go3math-one-line-logo.png');
 const emptyLogo = require('../../assets/images/splash-icon.png'); // launch screen과 같은 로고(400×342)
@@ -19,7 +19,7 @@ export function Stage({ state, session }: { state: SessionSnapshot; session: Age
         <View style={styles.title}>
           <Image source={logo} resizeMode="contain" style={styles.logo} accessibilityLabel="Go3Math" />
         </View>
-        <View style={[styles.status, { backgroundColor: state.connected ? '#15803D' : colors.border }]} />
+        <View style={[styles.status, { backgroundColor: state.connected ? colors.online : colors.offline }]} />
       </View>
       {state.fallbackText && <Text style={styles.fallback}>{state.fallbackText}</Text>}
       <View style={styles.body}>
@@ -37,11 +37,11 @@ export function Stage({ state, session }: { state: SessionSnapshot; session: Age
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface },
-  header: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, borderBottomWidth: 2, borderBottomColor: colors.agent, backgroundColor: colors.surface },
+  header: { height: layout.headerH, flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.md, backgroundColor: 'transparent' },
   title: { flex: 1, paddingLeft: 4 },
   logo: { height: 32, width: 32 * (987 / 242) },
   status: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
-  fallback: { margin: 12, padding: 12, borderRadius: 8, backgroundColor: '#FEF3C7', color: colors.text, fontSize: 14 },
+  fallback: { margin: space.md, padding: space.md, borderRadius: radius.sm, backgroundColor: colors.warnSoft, color: colors.text, ...type.body },
   body: { flex: 1 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyLogo: { width: 200, height: 200 * (342 / 400) },

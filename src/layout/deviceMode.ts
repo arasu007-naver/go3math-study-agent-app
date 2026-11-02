@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
+import { layout } from '../ui/theme';
 
 // 명세서 §4.7.1 (v0.4.2 결정): 짧은 변 기준, 진입 600 / 이탈 560, 200ms 디바운스.
 export type DeviceMode = 'phone' | 'tablet';
@@ -7,7 +8,7 @@ export type DeviceMode = 'phone' | 'tablet';
 export const TABLET_ENTER = 600;
 export const TABLET_EXIT = 560;
 export const MODE_DEBOUNCE_MS = 200;
-export const FOLD_DRAWER_MAX_RATIO = 0.4;
+export const FOLD_DRAWER_MAX_RATIO = layout.foldMaxRatio;
 
 /** 앱 시작 시 1회: 히스테리시스 없이 600 기준 */
 export function initialMode(width: number, height: number): DeviceMode {
@@ -21,9 +22,9 @@ export function nextMode(prev: DeviceMode, width: number, height: number): Devic
   return short < TABLET_EXIT ? 'phone' : 'tablet';
 }
 
-/** drawer 폭: 화면 폭 36%(280~420), 펼친 폴더블(거의 정사각형)은 최대 40% */
+/** drawer 폭: 화면 폭 30%(300~400), 펼친 폴더블(거의 정사각형)은 최대 40% — design-spec P1-2 */
 export function drawerWidth(width: number, height: number): number {
-  const base = Math.min(420, Math.max(280, width * 0.36));
+  const base = Math.min(layout.chatMax, Math.max(layout.chatMin, width * layout.chatRatio));
   const nearSquare = Math.max(width, height) / Math.min(width, height) < 1.3;
   return nearSquare ? Math.min(base, width * FOLD_DRAWER_MAX_RATIO) : base;
 }

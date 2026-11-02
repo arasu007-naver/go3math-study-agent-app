@@ -7,6 +7,7 @@
 import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import GoButton from '../ui/go-button';
+import { colors } from '../../ui/theme';
 import { PRE_EXAMS_ASSETS, currentSubjects, thisMonths } from '../../config/exam.constants';
 import {
   buildPreExamQuery,
@@ -115,11 +116,11 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress(): v
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#FFFFFF' },
-  // 기존 앱 톤: 초록 행 라벨(GoButton xSmall), 주황 테두리/채움 칩, 행 사이 구분선.
+  // 기존 앱 톤: 초록 행 라벨(GoButton xSmall), 회색 테두리·주황 채움(선택) 칩, 행 사이 구분선.
   // "가자!!!"는 떠 있는 버튼 대신 마지막 행 아래 오른쪽 — 폰 하단 instruction 모달에 가리지 않게 스크롤 여유를 둔다.
   content: { padding: 3, paddingBottom: 300 },
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, padding: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#D4D4D8' },
-  chip: { minHeight: 32, minWidth: 40, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: 'orange', backgroundColor: '#FFFFFF' },
+  chip: { minHeight: 32, minWidth: 40, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: '#FFFFFF' },
   chipOn: { backgroundColor: 'orange' },
   chipText: { fontSize: 14, color: '#18181B' },
   chipTextOn: { fontWeight: '600' },

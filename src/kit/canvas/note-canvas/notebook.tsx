@@ -6,14 +6,16 @@
 
 import { useContext, FC, forwardRef, useEffect, useState, useRef, useImperativeHandle } from "react";
 import {
-    ScrollView,
-    StyleSheet,
     View, Dimensions,
 } from "react-native";
 import { WebView } from 'react-native-webview';
 import { useIsFocused } from '@react-navigation/native';
-import { Modal, Portal } from 'react-native-paper';
 import PencilPropsModal from './pencil-props-modal';
+import { CanvasChrome, canvasTool } from '../CanvasChrome';
+import { canvasStyles } from './canvasStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { canvasContextSize, canvasScreenSize } from '../canvasSize';
+import { layout } from '../../../ui/theme';
 import GoButton from '../../ui/go-button';
 import classCanvasTemplate from '../templates/whiteboard-canvas-template';
 import { AppCtx } from './legacy';
@@ -30,9 +32,13 @@ import {
 const { width, height } = Dimensions.get('window');
 
 const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
-    const { loaded, saveWorkout, saveMentorRequestShot } = props;
+    const { loaded, saveWorkout, saveMentorRequestShot, screenActions } = props;
     const webViewRef = useRef(null);
     const { state } = useContext(AppCtx);
+    // 캔버스 화면 크기 = 전체 폭 - 6 × (전체 높이 - 상단 바 - 툴바 - 하단 바), context는 1280×1920 기준(canvasSize.ts)
+    const insets = useSafeAreaInsets();
+    const screenSize = canvasScreenSize({ width, height }, insets);
+    const contextSize = canvasContextSize(screenSize);
     const isFocused = useIsFocused();
     const unitHolder = useRef({
         sourceType: 'UNIT',
@@ -138,39 +144,12 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
     return (
         <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
-                <Portal>
-                    <PencilPropsModal
-                        visible={visiblePencilProps}
-                        onDismiss={hidePencilPropsModal}
-                        renderWidthOptions={drawPencilWidthOptions}
-                        renderColorOptions={drawPencilColorOptions}
-                    />
-                </Portal>
-                <ScrollView
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.buttonContainerStyle}
-                    style={styles.horizontalScrollView}
-                >
-                    <GoButton onPress={() => setVisiblePencilProps(true)}
-                        title={canvasStrokeColor + ' : ' + canvasStrokeWidth}
-                        color={canvasStrokeColor}
-                        textColor={canvasStrokeColor}
-                        rippleColor={canvasStrokeColor}
-                        style={{ marginRight: 12 }}
-                    />
-                    <GoButton title={'보드 지우기'}
-                        onPress={() => sendBoardActionLocal({ actionType: "CLEAN_BOARD" })}
-                        style={{ marginRight: 18 }} />
-                    <GoButton title={'내 풀이 저장'}
-                        onPress={() => sendBoardActionLocal({ actionType: "SAVE" })} />
-                </ScrollView>
-                <View style={{ flex: 1, width: width, height: '100%', padding: 3, borderWidth: 2, borderColor: 'orange', borderRadius: 6 }}>
+                <View style={[canvasStyles.frame, { width: screenSize.width, height: screenSize.height, flex: 0, padding: 0, marginHorizontal: layout.canvasMargin }]}>
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['*']}
-                        style={{ width: width - 6, height: height - 96 }}
-                        source={{ html: classCanvasTemplate(width - 6, height - 96) }}
+                        style={{ width: screenSize.width, height: screenSize.height }}
+                        source={{ html: classCanvasTemplate(contextSize.width, contextSize.height, screenSize.width, screenSize.height) }}
                         javaScriptEnabled={true}
                         onLoadEnd={() => loaded()}
                         onMessage={(event) => {
@@ -179,26 +158,26 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
                         }}
                     />
                 </View>
+                {/* 기존 상단 버튼 줄(펜 속성·보드 지우기·내 풀이 저장)을 하단 가운데 떠 있는 툴바로 옮겼다(design-spec P2-1). 부르는 함수는 같다. */}
+                <CanvasChrome
+                    actions={screenActions}
+                    tools={[canvasTool('color', `펜 색·굵기 (${canvasStrokeColor} : ${canvasStrokeWidth})`), canvasTool('clearBoard', '보드 지우기'), canvasTool('save', '내 풀이 저장')]}
+                    strokeColor={canvasStrokeColor}
+                    onSelectTool={(id) => {
+                        if (id === 'color') setVisiblePencilProps(true);
+                        else if (id === 'clearBoard') sendBoardActionLocal({ actionType: "CLEAN_BOARD" });
+                        else if (id === 'save') sendBoardActionLocal({ actionType: "SAVE" });
+                    }}>
+                    <PencilPropsModal
+                        visible={visiblePencilProps}
+                        onDismiss={hidePencilPropsModal}
+                        renderWidthOptions={drawPencilWidthOptions}
+                        renderColorOptions={drawPencilColorOptions}
+                    />
+                </CanvasChrome>
             </View>
         </View>
     );
-});
-
-const styles = StyleSheet.create({
-    buttonContainerStyle: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        flexWrap: 'wrap',
-        height: 48,
-        marginTop: 6,
-        marginLeft: 6
-    },
-    horizontalScrollView: {
-        maxHeight: 48,
-        height: 42,
-        padding: 3
-    }
 });
 
 export default NotebookCanvasPanel;

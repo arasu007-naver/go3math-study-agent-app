@@ -11,6 +11,7 @@ import {
     StyleProp,
     Animated,
 } from 'react-native';
+import { colors, fontFamily } from '../../ui/theme';
 
 type Variant = 'outline' | 'filled';
 type Size = 'xSmall' | 'small' | 'medium';
@@ -40,10 +41,10 @@ const GoButton = ({
     onPress,
     title,
     variant = 'outline',
-    color = '#FFC256',
+    color = colors.accent,
     textColor,
     size = 'small',
-    rippleColor = 'orange',
+    rippleColor = colors.accentSoftPress,
     disabled = false,
     loading = false,
     debounceMs = 400,
@@ -52,7 +53,7 @@ const GoButton = ({
 }: GoButtonProps) => {
     const sizing = SIZE_MAP[size];
     const isOutline = variant === 'outline';
-    const labelColor = textColor ?? (isOutline ? 'darkorange' : '#FFFFFF');
+    const labelColor = textColor ?? (isOutline ? colors.accentText : colors.onAccent);
 
     const [internalLoading, setInternalLoading] = useState(false);
     const lastPressRef = useRef(0);
@@ -123,6 +124,7 @@ const GoButton = ({
                         {
                             color: labelColor,
                             fontSize: sizing.fontSize,
+                            fontFamily: fontFamily.semibold,
                             fontWeight: '600',
                             opacity: isLoading ? 0 : 1,
                         },
