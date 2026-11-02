@@ -27,7 +27,7 @@ import { DrawerFooter, type DockKind } from './DrawerFooter';
 // 태블릿 모드(§4.5, §4.6): 필요할 때만 왼쪽→오른쪽 drawer, 튜터 메시지는 우상단 toast.
 // 오버레이 루트는 box-none이라 drawer·레일·toast 밖의 터치는 아래 Stage(캔버스)로 통과한다.
 // drawer 하단 바의 '공지'·'검색'·'타임라인'·'내 정보'는 해당 패널을 drawer 오른쪽에 붙은 dock으로 연다(Stage는 그대로).
-// drawer를 접으면 왼쪽에 64px 레일이 남는다(기존 EdgeTab 대체). 홈 진입(로그인 직후·앱 시작) 시에는 drawer와 타임라인 dock을 열어 둔다.
+// drawer를 접으면 왼쪽에 64px 레일이 남는다(기존 가장자리 '>' 탭 대체). 홈 진입(로그인 직후·앱 시작) 시에는 drawer와 타임라인 dock을 열어 둔다.
 export const TOAST_MS = motion.toastMs;
 export const TOAST_PREVIEW_CHARS = 30;
 

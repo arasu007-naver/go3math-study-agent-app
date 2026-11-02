@@ -5,7 +5,7 @@ import { colors, layout, motion, radius, shadow, space, z } from '../../ui/theme
 import { FOOTER_ITEMS, NOT_READY_HINT, type DockKind } from './DrawerFooter';
 
 /**
- * drawer를 접었을 때 왼쪽에 남는 64px 레일(design-spec P1-4). 기존 EdgeTab('>')이 보이던 조건(drawer 닫힘)에서만 보인다.
+ * drawer를 접었을 때 왼쪽에 남는 64px 레일(design-spec P1-4). 기존 가장자리 '>' 탭이 보이던 조건(drawer 닫힘)에서만 보인다.
  * 위: 에이전트 아바타(탭 → drawer 열기, 읽지 않음 점). 아래: 하단 바와 같은 6개 아이콘(탭 → drawer 열고 해당 항목 실행).
  */
 export function ChatRail({ unread, onOpen, onItem }: { unread: boolean; onOpen(): void; onItem(kind: DockKind): void }) {
