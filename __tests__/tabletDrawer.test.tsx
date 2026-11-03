@@ -6,6 +6,7 @@ import { TabletAgentLayer } from '../src/agent/TabletAgentLayer';
 jest.mock('react-native-mmkv', () => ({ createMMKV: () => ({ getString: () => undefined, set: () => {}, remove: () => {} }) }));
 jest.mock('../src/state/bootstrap', () => ({ apolloClient: { query: jest.fn(() => new Promise(() => {})) } }));
 jest.mock('../src/host/widgets', () => ({ topicFetchers: {} }));
+jest.mock('react-native-webview', () => ({ WebView: () => null }));
 
 const session = { emit: jest.fn(), selectChoice: jest.fn(), dismissInstruction: jest.fn() } as any;
 const base: SessionSnapshot = { ...initialRouterState, connected: true };
