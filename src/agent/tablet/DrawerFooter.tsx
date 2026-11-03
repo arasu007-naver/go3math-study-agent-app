@@ -73,13 +73,14 @@ export function DrawerFooter({ active, onPress }: { active: DockKind | null; onP
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', marginHorizontal: -space.sm, backgroundColor: colors.cardMuted, borderRadius: radius.md, padding: space.xxs },
-  pill: { position: 'absolute', left: 0, top: space.xxs, bottom: space.xxs, borderRadius: radius.sm, backgroundColor: colors.card, ...shadow.card },
+  bar: { flexDirection: 'row', marginHorizontal: -space.sm, backgroundColor: colors.cardMuted, borderRadius: radius.pill, padding: space.xxs },
+  // 바가 좌우 원형이므로 활성 pill·눌림 면도 원형으로 맞춘다(양 끝 칸에서 모서리가 바 밖으로 나오지 않게)
+  pill: { position: 'absolute', left: 0, top: space.xxs, bottom: space.xxs, borderRadius: radius.pill, backgroundColor: colors.card, ...shadow.card },
   seg: {
     flex: 1,
     minWidth: 0,
     minHeight: layout.footerH - space.sm,
-    borderRadius: radius.sm,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
     gap: space.xxs,
