@@ -51,6 +51,8 @@
   "49": "AGENTS.md",
   "50": "1. 목표, 범위, 비목표",
   "51": "ResearchPanel.tsx",
+  "52": "subscriptions.ts",
+  "53": "user.ts",
   "54": "10월 모의고사 주제 식별 검증 (명세서 §6.2 2단계, M3 완료 조건)",
   "55": "1. 목표, 범위, 비목표",
   "56": "canvas-template-base.ts",
@@ -69,7 +71,5 @@
   "69": "ui.constants.ts",
   "70": "index.ts",
   "71": "jest.setup.js",
-  "73": "ClassicPlaceholder.tsx",
-  "74": "screen-wrapper.tsx",
   "75": "web-view.tsx"
 }

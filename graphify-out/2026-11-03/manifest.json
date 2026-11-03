@@ -285,8 +285,8 @@
     "semantic_hash": ""
   },
   "src/agent/tablet/DrawerFooter.tsx": {
-    "mtime": 1793666357.6480136,
-    "ast_hash": "3cd7ed67be3996608e1b33ed353e654c",
+    "mtime": 1793668856.8165343,
+    "ast_hash": "b02661136c81bb8e9a8e25e5e3369359",
     "semantic_hash": ""
   },
   "src/agent/tablet/TabletAgentLayer.tsx": {
@@ -445,8 +445,8 @@
     "semantic_hash": ""
   },
   "src/kit/canvas/CanvasChrome.tsx": {
-    "mtime": 1793586086.7037346,
-    "ast_hash": "4b824bf35ffd479b30b7e1397076f231",
+    "mtime": 1793669501.4069118,
+    "ast_hash": "0df2a2ea141e19c528f212aac655b84c",
     "semantic_hash": ""
   },
   "src/kit/canvas/FloatingToolbar.tsx": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": ""
   },
   "src/kit/profile/ProfileActions.tsx": {
-    "mtime": 1793668170.3178823,
-    "ast_hash": "96a2bb48843f932e6b90fe3c567b250b",
+    "mtime": 1793668676.0426996,
+    "ast_hash": "b3af16b0a2b62d7e47389a52584d8251",
     "semantic_hash": ""
   }
 }

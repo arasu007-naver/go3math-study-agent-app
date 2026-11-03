@@ -1,16 +1,16 @@
 # Graph Report - go3math-study-agent-app  (2026-11-03)
 
 ## Corpus Check
-- 183 files · ~268,652 words
+- 183 files · ~268,800 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1061 nodes · 1954 edges · 73 communities (60 shown, 13 thin omitted)
+- 1063 nodes · 1959 edges · 73 communities (62 shown, 11 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 12 edges (avg confidence: 0.53)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ce27657c`
+- Built from commit: `d722df22`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -67,6 +67,8 @@
 - [[_COMMUNITY_AGENTS|AGENTS.md]]
 - [[_COMMUNITY_1. 목표, 범위, 비목표|1. 목표, 범위, 비목표]]
 - [[_COMMUNITY_ResearchPanel.tsx|ResearchPanel.tsx]]
+- [[_COMMUNITY_subscriptions.ts|subscriptions.ts]]
+- [[_COMMUNITY_user.ts|user.ts]]
 - [[_COMMUNITY_10월 모의고사 주제 식별 검증 (명세서 §6.2 2단계, M3 완료 조건)|10월 모의고사 주제 식별 검증 (명세서 §6.2 2단계, M3 완료 조건)]]
 - [[_COMMUNITY_1. 목표, 범위, 비목표|1. 목표, 범위, 비목표]]
 - [[_COMMUNITY_canvas-template-base.ts|canvas-template-base.ts]]
@@ -81,8 +83,6 @@
 - [[_COMMUNITY_index.ts|index.ts]]
 - [[_COMMUNITY_app.config.ts|app.config.ts]]
 - [[_COMMUNITY_ui.constants.ts|ui.constants.ts]]
-- [[_COMMUNITY_ClassicPlaceholder.tsx|ClassicPlaceholder.tsx]]
-- [[_COMMUNITY_screen-wrapper.tsx|screen-wrapper.tsx]]
 - [[_COMMUNITY_web-view.tsx|web-view.tsx]]
 
 ## God Nodes (most connected - your core abstractions)
@@ -100,92 +100,96 @@
 ## Surprising Connections (you probably didn't know these)
 - `run()` --calls--> `routeCommand()`  [EXTRACTED]
   __tests__/commandRouter.test.ts → src/agent/commandRouter.ts
-- `AgentHome()` --calls--> `useDeviceMode()`  [EXTRACTED]
-  app/(main)/index.tsx → src/layout/deviceMode.ts
 - `fetchTopicQuestions()` --calls--> `UNITIMAGE()`  [EXTRACTED]
   app/public-questions.tsx → src/config/api.constants.ts
 - `PublicSolutionViewScreen()` --calls--> `UNITANSWER()`  [EXTRACTED]
   app/public-solution.tsx → src/config/api.constants.ts
 - `FullScreenWrapper()` --references--> `react`  [EXTRACTED]
   src/kit/canvas/note-canvas/screen-wrapper.tsx → package.json
+- `FakeServer` --references--> `Transport`  [EXTRACTED]
+  __tests__/session.test.ts → src/agent/session.ts
 
 ## Import Cycles
 - 1-file cycle: `metro.config.js -> metro.config.js`
 - 1-file cycle: `src/api/graphql/client.ts -> src/api/graphql/client.ts`
 
-## Communities (73 total, 13 thin omitted)
+## Communities (73 total, 11 thin omitted)
 
 ### Community 0 - "index.ts"
-Cohesion: 0.07
-Nodes (46): BOOKMARKS_OF_DAY, CHECK_BOOKMARK_SEARCH, LOG_MY_SHARE_STUDY, MY_ALBUMS, MY_BOOKMARK_TRIES, MY_BOOKMARKS, MY_STUDY_SHARES, PUBLIC_ALBUMS (+38 more)
+Cohesion: 0.17
+Nodes (20): BOOKMARKS_OF_DAY, CHECK_BOOKMARK_SEARCH, LOG_MY_SHARE_STUDY, MY_ALBUMS, MY_BOOKMARK_TRIES, MY_BOOKMARKS, MY_STUDY_SHARES, PUBLIC_ALBUMS (+12 more)
 
 ### Community 1 - "TabletAgentLayer.tsx"
-Cohesion: 0.05
-Nodes (60): DockWrapper(), styles, EdgeHandle(), styles, InstructionCard(), styles, PhoneInstructionModal(), styles (+52 more)
+Cohesion: 0.06
+Nodes (54): DockWrapper(), styles, EdgeHandle(), styles, InstructionCard(), styles, styles, AgentDrawer() (+46 more)
 
 ### Community 2 - "dependencies"
 Cohesion: 0.04
 Nodes (54): dependencies, @apollo/client, axios, expo, expo-apple-authentication, expo-asset, expo-constants, expo-crypto (+46 more)
 
+### Community 3 - "deviceMode.ts"
+Cohesion: 0.14
+Nodes (11): initialRouterState, capOutbox(), KeyValueStore, memoryStore(), PRIORITY_KINDS, SessionSnapshot, AppEventKind, device() (+3 more)
+
 ### Community 4 - "index.ts"
-Cohesion: 0.05
-Nodes (30): fetchExamQuestions(), Params, PublicUnit, Question, styles, toNumbers(), createProblemListFetchers(), fromRemote() (+22 more)
+Cohesion: 0.07
+Nodes (22): createProblemListFetchers(), fromRemote(), RemoteUnit, searchExams(), bearer(), getAllMonthlyLiveClasses(), getKaKaoMyInfo(), getMemberMathPreExams() (+14 more)
 
 ### Community 5 - "index.ts"
-Cohesion: 0.08
-Nodes (33): createProfileEditors(), createApolloClient(), createErrorLink(), createIsomorphLink(), DevType, ADD_BOOKMARK, ADD_LIVE_CLASS_QUIZ_RESPONSE, CREATE_RECORD (+25 more)
+Cohesion: 0.12
+Nodes (23): createProfileEditors(), ADD_BOOKMARK, ADD_LIVE_CLASS_QUIZ_RESPONSE, CREATE_RECORD, REMOVE_BOOKMARK, REGIST_TASK_NOTE, UPDATE_STUDY_NOTE, CLONE_TASK (+15 more)
 
 ### Community 6 - "go3math-study-agent-app 디자인 개선 구현 명세 (design-spec.md)"
 Cohesion: 0.06
 Nodes (33): 0. 요약, 10. 열린 질문 / 결정 기록, 1.1 목표, 1.2 비목표 (하지 않음), 1.3 반드시 지킬 UX 결정 (스펙 §4), 1.4 기술 제약, 1. 목표 / 비목표 / 제약, 2. 현재 상태 (확인된 위치) (+25 more)
 
 ### Community 7 - "TimelinePanel.tsx"
-Cohesion: 0.17
-Nodes (12): NotebookCanvasPanel, NotebookScreen(), PanelHandle, styles, { width, height }, PublicSolutionViewScreen(), styles, UNITANSWER() (+4 more)
+Cohesion: 0.08
+Nodes (27): NotebookCanvasPanel, NotebookScreen(), PanelHandle, styles, { width, height }, fetchExamQuestions(), fetchTopicQuestions(), Params (+19 more)
 
 ### Community 8 - "commandRouter.ts"
-Cohesion: 0.11
-Nodes (23): applyInstruction(), archive(), initialRouterState, Instruction, resolveInstruction(), routeCommand(), RouteResult, RouterState (+15 more)
+Cohesion: 0.13
+Nodes (19): applyInstruction(), archive(), Instruction, resolveInstruction(), routeCommand(), RouteResult, RouterState, StageView (+11 more)
 
 ### Community 9 - "useScriptPlayer.ts"
 Cohesion: 0.10
-Nodes (18): FloatingToolbar(), PlaybackControls(), Props, CurrentSheet, getLastOfSmallerNumbers(), MeasureImageWidth, Member, ScriptCanvasPort (+10 more)
+Nodes (17): PlaybackControls(), Props, CurrentSheet, getLastOfSmallerNumbers(), MeasureImageWidth, Member, ScriptCanvasPort, sleep() (+9 more)
 
 ### Community 10 - "MessageBoxPanel.tsx"
-Cohesion: 0.10
-Nodes (19): createNoticeFetchers(), createTimelineFetchers(), SQUARE_ANNOUNCEMENTS, MY_TASKS, Notice, NoticeFetchers, NoticesPanel(), styles (+11 more)
+Cohesion: 0.06
+Nodes (29): createNoticeFetchers(), SQUARE_ANNOUNCEMENTS, Notice, NoticeFetchers, NoticesPanel(), styles, describeMessage(), MessageBoxFetchers (+21 more)
 
 ### Community 11 - "hotline-class-canvas.tsx"
-Cohesion: 0.14
-Nodes (18): canvasStyles, HotlineClassCanvasPanel, strokeColors, strokeWidths, styles, { width, height }, AppCtx, findLargestSmallerThan() (+10 more)
+Cohesion: 0.12
+Nodes (23): react, HotlineClassCanvasPanel, strokeColors, strokeWidths, styles, { width, height }, AppCtx, findLargestSmallerThan() (+15 more)
 
 ### Community 12 - "TopicTabsPanel.tsx"
-Cohesion: 0.12
-Nodes (19): createTopicFetchers(), buildThisYearQuery(), Props, resolveInitialSubject(), styles, TopicTabsPanel(), pickGoUnitIndex(), Props (+11 more)
+Cohesion: 0.14
+Nodes (14): Props, styles, TopicTabsPanel(), Props, styles, TopicUnitList(), SubjectOption, TopicDetail (+6 more)
 
 ### Community 13 - "ExamSearchPanel.tsx"
-Cohesion: 0.16
-Nodes (14): currentSubjects, thisMonths, ExamSearchMode, ExamSearchPanel(), Props, STORAGE_KEY, styles, ALL_NUMBERS (+6 more)
+Cohesion: 0.14
+Nodes (17): currentSubjects, thisMonths, ExamSearchMode, ExamSearchPanel(), Props, STORAGE_KEY, styles, ALL_NUMBERS (+9 more)
 
 ### Community 14 - "index.ts"
 Cohesion: 0.11
 Nodes (17): Handlers, AckCode, AgentCommand, AgentCommandSchema, choice, CloseComponentCmd, COMPONENT_IDS, EndSessionCmd (+9 more)
 
 ### Community 15 - "notebook.tsx"
-Cohesion: 0.26
-Nodes (8): canvasContextSize(), canvasScreenSize(), Size, NotebookCanvasPanel, { width, height }, classCanvasTemplate(), offsetOf, scaleOf
+Cohesion: 0.27
+Nodes (6): canvasContextSize(), canvasScreenSize(), Size, classCanvasTemplate(), offsetOf, scaleOf
 
 ### Community 16 - "session.ts"
-Cohesion: 0.36
-Nodes (7): AgentHome(), getAgentSession(), useAgentSession(), DeviceMode, drawerWidth(), initialMode(), nextMode()
+Cohesion: 0.16
+Nodes (12): createTopicFetchers(), GET_UNITS_IN_TOPIC, LAST_LIVE_TOPIC_MESSAGE, LAST_ONLINE_CLASS_MESSAGE, ONLINE_CLASS_OF_TUTOR, STUDY_TOPIC, SUBJECT_TOPICS, SUBJECT_TOTAL_PAGE_COUNT (+4 more)
 
 ### Community 17 - "AgentSession"
-Cohesion: 0.17
-Nodes (7): AgentSession, capOutbox(), memoryStore(), SessionOptions, AppEvent, device(), setup()
+Cohesion: 0.22
+Nodes (4): AgentSession, SessionOptions, AppEvent, newId()
 
 ### Community 18 - "auth.ts"
 Cohesion: 0.21
-Nodes (8): logout(), devGuestStore, MyInfo, AuthAction, AuthState, authStore, defaultAuthState, mockStore
+Nodes (9): logout(), AuthGate, devGuestStore, MyInfo, AuthAction, AuthState, authStore, defaultAuthState (+1 more)
 
 ### Community 19 - "Transport"
 Cohesion: 0.12
@@ -197,11 +201,11 @@ Nodes (17): 8.1 테스트 전략, 8.2 "기존 앱에 영향 없음" 검증 절�
 
 ### Community 21 - "topic-notebook.tsx"
 Cohesion: 0.14
-Nodes (11): MathJaxView(), styles, { width: screenWidth, height: screenHeight }, strokeColors, strokeWidths, styles, TopicNotebookCanvasPanel, { width, height } (+3 more)
+Nodes (11): canvasStyles, MathJaxView(), styles, { width: screenWidth, height: screenHeight }, strokeColors, strokeWidths, styles, TopicNotebookCanvasPanel (+3 more)
 
 ### Community 22 - "state.test.ts"
-Cohesion: 0.16
-Nodes (11): Action, beginBlocking(), BlockingId, endBlocking(), localOverlayStore, timers, createStore(), defaultUIState (+3 more)
+Cohesion: 0.15
+Nodes (12): styles, Action, beginBlocking(), BlockingId, blockingStore, endBlocking(), localOverlayStore, timers (+4 more)
 
 ### Community 23 - "3.5 같은 ID 대체 업데이트 경로"
 Cohesion: 0.12
@@ -212,16 +216,16 @@ Cohesion: 0.14
 Nodes (13): Chapter, ChapterTree, MATH_AGENDA, MATH_CHAPTER_TREE, MATH_SUBJECTS, MATH_TOPIC_SUBJECTS, MathSubject, MonthOption (+5 more)
 
 ### Community 25 - "welcome.tsx"
-Cohesion: 0.20
-Nodes (11): MainLayout(), CATEGORIES, icons, logo, styles, topicFetchers, WelcomeScreen(), AuthGate (+3 more)
+Cohesion: 0.18
+Nodes (12): CATEGORIES, icons, logo, styles, topicFetchers, configure(), getProviderToken(), OAuthProvider (+4 more)
 
 ### Community 26 - "index.ts"
-Cohesion: 0.21
-Nodes (8): bootstrap(), migrateLegacyStorage(), restoreSession(), mmkv, storage, storage, KeyValueStore, LEGACY_KEYS
+Cohesion: 0.24
+Nodes (5): mmkv, storage, storage, KeyValueStore, LEGACY_KEYS
 
 ### Community 28 - "bootstrap.ts"
-Cohesion: 0.20
-Nodes (10): CanvasChrome(), canvasTool(), ICONS, FloatingAction, FloatingTool, ToolId, LandscapeNotice(), LANDSCAPE_RESTRICTED (+2 more)
+Cohesion: 0.17
+Nodes (12): CanvasChrome(), canvasTool(), CONCEPT_SHEET_SNAPS, ICONS, styles, FloatingTool, FloatingToolbar(), ToolId (+4 more)
 
 ### Community 29 - "Qoolla 에이전트 주도 수능 수학 학습 앱 — 구현 명세서"
 Cohesion: 0.18
@@ -232,8 +236,8 @@ Cohesion: 0.22
 Nodes (3): problemListFetchers, topicFetchers, WidgetProps
 
 ### Community 31 - "ResearchPanel.tsx"
-Cohesion: 0.22
-Nodes (7): GlobalLoadingOverlay(), styles, blockingStore, apolloClient, logo, styles, TabletLaunchOverlay()
+Cohesion: 0.39
+Nodes (5): GlobalLoadingOverlay(), apolloClient, bootstrap(), migrateLegacyStorage(), restoreSession()
 
 ### Community 32 - "scripts"
 Cohesion: 0.08
@@ -244,16 +248,16 @@ Cohesion: 0.22
 Nodes (9): 4.1 원칙, 4.2 태블릿(짧은 변 ≥ 600) 레이아웃, 4.3 폰(짧은 변 < 600, Tablet에서 이탈은 < 560) 레이아웃, 4.4 기존 컴포넌트 포함 방식 (ComponentHost), 4.5 에이전트 instruction 모델과 표시 (v0.4), 4.6 태블릿 튜터 메시지 알림: toast (v0.4), 4.7.1 태블릿/폰 판단 기준 조사와 제안 (v0.4.1 조사, **v0.4.2 결정 — 질문 24 해결**), 4.7 폴더블·듀얼 화면 대응 (v0.4) (+1 more)
 
 ### Community 34 - "api.constants.ts"
-Cohesion: 0.24
-Nodes (12): react-native-blob-util, requestStorageUrl(), getBase64StringFromDataURL(), sendBoardAction(), strokeColors, strokeWidths, UploadParams, uploadQuizAnswerToStorage() (+4 more)
+Cohesion: 0.23
+Nodes (14): react-native-blob-util, requestStorageUrl(), getBase64StringFromDataURL(), sendBoardAction(), strokeColors, strokeWidths, UploadParams, uploadQuizAnswerToStorage() (+6 more)
 
 ### Community 35 - "pencil-props-modal.tsx"
 Cohesion: 0.31
 Nodes (5): PencilPropsModal(), PencilPropsModalProps, styles, ToolPopover(), initialMetrics
 
 ### Community 36 - "ResearchPanel.tsx"
-Cohesion: 0.20
-Nodes (8): CATEGORIES, EXAM_MODE, Props, ResearchCategory, ResearchPanel(), resolveInitialCategory(), Store, styles
+Cohesion: 0.14
+Nodes (10): ConceptFetchers, ConceptLookupPanel(), styles, CATEGORIES, EXAM_MODE, Props, ResearchCategory, ResearchPanel() (+2 more)
 
 ### Community 37 - "withTabletSplash.js"
 Cohesion: 0.25
@@ -276,8 +280,8 @@ Cohesion: 0.29
 Nodes (7): api / context — 완료, components — 109개, pages에서 추출한 로직 (M3), 공통 교체 규칙 (재작성 시), 기존 앱 → 새 앱 이전 현황 (components / api / context), 원본에서 발견한 점, 원본에서 발견한 점
 
 ### Community 42 - "MathJaxWrapper.tsx"
-Cohesion: 0.18
-Nodes (9): ConceptFetchers, ConceptLookupPanel(), styles, buildMathJaxHtmlDocument(), cleanMathText(), MathJaxWrapper(), MathJaxWrapperProps, processHtmlImages() (+1 more)
+Cohesion: 0.43
+Nodes (6): buildMathJaxHtmlDocument(), cleanMathText(), MathJaxWrapper(), MathJaxWrapperProps, processHtmlImages(), styles
 
 ### Community 43 - "go-button.tsx"
 Cohesion: 0.25
@@ -296,12 +300,12 @@ Cohesion: 0.29
 Nodes (4): qoolla-agent-app, Supabase 로그인 (§7.3), 구조 (현재: M1 일부 + M2 앱 셸), 명령
 
 ### Community 47 - "notification.ts"
-Cohesion: 0.33
-Nodes (4): defaultNotificationState, NotificationAction, NotificationState, notificationStore
+Cohesion: 0.16
+Nodes (8): ContentAction, ContentState, contentStore, createStore(), defaultNotificationState, NotificationAction, NotificationState, notificationStore
 
 ### Community 48 - "devDependencies"
-Cohesion: 0.33
-Nodes (3): ContentAction, ContentState, contentStore
+Cohesion: 0.31
+Nodes (7): createApolloClient(), createErrorLink(), createIsomorphLink(), DevType, CHECK_MY_STUDY_NOTE, MY_MONTHLY_STUDY_NOTE, STUDY_NOTE
 
 ### Community 49 - "AGENTS.md"
 Cohesion: 0.33
@@ -312,16 +316,24 @@ Cohesion: 0.50
 Nodes (4): 1.1 목표, 1.2 범위 (In scope), 1.3 비목표 (Non-goals), 1. 목표, 범위, 비목표
 
 ### Community 51 - "ResearchPanel.tsx"
-Cohesion: 0.43
-Nodes (6): configure(), getProviderToken(), OAuthProvider, SignInResult, signInWithProvider(), helloQoolla()
+Cohesion: 0.25
+Nodes (6): createTimelineFetchers(), CHECK_COLLECTION_SEARCH, CHECK_PRE_EXAM_SEARCH, CHECK_TASK, MY_TASKS, TASK_OF_ID
+
+### Community 52 - "subscriptions.ts"
+Cohesion: 0.29
+Nodes (6): MEMO_SUBSCRIPTION, MESSAGE_SENT, ON_DIRECT_MESSAGE_RECEIVED, ONLINE_TUTOR_CLASS_MESSAGE_ADDED, SOMETHING_HAPPENED_SUBSCRIPTION, TOPIC_LIVE_MESSAGE_ADDED
+
+### Community 53 - "user.ts"
+Cohesion: 0.40
+Nodes (4): GET_DRAWER_STATE, MY_SUBSCRIPTION, USERS, VIEWER
 
 ### Community 54 - "10월 모의고사 주제 식별 검증 (명세서 §6.2 2단계, M3 완료 조건)"
 Cohesion: 0.50
 Nodes (3): 10월 모의고사 주제 식별 검증 (명세서 §6.2 2단계, M3 완료 조건), 결과, 판단
 
 ### Community 55 - "1. 목표, 범위, 비목표"
-Cohesion: 0.11
-Nodes (18): fetchTopicQuestions(), createMessageBoxFetchers(), PRIVATE_REQUESTS, UNITIMAGE(), ProblemPreviewWidget(), FlyObj, makeTemporaryScript(), scriptTemplate() (+10 more)
+Cohesion: 0.20
+Nodes (8): createMessageBoxFetchers(), DATE_AGENDA, EXAMS, PRIVATE_REQUESTS, PRIVATE_REQUESTS_COUNT, REQUEST_MESSAGE_DOCS, RESPONSE_MESSAGE_DOCS, PrivateMessage
 
 ### Community 56 - "canvas-template-base.ts"
 Cohesion: 0.67
@@ -331,33 +343,29 @@ Nodes (3): buildCanvasTemplate(), CanvasTemplateOptions, getCanvasInitVars()
 Cohesion: 0.50
 Nodes (3): imports, @supabase/functions-js, @supabase/server
 
-### Community 74 - "screen-wrapper.tsx"
-Cohesion: 0.33
-Nodes (5): react, DEFAULT_EDGES, Edge, FullScreenWrapper(), styles
-
 ### Community 75 - "web-view.tsx"
-Cohesion: 0.13
-Nodes (11): Go3MathLoader(), Go3MathLoaderProps, styles, VIEWBOX, styles, ToastProps, { width: screenWidth, height: screenHeight }, DEFAULT_INDICATOR_PROPS (+3 more)
+Cohesion: 0.07
+Nodes (28): AgentHome(), MainLayout(), WelcomeScreen(), PhoneInstructionModal(), TabletAgentLayer(), toastPreview(), getAgentSession(), useAgentSession() (+20 more)
 
 ## Knowledge Gaps
-- **413 isolated node(s):** `tools`, `scaleOf`, `offsetOf`, `initialMetrics`, `query` (+408 more)
+- **415 isolated node(s):** `tools`, `scaleOf`, `offsetOf`, `initialMetrics`, `query` (+410 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `dependencies` connect `dependencies` to `scripts`, `screen-wrapper.tsx`, `api.constants.ts`?**
+- **Why does `dependencies` connect `dependencies` to `scripts`, `api.constants.ts`, `hotline-class-canvas.tsx`?**
   _High betweenness centrality (0.118) - this node is a cross-community bridge._
-- **Why does `FullScreenWrapper()` connect `screen-wrapper.tsx` to `hotline-class-canvas.tsx`, `notebook.tsx`?**
+- **Why does `FullScreenWrapper()` connect `hotline-class-canvas.tsx` to `api.constants.ts`?**
+  _High betweenness centrality (0.094) - this node is a cross-community bridge._
+- **Why does `react` connect `hotline-class-canvas.tsx` to `dependencies`?**
   _High betweenness centrality (0.093) - this node is a cross-community bridge._
-- **Why does `react` connect `screen-wrapper.tsx` to `dependencies`?**
-  _High betweenness centrality (0.092) - this node is a cross-community bridge._
 - **What connects `tools`, `scaleOf`, `offsetOf` to the rest of the system?**
-  _413 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06918238993710692 - nodes in this community are weakly interconnected._
+  _415 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `TabletAgentLayer.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05423094904160823 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.058549931600547195 - nodes in this community are weakly interconnected._
 - **Should `dependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.037037037037037035 - nodes in this community are weakly interconnected._
+- **Should `deviceMode.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.14035087719298245 - nodes in this community are weakly interconnected._

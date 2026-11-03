@@ -115,8 +115,8 @@
     "semantic_hash": ""
   },
   "__tests__/tabletDrawer.test.tsx": {
-    "mtime": 1793668209.2054608,
-    "ast_hash": "25ed50e8083e85dae654b6daff850621",
+    "mtime": 1793692780.371615,
+    "ast_hash": "a357989e5c65192d49309aaf7282c483",
     "semantic_hash": ""
   },
   "__tests__/timeline.test.tsx": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "app/notebook.tsx": {
-    "mtime": 1793586086.6730986,
-    "ast_hash": "1b437a48a290c43dc14850aa08876dad",
+    "mtime": 1793692780.372003,
+    "ast_hash": "f1a61d029dcebb32f294fe6a8bcbb3e5",
     "semantic_hash": ""
   },
   "app/welcome.tsx": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "src/agent/DockWrapper.tsx": {
-    "mtime": 1793667385.0831132,
-    "ast_hash": "435c2728ffc36846ec5352d6565f54f9",
+    "mtime": 1793692780.3726132,
+    "ast_hash": "18eb985e918d57d2a468057a6c7fcfd6",
     "semantic_hash": ""
   },
   "src/agent/InstructionCard.tsx": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "src/agent/tablet/ChatRail.tsx": {
-    "mtime": 1793666357.677146,
-    "ast_hash": "2e9b99b8cb1e2741dd5e94534880faa7",
+    "mtime": 1793712852.3554099,
+    "ast_hash": "7ddb047426222a8bfae6daa8414e617b",
     "semantic_hash": ""
   },
   "src/agent/tablet/DrawerFooter.tsx": {
@@ -290,8 +290,8 @@
     "semantic_hash": ""
   },
   "src/agent/tablet/TabletAgentLayer.tsx": {
-    "mtime": 1793668190.0336199,
-    "ast_hash": "61c445786df6924e130143e275e4cf21",
+    "mtime": 1793692780.3734772,
+    "ast_hash": "3d981edfa3855dc36d745631e6806d78",
     "semantic_hash": ""
   },
   "src/agent/useAgentSession.ts": {
@@ -445,8 +445,8 @@
     "semantic_hash": ""
   },
   "src/kit/canvas/CanvasChrome.tsx": {
-    "mtime": 1793669501.4069118,
-    "ast_hash": "0df2a2ea141e19c528f212aac655b84c",
+    "mtime": 1793692780.3739016,
+    "ast_hash": "2a6a49d088bd3b5cbab7dc2ba31560ed",
     "semantic_hash": ""
   },
   "src/kit/canvas/FloatingToolbar.tsx": {
@@ -1052,6 +1052,16 @@
   "src/kit/profile/ProfileActions.tsx": {
     "mtime": 1793668676.0426996,
     "ast_hash": "b3af16b0a2b62d7e47389a52584d8251",
+    "semantic_hash": ""
+  },
+  "__tests__/chatRail.test.ts": {
+    "mtime": 1793712863.0419006,
+    "ast_hash": "183911feaf6485391aa104683a588a05",
+    "semantic_hash": ""
+  },
+  "src/ui/SheetHandle.tsx": {
+    "mtime": 1793692780.3740258,
+    "ast_hash": "17b83c812e260e33fd74ff407c8830bc",
     "semantic_hash": ""
   }
 }
