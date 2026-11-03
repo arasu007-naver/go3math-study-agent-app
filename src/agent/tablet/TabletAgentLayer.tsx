@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { createMessageBoxFetchers } from '../../adapters/messageBoxFetchers';
 import { createNoticeFetchers } from '../../adapters/noticeFetchers';
+import { createProfileEditors } from '../../adapters/profileEditors';
 import { createTimelineFetchers } from '../../adapters/timelineFetchers';
 import { logout } from '../../auth/logout';
 import { useMyInfo } from '../../auth/useMyInfo';
@@ -10,6 +11,7 @@ import { topicFetchers } from '../../host/widgets';
 import { NoticesPanel } from '../../kit/notices/NoticesPanel';
 import { MessageBoxPanel } from '../../kit/profile/MessageBoxPanel';
 import { MyInfoPanel } from '../../kit/profile/MyInfoPanel';
+import { ProfileActions } from '../../kit/profile/ProfileActions';
 import { ResearchPanel } from '../../kit/research/ResearchPanel';
 import { TimelinePanel } from '../../kit/timeline/TimelinePanel';
 import { drawerWidth } from '../../layout/deviceMode';
@@ -36,6 +38,7 @@ const DOCK_TITLES: Record<DockKind, string> = { timeline: '타임라인', search
 const noticeFetchers = createNoticeFetchers(apolloClient);
 const timelineFetchers = createTimelineFetchers(apolloClient);
 const messageBoxFetchers = createMessageBoxFetchers(apolloClient);
+const profileEditors = createProfileEditors(apolloClient);
 
 export function toastPreview(text: string): string {
   return text.length > TOAST_PREVIEW_CHARS ? `${text.slice(0, TOAST_PREVIEW_CHARS - 1)}…` : text;
@@ -113,7 +116,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
         }}
       />
 
-      <AgentDrawer open={open} width={dw} onCollapse={() => setOpen(false)} footer={<DrawerFooter active={dock} onPress={toggleDock} />}>
+      <AgentDrawer open={open} width={dw} onCollapse={() => setOpen(false)} hideHandle={dock !== null} footer={<DrawerFooter active={dock} onPress={toggleDock} />}>
         {ins ? (
           <InstructionCard
             instruction={ins}
@@ -157,9 +160,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
             <>
               <MyInfoPanel info={myInfo} />
               <MessageBoxPanel fetchers={messageBoxFetchers} />
-              <Pressable accessibilityRole="button" onPress={() => void logout()} style={({ pressed }) => [styles.logout, pressed && styles.logoutPressed]}>
-                <Text style={styles.logoutText}>로그아웃</Text>
-              </Pressable>
+              <ProfileActions name={myInfo.name} editors={profileEditors} onLogout={() => void logout()} />
             </>
           )}
           {dock === 'search' && (
@@ -202,7 +203,4 @@ const styles = StyleSheet.create({
   bubbleTutor: { backgroundColor: colors.cardMuted },
   bubbleWho: { ...type.caption, color: colors.muted },
   bubbleText: { ...type.body, color: colors.text },
-  logout: { minHeight: layout.hit, justifyContent: 'center', paddingHorizontal: space.lg, alignSelf: 'flex-start' },
-  logoutPressed: { opacity: 0.6 },
-  logoutText: { ...type.bodyStrong, color: colors.danger },
 });

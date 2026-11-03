@@ -7,11 +7,29 @@ jest.mock('react-native-mmkv', () => ({ createMMKV: () => ({ getString: () => un
 jest.mock('../src/state/bootstrap', () => ({ apolloClient: { query: jest.fn(() => new Promise(() => {})) } }));
 jest.mock('../src/host/widgets', () => ({ topicFetchers: {} }));
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
+jest.mock('react-native-blob-util', () => ({}));
 
 const session = { emit: jest.fn(), selectChoice: jest.fn(), dismissInstruction: jest.fn() } as any;
 const base: SessionSnapshot = { ...initialRouterState, connected: true };
 const say = (messageId: string) => ({ messageId, text: '안내', choices: [], source: 'default' as const });
 const drawerOpen = () => screen.getByLabelText('에이전트 drawer').props.pointerEvents === 'auto';
+
+describe('TabletAgentLayer dock', () => {
+  it('closes the dock with its edge button', async () => {
+    await render(<TabletAgentLayer state={base} session={session} />);
+    expect(screen.getByLabelText('타임라인 dock')).toBeTruthy(); // 홈 진입 시 타임라인 dock
+    await fireEvent.press(screen.getByLabelText('타임라인 dock 닫기'));
+    expect(screen.queryByLabelText('타임라인 dock')).toBeNull();
+  });
+
+  it('hides the drawer edge button while a dock is open, then collapses with it', async () => {
+    await render(<TabletAgentLayer state={base} session={session} />);
+    expect(screen.queryByLabelText('채팅 접기')).toBeNull(); // 타임라인 dock이 열려 있음
+    await fireEvent.press(screen.getByLabelText('타임라인 dock 닫기'));
+    await fireEvent.press(screen.getByLabelText('채팅 접기'));
+    expect(drawerOpen()).toBe(false);
+  });
+});
 
 describe('TabletAgentLayer drawer and problem lists', () => {
   it('closes the drawer whenever the agent shows a problem list, even if one was already shown', async () => {
