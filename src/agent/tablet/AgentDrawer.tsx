@@ -12,7 +12,6 @@ import { EDGE_HANDLE_OUT, EdgeHandle } from '../EdgeHandle';
 export function AgentDrawer({
   open,
   width,
-  chatHidden = false,
   onCollapse,
   hideHandle,
   footer,
@@ -20,8 +19,6 @@ export function AgentDrawer({
 }: {
   open: boolean;
   width: number;
-  /** dock이 열려 있는 동안 채팅만 숨긴다(헤더·footer는 그대로, 스크롤 위치 유지) */
-  chatHidden?: boolean;
   onCollapse(): void;
   /** dock이 열려 있으면 접기 버튼을 숨긴다 */
   hideHandle?: boolean;
@@ -43,12 +40,7 @@ export function AgentDrawer({
         <View style={styles.header}>
           <Text style={styles.title}>에이전트</Text>
         </View>
-        <ScrollView
-          pointerEvents={chatHidden ? 'none' : 'auto'}
-          accessibilityElementsHidden={chatHidden}
-          importantForAccessibility={chatHidden ? 'no-hide-descendants' : 'auto'}
-          style={[styles.scroll, chatHidden && styles.hidden]}
-          contentContainerStyle={styles.scrollContent}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
           {children}
         </ScrollView>
         {footer}
@@ -80,6 +72,5 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: layout.hit },
   title: { ...type.title, color: colors.text, flex: 1 },
   scroll: { flex: 1 },
-  hidden: { opacity: 0 },
   scrollContent: { gap: space.lg },
 });
