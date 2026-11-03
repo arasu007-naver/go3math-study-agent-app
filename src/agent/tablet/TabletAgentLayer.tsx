@@ -116,7 +116,13 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
         }}
       />
 
-      <AgentDrawer open={open} width={dw} onCollapse={() => setOpen(false)} hideHandle={dock !== null} footer={<DrawerFooter active={dock} onPress={toggleDock} />}>
+      <AgentDrawer
+        open={open}
+        width={dw}
+        chatHidden={dock !== null}
+        onCollapse={() => setOpen(false)}
+        hideHandle={dock !== null}
+        footer={<DrawerFooter active={dock} onPress={toggleDock} />}>
         {ins ? (
           <InstructionCard
             instruction={ins}

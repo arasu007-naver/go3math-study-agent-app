@@ -52,4 +52,14 @@ describe('TabletAgentLayer drawer and problem lists', () => {
     await act(async () => r.rerender(<TabletAgentLayer state={s} session={session} />));
     expect(drawerOpen()).toBe(false);
   });
+
+  it('hides the chat while a dock is shown', async () => {
+    await render(<TabletAgentLayer state={base} session={session} />);
+    const chat = () => screen.getByText('지금은 안내가 없어요.', { includeHiddenElements: true });
+    expect(screen.getByLabelText('타임라인 dock')).toBeTruthy(); // 홈 진입 시 타임라인 dock
+    expect(chat()).not.toBeVisible();
+
+    await fireEvent.press(screen.getByLabelText('타임라인 dock 닫기'));
+    expect(chat()).toBeVisible();
+  });
 });
