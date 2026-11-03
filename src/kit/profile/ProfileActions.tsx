@@ -58,17 +58,23 @@ export function ProfileActions({ name, editors, onLogout }: { name?: string | nu
             setEditing(true);
           }}
           style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-          <Text style={[styles.text, styles.underline, busy && styles.disabled]}>이름 변경</Text>
+          <View style={styles.underline}>
+            <Text style={[styles.text, busy && styles.disabled]}>이름 변경</Text>
+          </View>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           disabled={busy}
           onPress={() => void run(editors.changeImage, '프로필 이미지를 변경했어요.')}
           style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-          <Text style={[styles.text, styles.underline, busy && styles.disabled]}>프로필 이미지 변경</Text>
+          <View style={styles.underline}>
+            <Text style={[styles.text, busy && styles.disabled]}>프로필 이미지 변경</Text>
+          </View>
         </Pressable>
         <Pressable accessibilityRole="button" onPress={onLogout} style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-          <Text style={[styles.text, styles.underline, styles.logout]}>로그아웃</Text>
+          <View style={styles.underline}>
+            <Text style={[styles.text, styles.logout]}>로그아웃</Text>
+          </View>
         </Pressable>
       </View>
 
@@ -113,8 +119,8 @@ const styles = StyleSheet.create({
   btn: { minHeight: layout.hit, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.sm },
   pressed: { backgroundColor: colors.cardMuted },
   text: { ...type.bodyStrong, color: colors.accentText },
-  // 하단 줄 세 버튼만 검은 밑줄(글자색과 따로)
-  underline: { textDecorationLine: 'underline', textDecorationColor: '#000000' },
+  // 하단 줄 세 버튼만 검은 밑줄. textDecoration은 글자와의 간격을 못 정하므로 아래 테두리로 그리고 6px 띄운다
+  underline: { paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#000000' },
   logout: { color: colors.danger },
   cancel: { color: colors.muted },
   disabled: { color: colors.disabled },
