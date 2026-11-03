@@ -8,9 +8,9 @@ import { NOT_READY_HINT, type DockKind, type FooterKind } from './DrawerFooter';
 
 /** 툴바 항목(위→아래). 드래그 손잡이 다음, 맨 아래 채팅 버튼 앞에 놓인다. */
 const RAIL_ITEMS: { kind: FooterKind; label: string; icon: keyof typeof Ionicons.glyphMap; disabled?: boolean }[] = [
+  { kind: 'timeline', label: '타임라인', icon: 'home-outline' },
   { kind: 'notice', label: '공지', icon: 'megaphone-outline' },
   { kind: 'search', label: '검색', icon: 'search-outline' },
-  { kind: 'timeline', label: '타임라인', icon: 'home-outline' },
   { kind: 'liveClass', label: '실황 수업', icon: 'radio-outline', disabled: true },
   { kind: 'profile', label: '내 정보', icon: 'person-circle-outline' },
 ];

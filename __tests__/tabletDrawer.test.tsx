@@ -17,9 +17,9 @@ const chatOpen = () => screen.queryByLabelText('에이전트 dock') !== null;
 describe('TabletAgentLayer dock', () => {
   it('closes the dock with its edge button', async () => {
     await render(<TabletAgentLayer state={base} session={session} />);
-    expect(screen.getByLabelText('타임라인 dock')).toBeTruthy(); // 홈 진입 시 타임라인 dock
-    await fireEvent.press(screen.getByLabelText('타임라인 dock 닫기'));
-    expect(screen.queryByLabelText('타임라인 dock')).toBeNull();
+    expect(screen.getByLabelText('Study dock')).toBeTruthy(); // 홈 진입 시 타임라인 dock
+    await fireEvent.press(screen.getByLabelText('Study dock 닫기'));
+    expect(screen.queryByLabelText('Study dock')).toBeNull();
   });
 
   it('opens the chat as a dock from the toolbar chat button, replacing the open dock', async () => {
@@ -27,7 +27,7 @@ describe('TabletAgentLayer dock', () => {
     expect(chatOpen()).toBe(false);
     await fireEvent.press(screen.getByLabelText('채팅'));
     expect(chatOpen()).toBe(true);
-    expect(screen.queryByLabelText('타임라인 dock')).toBeNull();
+    expect(screen.queryByLabelText('Study dock')).toBeNull();
 
     await fireEvent.press(screen.getByLabelText('채팅')); // 다시 누르면 닫힘
     expect(chatOpen()).toBe(false);
@@ -45,7 +45,7 @@ describe('TabletAgentLayer dock', () => {
 describe('TabletAgentLayer chat and problem lists', () => {
   it('closes the chat whenever the agent shows a problem list, even if one was already shown', async () => {
     const r = await render(<TabletAgentLayer state={base} session={session} />);
-    await fireEvent.press(screen.getByLabelText('타임라인 dock 닫기'));
+    await fireEvent.press(screen.getByLabelText('Study dock 닫기'));
 
     // 1) 안내 → 문제 목록 (mock 에이전트 순서)
     let s: SessionSnapshot = { ...base, instruction: say('m1') as any };

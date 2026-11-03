@@ -33,7 +33,7 @@ export const TOAST_PREVIEW_CHARS = 30;
 export type { DockKind };
 /** dock에 열 수 있는 패널: 메뉴 dock + 채팅 */
 type Panel = DockKind | 'chat';
-const DOCK_TITLES: Record<Panel, string> = { chat: '에이전트', timeline: '타임라인', search: '검색', notice: '공지', profile: '내 정보' };
+const DOCK_TITLES: Record<Panel, string> = { chat: '에이전트', timeline: 'Study', search: '검색', notice: '공지', profile: '내 정보' };
 const noticeFetchers = createNoticeFetchers(apolloClient);
 const timelineFetchers = createTimelineFetchers(apolloClient);
 const messageBoxFetchers = createMessageBoxFetchers(apolloClient);
