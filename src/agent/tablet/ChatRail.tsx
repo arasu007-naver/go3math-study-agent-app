@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { colors, layout, radius, shadow, space, z } from '../../ui/theme';
 import { NOT_READY_HINT, type DockKind, type FooterKind } from './DrawerFooter';
 
@@ -20,8 +20,15 @@ const DIVIDER_H = 2;
 // 드래그 손잡이 + 구분선(위아래 여백 포함) + 항목 + 채팅 버튼, 위아래 padding
 const RAIL_H = layout.hit * (RAIL_ITEMS.length + 2) + DIVIDER_H + space.xs * 4;
 
+/** 손잡이 top이 화면 높이의 위·아래 1/6 안이면 가로 툴바, 나머지는 세로 툴바 */
+export function isHorizontalAt(top: number, height: number) {
+  'worklet';
+  return top < height / 6 || top > (height * 5) / 6;
+}
+
 /**
- * 늘 떠 있는 세로 pill 툴바. 위아래가 둥글고, 맨 위 손잡이를 끌어 화면 안 아무 곳으로나 옮길 수 있다.
+ * 늘 떠 있는 pill 툴바. 맨 앞 손잡이를 끌어 화면 안 아무 곳으로나 옮길 수 있고,
+ * 끄는 중 손잡이가 화면 위·아래 1/6 안에 들어가면 가로로, 그 밖에서는 세로로 바뀐다.
  * 항목을 누르면 해당 dock을 열고(열린 항목을 다시 누르면 닫음), 맨 아래 채팅 버튼은 채팅 dock을 연다(읽지 않음 점 표시).
  */
 export function ChatRail({
@@ -35,8 +42,11 @@ export function ChatRail({
   onItem(kind: DockKind | 'chat'): void;
 }) {
   const { width, height } = useWindowDimensions();
-  const maxX = Math.max(layout.gutter, width - RAIL_W - layout.gutter);
-  const maxY = Math.max(layout.gutter, height - RAIL_H - layout.gutter);
+  const [horizontal, setHorizontal] = useState(false);
+  const horiz = useSharedValue(false);
+  // 방향별 이동 범위(가로면 폭·높이가 서로 바뀐다)
+  const maxX = Math.max(layout.gutter, width - (horizontal ? RAIL_H : RAIL_W) - layout.gutter);
+  const maxY = Math.max(layout.gutter, height - (horizontal ? RAIL_W : RAIL_H) - layout.gutter);
 
   // 처음 위치: 왼쪽 변, 세로 가운데(기존 가장자리 탭 자리)
   const x = useSharedValue<number>(layout.gutter);
@@ -56,20 +66,29 @@ export function ChatRail({
       startY.value = y.value;
     })
     .onUpdate((e) => {
-      x.value = Math.min(Math.max(startX.value + e.translationX, layout.gutter), maxX);
-      y.value = Math.min(Math.max(startY.value + e.translationY, layout.gutter), maxY);
+      // 방향은 범위로 자르기 전 손잡이 top으로 정한다(세로일 때는 아래 1/6까지 내려가지 못하므로)
+      const top = startY.value + e.translationY;
+      const h = isHorizontalAt(top, height);
+      if (h !== horiz.value) {
+        horiz.value = h;
+        runOnJS(setHorizontal)(h);
+      }
+      const mx = Math.max(layout.gutter, width - (h ? RAIL_H : RAIL_W) - layout.gutter);
+      const my = Math.max(layout.gutter, height - (h ? RAIL_W : RAIL_H) - layout.gutter);
+      x.value = Math.min(Math.max(startX.value + e.translationX, layout.gutter), mx);
+      y.value = Math.min(Math.max(top, layout.gutter), my);
     });
 
   const style = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }, { translateY: y.value }] }));
 
   return (
-    <Animated.View style={[styles.rail, style]}>
+    <Animated.View style={[styles.rail, horizontal && styles.railH, style]}>
       <GestureDetector gesture={drag}>
         <View accessibilityRole="adjustable" accessibilityLabel="툴바 이동" accessibilityHint="끌어서 툴바를 옮깁니다" style={styles.item}>
           <Ionicons name="reorder-three" size={layout.footerIcon} color={colors.disabled} />
         </View>
       </GestureDetector>
-      <View style={styles.divider} />
+      <View style={[styles.divider, horizontal && styles.dividerH]} />
       {RAIL_ITEMS.map((it) => {
         const on = it.kind === active;
         return (
@@ -113,9 +132,11 @@ const styles = StyleSheet.create({
     zIndex: z.drawer,
     ...shadow.float,
   },
+  railH: { flexDirection: 'row', width: RAIL_H, height: RAIL_W, paddingVertical: 0, paddingHorizontal: space.xs },
   item: { width: layout.hit, height: layout.hit, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   // 드래그 손잡이와 항목 사이 주황 구분선
   divider: { width: layout.hit - space.md, height: DIVIDER_H, marginVertical: space.xs, borderRadius: radius.pill, backgroundColor: colors.accent },
+  dividerH: { width: DIVIDER_H, height: layout.hit - space.md, marginVertical: 0, marginHorizontal: space.xs },
   on: { backgroundColor: colors.accentSoft },
   pressed: { backgroundColor: colors.accentSoftPress },
   chat: { backgroundColor: colors.accentSoft },
