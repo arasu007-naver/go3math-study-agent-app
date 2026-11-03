@@ -1,7 +1,8 @@
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { SheetHandle } from '../../ui/SheetHandle';
 import { colors, layout } from '../../ui/theme';
 import { ConceptLookupPanel } from '../concepts/ConceptLookupPanel';
 import { FloatingToolbar, type FloatingAction, type FloatingTool, type ToolId } from './FloatingToolbar';
@@ -9,15 +10,17 @@ import { LandscapeNotice } from './LandscapeNotice';
 import { useCanvasLandscape } from './useCanvasLandscape';
 
 const ICON_SIZE = layout.footerIcon;
-const ICONS: Record<Exclude<ToolId, 'color'>, keyof typeof Ionicons.glyphMap> = {
-  clearBoard: 'trash-outline',
+const ICONS: Record<Exclude<ToolId, 'color' | 'clearBoard'>, keyof typeof Ionicons.glyphMap> = {
   clearMemo: 'backspace-outline',
-  save: 'save-outline',
+  save: 'camera-outline', // 스냅샷
 };
 
 /** 캔버스 도구 버튼 정의. label은 기존 GoButton 제목 그대로 쓴다. */
 export function canvasTool(id: ToolId, label: string): FloatingTool {
-  return { id, label, icon: id === 'color' ? undefined : <Ionicons name={ICONS[id]} size={ICON_SIZE} color={colors.subtle} /> };
+  if (id === 'color') return { id, label };
+  // 보드 지우기는 필기만 지우고 문제(배경 이미지)는 남기므로 지우개. Ionicons에 지우개가 없어 MaterialCommunityIcons를 쓴다.
+  if (id === 'clearBoard') return { id, label, icon: <MaterialCommunityIcons name="eraser" size={ICON_SIZE} color={colors.subtle} /> };
+  return { id, label, icon: <Ionicons name={ICONS[id]} size={ICON_SIZE} color={colors.subtle} /> };
 }
 
 /** 화면 버튼(나가기·목록 등) 정의 — 아이콘만 보이고 label은 스크린리더용 */
@@ -64,7 +67,7 @@ export function CanvasChrome({
       />
       {children}
       {/* 시트 안 스크롤(칩 목록)이 시트 끌기와 다투지 않게 끌기는 손잡이로만 */}
-      <BottomSheetModal ref={conceptSheet} snapPoints={CONCEPT_SHEET_SNAPS} enableDynamicSizing={false} enableContentPanningGesture={false}>
+      <BottomSheetModal ref={conceptSheet} snapPoints={CONCEPT_SHEET_SNAPS} enableDynamicSizing={false} enableContentPanningGesture={false} handleComponent={SheetHandle}>
         <BottomSheetView style={styles.sheet}>
           <ConceptLookupPanel />
         </BottomSheetView>

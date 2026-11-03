@@ -16,6 +16,7 @@ import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import GoButton from '@/src/kit/ui/go-button';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
+import { SheetHandle } from '@/src/ui/SheetHandle';
 import { colors, radius } from '@/src/ui/theme';
 
 // 문제 풀이 화면: 기존 pages/notebook/index.tsx를 옮김. 패널은 note-canvas/notebook.tsx 그대로,
@@ -142,11 +143,11 @@ export default function NotebookScreen() {
         screenActions={[
           canvasAction('exit', '나가기', 'chevron-back', () => (router.canGoBack() ? router.back() : router.replace('/'))),
           ...(units.length > 1 ? [canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true))] : []),
-          canvasAction('answer', '답안 예시', 'reader-outline', handlePresentModalPress),
-          canvasAction('workouts', '내 이전 풀이', 'images-outline', handlePresentWorkoutSheetListModalPress),
+          canvasAction('answer', '답안 예시', 'eye-outline', handlePresentModalPress),
+          canvasAction('workouts', '내 이전 풀이', 'layers-outline', handlePresentWorkoutSheetListModalPress),
         ]}
       />
-      <BottomSheetModal ref={sheetRef}>
+      <BottomSheetModal ref={sheetRef} handleComponent={SheetHandle}>
         <BottomSheetView>
           <View style={styles.bottomContainerStyle}>
             <View style={{ flex: 1, height: height / 2 - 64, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
@@ -166,7 +167,7 @@ export default function NotebookScreen() {
           </View>
         </BottomSheetView>
       </BottomSheetModal>
-      <BottomSheetModal ref={workoutSheetListRef}>
+      <BottomSheetModal ref={workoutSheetListRef} handleComponent={SheetHandle}>
         <BottomSheetView>
           <View style={styles.workoutSheetContainerStyle}>
             <View style={{ flex: 1, height: height / 2 - 108, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card, width: width - 12 }}>
@@ -184,9 +185,6 @@ export default function NotebookScreen() {
                   </View>
                 )}
               />
-            </View>
-            <View>
-              <GoButton title={'닫기'} onPress={() => workoutSheetListRef.current?.close()} />
             </View>
           </View>
         </BottomSheetView>
