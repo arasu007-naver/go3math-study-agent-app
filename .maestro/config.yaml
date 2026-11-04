@@ -1,0 +1,3 @@
+# Maestro 워크스페이스 설정. 실행: npm run test:e2e (Maestro CLI 필요: https://docs.maestro.dev)
+flows:
+  - "*.yaml"

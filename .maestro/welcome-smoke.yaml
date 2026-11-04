@@ -1,0 +1,34 @@
+# Welcome 화면 스모크: 로그인 버튼 4개와 공개 카테고리 칩이 보이고, '소개' 칩을 누르면 준비 중 문구가 나온다.
+# 설치된 앱은 dev client라 Metro 주소로 연다. 다른 포트면: maestro test -e METRO_URL=http://localhost:8085 .maestro
+appId: com.qoolla.student
+---
+- launchApp:
+    clearState: true
+- openLink: exp+go3-math-brand-new-error://expo-development-client/?url=${METRO_URL || 'http://localhost:8081'}
+- runFlow:
+    when:
+      visible: "Open|열기"
+    commands:
+      - tapOn: "Open|열기"
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+# dev client가 첫 실행에 띄우는 개발자 메뉴를 닫는다
+- runFlow:
+    when:
+      visible: "Toggle performance monitor"
+    commands:
+      - tapOn:
+          id: "xmark"
+- extendedWaitUntil:
+    visible: "Google로 로그인"
+    timeout: 60000
+- assertVisible: "네이버로 로그인"
+- assertVisible: "카카오로 로그인"
+- assertVisible: "2026"
+- assertVisible: "모의 기출"
+- assertVisible: "과목별"
+- tapOn: "소개"
+- assertVisible: "소개 화면은 준비 중이에요."

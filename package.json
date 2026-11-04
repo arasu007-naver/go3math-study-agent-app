@@ -9,6 +9,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest",
+    "test:e2e": "maestro test .maestro",
     "typecheck": "tsc --noEmit",
     "doctor": "expo-doctor"
   },
