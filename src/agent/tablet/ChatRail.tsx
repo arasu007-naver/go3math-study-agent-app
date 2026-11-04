@@ -1,44 +1,52 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
-import { colors, layout, motion, radius, shadow, space, z } from '../../ui/theme';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { colors, layout, radius, shadow, space, z } from '../../ui/theme';
 import { NOT_READY_HINT, type DockKind, type FooterKind } from './DrawerFooter';
 
-/** 접힌 툴바 항목(위→아래). 드래그 손잡이 다음, 맨 아래 '열기' 버튼 앞에 놓인다. */
+/** 툴바 항목(위→아래). 드래그 손잡이 다음, 맨 아래 채팅 버튼 앞에 놓인다. */
 const RAIL_ITEMS: { kind: FooterKind; label: string; icon: keyof typeof Ionicons.glyphMap; disabled?: boolean }[] = [
+  { kind: 'timeline', label: '타임라인', icon: 'home-outline' },
   { kind: 'notice', label: '공지', icon: 'megaphone-outline' },
   { kind: 'search', label: '검색', icon: 'search-outline' },
-  { kind: 'timeline', label: '타임라인', icon: 'time-outline' },
   { kind: 'liveClass', label: '실황 수업', icon: 'radio-outline', disabled: true },
   { kind: 'profile', label: '내 정보', icon: 'person-circle-outline' },
 ];
 
-const RAIL_W = layout.hit + space.sm;
-// 드래그 손잡이 + 항목 + 열기 버튼, 위아래 padding
-const RAIL_H = layout.hit * (RAIL_ITEMS.length + 2) + space.xs * 2;
+export const RAIL_W = layout.hit + space.sm;
+const DIVIDER_H = 2;
+// 드래그 손잡이 + 구분선(위아래 여백 포함) + 항목 + 채팅 버튼, 위아래 padding
+const RAIL_H = layout.hit * (RAIL_ITEMS.length + 2) + DIVIDER_H + space.xs * 4;
+
+/** 손잡이 top이 화면 높이의 위·아래 1/6 안이면 가로 툴바, 나머지는 세로 툴바 */
+export function isHorizontalAt(top: number, height: number) {
+  'worklet';
+  return top < height / 6 || top > (height * 5) / 6;
+}
 
 /**
- * drawer를 접었을 때 떠 있는 세로 pill 툴바. 위아래가 둥글고, 맨 위 손잡이를 끌어 화면 안 아무 곳으로나 옮길 수 있다.
- * 항상 마운트해 두고(drawer가 열리면 숨김) 사용자가 옮긴 위치를 drawer를 다시 접어도 유지한다.
- * 항목을 누르면 drawer를 열고 해당 dock을, 맨 아래 열기 버튼은 drawer만 연다(읽지 않음 점 표시).
+ * 늘 떠 있는 pill 툴바. 맨 앞 손잡이를 끌어 화면 안 아무 곳으로나 옮길 수 있고,
+ * 끄는 중 손잡이가 화면 위·아래 1/6 안에 들어가면 가로로, 그 밖에서는 세로로 바뀐다.
+ * 항목을 누르면 해당 dock을 열고(열린 항목을 다시 누르면 닫음), 맨 아래 채팅 버튼은 채팅 dock을 연다(읽지 않음 점 표시).
  */
 export function ChatRail({
-  visible,
+  active,
   unread,
-  onOpen,
   onItem,
 }: {
-  visible: boolean;
+  /** 지금 열린 dock(강조 표시) */
+  active: DockKind | 'chat' | null;
   unread: boolean;
-  onOpen(): void;
-  onItem(kind: DockKind): void;
+  onItem(kind: DockKind | 'chat'): void;
 }) {
-  const reduce = useReducedMotion();
   const { width, height } = useWindowDimensions();
-  const maxX = Math.max(layout.gutter, width - RAIL_W - layout.gutter);
-  const maxY = Math.max(layout.gutter, height - RAIL_H - layout.gutter);
+  const [horizontal, setHorizontal] = useState(false);
+  const horiz = useSharedValue(false);
+  // 방향별 이동 범위(가로면 폭·높이가 서로 바뀐다)
+  const maxX = Math.max(layout.gutter, width - (horizontal ? RAIL_H : RAIL_W) - layout.gutter);
+  const maxY = Math.max(layout.gutter, height - (horizontal ? RAIL_W : RAIL_H) - layout.gutter);
 
   // 처음 위치: 왼쪽 변, 세로 가운데(기존 가장자리 탭 자리)
   const x = useSharedValue<number>(layout.gutter);
@@ -58,47 +66,52 @@ export function ChatRail({
       startY.value = y.value;
     })
     .onUpdate((e) => {
-      x.value = Math.min(Math.max(startX.value + e.translationX, layout.gutter), maxX);
-      y.value = Math.min(Math.max(startY.value + e.translationY, layout.gutter), maxY);
+      // 방향은 범위로 자르기 전 손잡이 top으로 정한다(세로일 때는 아래 1/6까지 내려가지 못하므로)
+      const top = startY.value + e.translationY;
+      const h = isHorizontalAt(top, height);
+      if (h !== horiz.value) {
+        horiz.value = h;
+        runOnJS(setHorizontal)(h);
+      }
+      const mx = Math.max(layout.gutter, width - (h ? RAIL_H : RAIL_W) - layout.gutter);
+      const my = Math.max(layout.gutter, height - (h ? RAIL_W : RAIL_H) - layout.gutter);
+      x.value = Math.min(Math.max(startX.value + e.translationX, layout.gutter), mx);
+      y.value = Math.min(Math.max(top, layout.gutter), my);
     });
 
-  const shown = useSharedValue(visible ? 1 : 0);
-  useEffect(() => {
-    shown.value = reduce ? (visible ? 1 : 0) : withTiming(visible ? 1 : 0, { duration: visible ? motion.base : motion.fast });
-  }, [visible, reduce, shown]);
-
-  const style = useAnimatedStyle(() => ({ opacity: shown.value, transform: [{ translateX: x.value }, { translateY: y.value }] }));
+  const style = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }, { translateY: y.value }] }));
 
   return (
-    <Animated.View
-      pointerEvents={visible ? 'auto' : 'none'}
-      accessibilityElementsHidden={!visible}
-      importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}
-      style={[styles.rail, style]}>
+    <Animated.View style={[styles.rail, horizontal && styles.railH, style]}>
       <GestureDetector gesture={drag}>
         <View accessibilityRole="adjustable" accessibilityLabel="툴바 이동" accessibilityHint="끌어서 툴바를 옮깁니다" style={styles.item}>
           <Ionicons name="reorder-three" size={layout.footerIcon} color={colors.disabled} />
         </View>
       </GestureDetector>
-      {RAIL_ITEMS.map((it) => (
-        <Pressable
-          key={it.kind}
-          disabled={it.disabled}
-          onPress={() => onItem(it.kind as DockKind)}
-          accessibilityRole="button"
-          accessibilityLabel={it.label}
-          accessibilityHint={it.disabled ? NOT_READY_HINT : undefined}
-          accessibilityState={{ disabled: !!it.disabled }}
-          style={({ pressed }) => [styles.item, pressed && styles.pressed]}>
-          <Ionicons name={it.icon} size={layout.footerIcon} color={it.disabled ? colors.disabled : colors.muted} />
-        </Pressable>
-      ))}
+      <View style={[styles.divider, horizontal && styles.dividerH]} />
+      {RAIL_ITEMS.map((it) => {
+        const on = it.kind === active;
+        return (
+          <Pressable
+            key={it.kind}
+            disabled={it.disabled}
+            onPress={() => onItem(it.kind as DockKind)}
+            accessibilityRole="button"
+            accessibilityLabel={it.label}
+            accessibilityHint={it.disabled ? NOT_READY_HINT : undefined}
+            accessibilityState={{ selected: on, disabled: !!it.disabled }}
+            style={({ pressed }) => [styles.item, on && styles.on, pressed && styles.pressed]}>
+            <Ionicons name={it.icon} size={layout.footerIcon} color={it.disabled ? colors.disabled : on ? colors.accentText : colors.muted} />
+          </Pressable>
+        );
+      })}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={unread ? '에이전트 drawer 열기 (읽지 않은 메시지 있음)' : '에이전트 drawer 열기'}
-        onPress={onOpen}
-        style={({ pressed }) => [styles.item, styles.open, pressed && styles.openPressed]}>
-        <Ionicons name="chevron-forward" size={layout.footerIcon} color={colors.accentText} />
+        accessibilityLabel={unread ? '채팅 (읽지 않은 메시지 있음)' : '채팅'}
+        accessibilityState={{ selected: active === 'chat' }}
+        onPress={() => onItem('chat')}
+        style={({ pressed }) => [styles.item, styles.chat, pressed && styles.chatPressed]}>
+        <Ionicons name={active === 'chat' ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} size={layout.footerIcon} color={colors.accentText} />
         {unread && <View style={styles.dot} />}
       </Pressable>
     </Animated.View>
@@ -119,10 +132,15 @@ const styles = StyleSheet.create({
     zIndex: z.drawer,
     ...shadow.float,
   },
+  railH: { flexDirection: 'row', width: RAIL_H, height: RAIL_W, paddingVertical: 0, paddingHorizontal: space.xs },
   item: { width: layout.hit, height: layout.hit, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  // 드래그 손잡이와 항목 사이 주황 구분선
+  divider: { width: layout.hit - space.md, height: DIVIDER_H, marginVertical: space.xs, borderRadius: radius.pill, backgroundColor: colors.accent },
+  dividerH: { width: DIVIDER_H, height: layout.hit - space.md, marginVertical: 0, marginHorizontal: space.xs },
+  on: { backgroundColor: colors.accentSoft },
   pressed: { backgroundColor: colors.accentSoftPress },
-  open: { backgroundColor: colors.accentSoft },
-  openPressed: { backgroundColor: colors.accentSoftPress },
+  chat: { backgroundColor: colors.accentSoft },
+  chatPressed: { backgroundColor: colors.accentSoftPress },
   dot: {
     position: 'absolute',
     top: space.xxs,

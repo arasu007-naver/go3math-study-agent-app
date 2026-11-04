@@ -1,5 +1,7 @@
 import { RESEARCH_CATEGORY_KEY, resolveInitialCategory } from '../src/kit/research/ResearchPanel';
 
+jest.mock('react-native-webview', () => ({ WebView: () => null }));
+
 const store = (v?: string) => ({ getString: (k: string) => (k === RESEARCH_CATEGORY_KEY ? v : undefined) });
 
 describe('ResearchPanel initial category', () => {
@@ -8,6 +10,9 @@ describe('ResearchPanel initial category', () => {
   });
   it('restores legacy lastAgenda value', () => {
     expect(resolveInitialCategory(undefined, store('pre'))).toBe('pre');
+  });
+  it('restores the concept tab', () => {
+    expect(resolveInitialCategory(undefined, store('concept'))).toBe('concept');
   });
   it('falls back to recent for missing or retired categories', () => {
     expect(resolveInitialCategory(undefined, store())).toBe('recent');

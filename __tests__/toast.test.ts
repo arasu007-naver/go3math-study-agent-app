@@ -1,5 +1,8 @@
 import { TOAST_MS, TOAST_PREVIEW_CHARS, toastPreview } from '../src/agent/TabletAgentLayer';
 
+jest.mock('react-native-webview', () => ({ WebView: () => null }));
+jest.mock('react-native-blob-util', () => ({}));
+
 describe('tutor toast (§4.6)', () => {
   it('uses the 6.4s default', () => expect(TOAST_MS).toBe(6400));
 

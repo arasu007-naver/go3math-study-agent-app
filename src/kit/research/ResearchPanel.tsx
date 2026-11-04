@@ -6,20 +6,22 @@
  */
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ConceptLookupPanel } from '../concepts/ConceptLookupPanel';
 import { ExamSearchPanel, type ExamSearchMode } from '../exam-search/ExamSearchPanel';
 import type { ExamQuery } from '../exam-search/query';
 import { TopicTabsPanel } from '../topic-panel/TopicTabsPanel';
 import type { SubjectOption, TopicPanelFetchers, TopicSummary } from '../topic-panel/types';
 
-export type ResearchCategory = 'recent' | 'pre' | 'mentor';
+export type ResearchCategory = 'recent' | 'pre' | 'mentor' | 'concept';
 
 export const RESEARCH_CATEGORY_KEY = 'lastAgenda';
 
-// 기존 ResearchCategoriesSections 칩 순서·라벨('단원별'은 원본에서도 주석 처리)
+// 기존 ResearchCategoriesSections 칩 순서·라벨('단원별'은 원본에서도 주석 처리). '개념'은 기존 chat FAB 패널(개념 조회)을 옮겨 추가.
 const CATEGORIES: { key: ResearchCategory; label: string }[] = [
   { key: 'recent', label: '2026' },
   { key: 'pre', label: '모의 고사' },
   { key: 'mentor', label: '주제/묶음' },
+  { key: 'concept', label: '개념' },
 ];
 
 const EXAM_MODE: Record<'recent' | 'pre', ExamSearchMode> = { recent: 'this_year', pre: 'pre_exam' };
@@ -69,7 +71,9 @@ export function ResearchPanel({ fetchers, topicSubjects, store, initialCategory,
         })}
       </View>
       <View style={styles.body}>
-        {category === 'mentor' ? (
+        {category === 'concept' ? (
+          <ConceptLookupPanel />
+        ) : category === 'mentor' ? (
           <TopicTabsPanel fetchers={fetchers} subjects={topicSubjects} store={store} onSelectTopic={onSelectTopic} />
         ) : (
           <ExamSearchPanel

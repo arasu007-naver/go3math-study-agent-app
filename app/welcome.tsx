@@ -2,21 +2,28 @@
  * Welcome(로그인) 화면 — 기존 `pages/welcome/index.tsx` 구성을 따른다:
  * 로고 배너 → 소셜 로그인 아이콘(Apple은 iOS만, Google, Naver, Kakao) → 카테고리 칩(2026 / 모의 기출 / 과목별 / 소개) → 공개 콘텐츠 패널.
  * 로그인은 기존 앱과 같음 — 각 네이티브 SDK 토큰을 www.qoolla.com /api/hello로 교환(src/auth/oauth.ts). 광고 래퍼(AdMob) 제외.
- * 공개 패널: 2026·모의 기출은 kit ExamSearchPanel 재사용, 과목별(mandatory-section)·소개(info-section)는 아직 미이전.
+ * 공개 패널: 2026·모의 기출은 kit ExamSearchPanel 재사용('가자' → public-questions → '해답' → public-solution),
+ *   과목별은 kit TopicTabsPanel(기존 MentorTopicsPanel) — 토픽 선택 시 public-questions(topicId). 소개(info-section)는 아직 미이전.
  */
 import { useState } from 'react';
 import { ActivityIndicator, Image, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions, type ImageSourcePropType } from 'react-native';
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { createTopicFetchers } from '@/src/adapters/topicFetchers';
 import { signInWithProvider, type OAuthProvider } from '@/src/auth/oauth';
 import { devGuestStore, useAuthGate } from '@/src/auth/useAuthGate';
+import { MATH_TOPIC_SUBJECTS } from '@/src/config/exam.constants';
 import { ExamSearchPanel } from '@/src/kit/exam-search/ExamSearchPanel';
+import type { ExamQuery } from '@/src/kit/exam-search/query';
+import { TopicTabsPanel } from '@/src/kit/topic-panel/TopicTabsPanel';
 import { useDeviceMode } from '@/src/layout/deviceMode';
+import { apolloClient } from '@/src/state/bootstrap';
 import { storage } from '@/src/storage';
 import { uiStore } from '@/src/state/ui';
 import { colors, type } from '@/src/ui/theme';
 
 const ORANGE = colors.accent;
+const topicFetchers = createTopicFetchers(apolloClient);
 const logo = require('@/assets/images/welcome/go3math-one-line-logo.png');
 const icons = {
   apple: require('@/assets/images/welcome/apple.png'),
@@ -58,14 +65,31 @@ export default function WelcomeScreen() {
     }
   };
 
+  // 기존 goNotePage처럼 고른 조건으로 공개 문제 목록(PublicQuestionsViewScreen)을 연다
+  const openQuestions = (q: ExamQuery) =>
+    router.push({
+      pathname: '/public-questions',
+      params: { subject: q.major, years: q.years.join(','), months: q.months.join(','), numbers: q.numbers.join(',') },
+    });
+
   const panel = () => {
     switch (category) {
       case 'recent':
-        return <ExamSearchPanel key="recent" mode="this_year" store={storage} onSubmit={() => setMessage('로그인하면 선택한 문제를 바로 풀 수 있어요.')} />;
+        return <ExamSearchPanel key="recent" mode="this_year" store={storage} onSubmit={openQuestions} />;
       case 'pre':
-        return <ExamSearchPanel key="pre" mode="pre_exam" store={storage} onSubmit={() => setMessage('로그인하면 선택한 문제를 바로 풀 수 있어요.')} />;
+        return <ExamSearchPanel key="pre" mode="pre_exam" store={storage} onSubmit={openQuestions} />;
+      case 'topic':
+        // 기존 MentorTopicsPanel(→ kit TopicTabsPanel). 토픽을 고르면 그 토픽의 문제 목록
+        return (
+          <TopicTabsPanel
+            fetchers={topicFetchers}
+            subjects={MATH_TOPIC_SUBJECTS}
+            store={storage}
+            onSelectTopic={(t) => router.push({ pathname: '/public-questions', params: { topicId: String(t.id), title: t.title } })}
+          />
+        );
       default:
-        return <Text style={styles.pending}>{category === 'topic' ? '과목별' : '소개'} 화면은 준비 중이에요.</Text>;
+        return <Text style={styles.pending}>소개 화면은 준비 중이에요.</Text>;
     }
   };
 

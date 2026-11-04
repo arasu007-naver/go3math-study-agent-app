@@ -38,6 +38,15 @@ npm run lint
 npx expo-doctor
 ```
 
+## E2E (Maestro)
+
+`.maestro/`의 flow를 [Maestro CLI](https://docs.maestro.dev)로 실행한다. 시뮬레이터에 이 리포의 dev client가 설치돼 있고 Metro가 떠 있어야 한다(같은 bundle id의 옛 앱이 깔린 시뮬레이터는 dev client 스킴이 없어 실패).
+
+```bash
+npm run test:e2e                                                   # Metro 기본 http://localhost:8081
+maestro --device <UDID> test -e METRO_URL=http://localhost:8085 .maestro
+```
+
 
 https://eppoiscttggzgcxtukln.supabase.co
 

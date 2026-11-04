@@ -37,6 +37,8 @@ const config: ExpoConfig = {
     './plugins/withKakaoMavenRepo', // Kakao SDK 저장소를 jitpack보다 앞에(jitpack 401로 빌드 실패 방지)
     ['@react-native-seoul/naver-login', { urlScheme: 'com.qoolla.student' }],
     ['@react-native-google-signin/google-signin', { iosUrlScheme: 'com.googleusercontent.apps.121794604621-3pqp7qd3tea1mpvhlo1ma4vd34r11r55' }],
+    // 내 정보 '프로필 이미지 변경' — 사진 보관함에서 고르기만 한다(카메라·마이크 권한 불필요)
+    ['expo-image-picker', { photosPermission: '프로필 이미지로 쓸 사진을 고르기 위해 사진 보관함에 접근합니다.', cameraPermission: false, microphonePermission: false }],
     // 태블릿 launch screen 로고: iPad 3배(300pt). Android 태블릿은 SplashScreen 원형 마스크(지름 192dp) 때문에 흰 바탕만 두고
     // 3배(300dp) 로고는 앱의 TabletLaunchOverlay가 그린다.
     // expo-splash-screen보다 앞에 둬야 그 결과를 덮어쓴다(plugins/withTabletSplash.js 주석 참고).
