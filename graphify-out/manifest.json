@@ -200,8 +200,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1793668087.4712481,
-    "ast_hash": "e75aa6bf67f3b8316e95fa1b6af3aaca",
+    "mtime": 1793775541.521719,
+    "ast_hash": "00e8268656e9cd02538acbeaad5a8268",
     "semantic_hash": ""
   },
   "plugins/withKakaoMavenRepo.js": {
@@ -830,8 +830,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793531591.9403334,
-    "ast_hash": "5465bf24c6552cb8ca24e194575b99db",
+    "mtime": 1793775752.9663959,
+    "ast_hash": "8e3d1161a4d458bd7cf09d825ad823f9",
     "semantic_hash": ""
   },
   "assets/fonts/OFL.txt": {
@@ -1062,6 +1062,16 @@
   "src/ui/SheetHandle.tsx": {
     "mtime": 1793692780.3740258,
     "ast_hash": "17b83c812e260e33fd74ff407c8830bc",
+    "semantic_hash": ""
+  },
+  ".maestro/config.yaml": {
+    "mtime": 1793775541.4858544,
+    "ast_hash": "b4421d18828fdb7099048ebbbacdb4bb",
+    "semantic_hash": ""
+  },
+  ".maestro/welcome-smoke.yaml": {
+    "mtime": 1793775716.0203984,
+    "ast_hash": "d05ce0804db41eefd70bfd635b055c42",
     "semantic_hash": ""
   }
 }
