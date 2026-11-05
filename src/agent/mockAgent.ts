@@ -1,6 +1,6 @@
 // 모의 에이전트(M1-P): 서버 없이 §6 시나리오 앞부분(인사 → 주제 선택 → 문제 보기)과
 // 튜터 메시지를 재생한다. 서버 v0(M5)가 준비되면 WebSocketTransport로 교체한다.
-import { PROTOCOL_VERSION, newId } from '../protocol';
+import { PROTOCOL_VERSION, newId, type TimelineItem } from '../protocol';
 import type { Transport } from './session';
 
 type Handlers = Parameters<Transport['connect']>[0];
@@ -12,6 +12,9 @@ export class MockAgentTransport implements Transport {
   private timers: ReturnType<typeof setTimeout>[] = [];
   private greeted = false;
   private mode: 'phone' | 'tablet' = 'tablet';
+  // 서버가 보관하는 채팅 타임라인 흉내. 다시 열 때 쓸 원래 요청을 항목 id로 기억한다
+  private timeline: TimelineItem[] = seedTimeline();
+  private reopen = new Map<string, { kind: string; payload: Record<string, any> }>();
 
   constructor(private readonly opts: { tutorDelayMs?: number } = {}) {}
 
@@ -35,6 +38,7 @@ export class MockAgentTransport implements Transport {
         this.mode = evt.payload.device?.mode ?? this.mode;
         const last = evt.payload.resume?.lastAgentSeq ?? 0;
         this.sent.filter((m) => m.seq > last).forEach((m) => this.deliver(m.data));
+        this.cmd('timeline_append', { items: this.timeline, replace: true });
         if (!this.greeted) {
           this.greeted = true;
           this.greet();
@@ -45,8 +49,16 @@ export class MockAgentTransport implements Transport {
         this.onChoice(evt.payload.choiceId);
         break;
       case 'topic_selected':
+        this.record('topic', evt.payload.title ?? '주제', '주제를 열었어요', evt);
         this.onTopic(evt.payload.topicId, evt.payload.title);
         break;
+      case 'timeline_item_selected': {
+        const r = this.reopen.get(evt.payload.itemId);
+        if (r?.kind === 'search_submitted') this.cmd('show_component', { componentId: 'problem_list', props: { source: { kind: 'exam_query', query: r.payload.query } } });
+        else if (r?.kind === 'task_selected') this.cmd('show_component', { componentId: 'problem_list', props: { source: { kind: 'task', taskId: r.payload.taskId } } });
+        else if (r?.kind === 'topic_selected') this.cmd('show_component', { componentId: 'problem_preview', props: { topicId: r.payload.topicId } });
+        break;
+      }
       case 'menu_selected':
         if (evt.payload.menu === 'search') {
           // 검색 패널은 앱이 drawer 옆 dock으로 연다. drawer가 열려 있으므로 안내만 바꾼다.
@@ -57,10 +69,12 @@ export class MockAgentTransport implements Transport {
         break;
       // 안내를 먼저 보내고 문제 목록을 띄운다(앱은 문제 목록이 뜨면 drawer를 닫는다)
       case 'search_submitted':
+        this.record('search', searchTitle(evt.payload.query), searchBody(evt.payload.query), evt);
         this.say('검색 조건에 맞는 문제예요. 풀 문제를 고르고 연필 버튼을 눌러 풀어 보세요.', [], 'prompt');
         this.cmd('show_component', { componentId: 'problem_list', props: { source: { kind: 'exam_query', query: evt.payload.query } } });
         break;
       case 'task_selected':
+        this.record('task', '학습 기록 이어 풀기', `${evt.payload.taskType} · 기록 #${evt.payload.taskId}`, evt);
         this.say('지난번에 보던 문제예요. 풀 문제를 고르고 연필 버튼을 눌러 이어서 풀어 보세요.', [], 'prompt');
         // 모든 학습 기록(주제 포함)은 problem_list가 기록 종류에 맞게 문제를 모은다
         this.cmd('show_component', { componentId: 'problem_list', props: { source: { kind: 'task', taskId: evt.payload.taskId } } });
@@ -81,6 +95,14 @@ export class MockAgentTransport implements Transport {
         this.say('주제 목록으로 돌아왔어요. 다른 주제를 골라 볼까요?');
         break;
     }
+  }
+
+  /** 학생 행동을 타임라인에 기록하고 앱에 새 항목을 보낸다(실서버는 DB에 저장) */
+  private record(kind: TimelineItem['kind'], title: string, body: string, evt: { kind: string; payload: Record<string, any> }) {
+    const item: TimelineItem = { id: newId(), ts: new Date().toISOString(), kind, title, body, reopenable: true };
+    this.timeline = [...this.timeline, item];
+    this.reopen.set(item.id, evt);
+    this.cmd('timeline_append', { items: [item] });
   }
 
   private showTopics() {
@@ -153,6 +175,38 @@ export class MockAgentTransport implements Transport {
   private deliver(data: string) {
     this.timers.push(setTimeout(() => this.handlers?.onMessage(data), 0));
   }
+}
+
+type ExamQueryPayload = { major: string; years: number[]; months: number[]; numbers: number[] };
+
+function searchTitle(q: ExamQueryPayload) {
+  return `${q.years.join('·')}년 ${q.months.join('·')}월 기출 검색`;
+}
+
+function searchBody(q: ExamQueryPayload) {
+  return [q.major, q.numbers.length > 0 ? `${q.numbers.join(', ')}번` : null].filter(Boolean).join(' · ');
+}
+
+/** 서버가 만들어 둔 일간·주간 학습 정리 예시 */
+function seedTimeline(): TimelineItem[] {
+  const day = 24 * 60 * 60 * 1000;
+  const at = (ago: number) => new Date(Date.now() - ago).toISOString();
+  return [
+    {
+      id: 'mock-weekly-1',
+      ts: at(3 * day),
+      kind: 'weekly_summary',
+      title: '지난주 학습 정리',
+      body: '5일 동안 문제 42개를 풀었어요. 정답률 71%로 전주보다 6% 올랐어요. 수열의 합에서 실수가 잦았어요.',
+    },
+    {
+      id: 'mock-daily-1',
+      ts: at(day),
+      kind: 'daily_summary',
+      title: '어제 학습 정리',
+      body: '모의고사 6월 기출 8문제를 풀고 그중 6문제를 맞혔어요. 틀린 문제는 삼각함수 그래프 문제예요.',
+    },
+  ];
 }
 
 export class WebSocketTransport implements Transport {

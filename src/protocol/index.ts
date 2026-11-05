@@ -1,5 +1,5 @@
 // @qoolla/agent-protocol (명세서 §5.2) — 우선 앱 내부 모듈로 두고, 서버 착수 시 별도 패키지로 분리한다.
-// M2 범위: say / show_component / close_component / end_session / request_state 명령과 앱 이벤트.
+// M2 범위: say / show_component / close_component / end_session / request_state / timeline_append 명령과 앱 이벤트.
 // 그 밖의 명령 kind(open_canvas 등)는 알려진 kind 목록에만 있고 앱은 'unsupported' ack로 거절한다.
 import { z } from 'zod';
 
@@ -70,6 +70,23 @@ export const CloseComponentCmd = envelope('close_component', z.object({ componen
 export const EndSessionCmd = envelope('end_session', z.object({ reason: z.enum(['done', 'timeout', 'error']) }));
 export const RequestStateCmd = envelope('request_state', z.object({}));
 
+// 채팅창 타임라인(서버가 기록·보관). 검색·주제/과제 선택은 서버가 앱 이벤트로 기록하고, 일간·주간 학습 정리는 서버가 만든다.
+// 연결(hello) 때 replace=true로 최근 기록 전체를 보내고, 그 뒤로는 새 항목만 보낸다. 같은 id는 덮어쓴다.
+export const TIMELINE_KINDS = ['search', 'topic', 'task', 'daily_summary', 'weekly_summary'] as const;
+export const TimelineItemSchema = z.object({
+  id: z.string().min(1),
+  ts: z.string(),
+  kind: z.enum(TIMELINE_KINDS),
+  title: z.string(),
+  body: z.string().optional(),
+  /** 검색 결과 문항 수(검색 카드) */
+  count: z.number().int().nonnegative().optional(),
+  /** true면 카드를 눌러 다시 열 수 있다(앱은 timeline_item_selected를 보내고, 무엇을 띄울지는 서버가 정한다) */
+  reopenable: z.boolean().optional(),
+});
+export type TimelineItem = z.infer<typeof TimelineItemSchema>;
+export const TimelineAppendCmd = envelope('timeline_append', z.object({ items: z.array(TimelineItemSchema), replace: z.boolean().optional() }));
+
 export const AgentCommandSchema = z.discriminatedUnion('kind', [
   SayCmdSchema,
   ShowComponentCmd,
@@ -77,6 +94,7 @@ export const AgentCommandSchema = z.discriminatedUnion('kind', [
   CloseComponentCmd,
   EndSessionCmd,
   RequestStateCmd,
+  TimelineAppendCmd,
 ]);
 export type AgentCommand = z.infer<typeof AgentCommandSchema>;
 export type SayCmd = z.infer<typeof SayCmdSchema>;
@@ -111,6 +129,8 @@ export type AppEventPayloads = {
   menu_selected: { menu: 'search' | 'notice' | 'timeline' };
   // 타임라인 카드의 '가자!!!'. 학습 기록(task)을 다시 여는 방법은 에이전트가 결정한다.
   task_selected: { taskId: number; taskType: string; collectionId?: number };
+  // 채팅 타임라인 카드(reopenable)를 눌렀을 때
+  timeline_item_selected: { itemId: string };
   app_state: { state: 'foreground' | 'background' };
   client_error: { where: string; message: string; commandId?: string };
 };
