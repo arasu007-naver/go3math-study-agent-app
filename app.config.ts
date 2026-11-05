@@ -1,5 +1,7 @@
 import type { ExpoConfig } from 'expo/config';
 
+const CAMERA_PERMISSION = '문제 풀이를 사진으로 찍어 올리기 위해 카메라를 사용합니다.';
+
 // Google AdMob — 기존 앱(qoolla-student-app app.json)과 같은 앱 ID·SKAdNetwork 목록
 const ADMOB_SK_AD_NETWORK_ITEMS = [
   'cstr6suwn9.skadnetwork', '4fzdc2evr5.skadnetwork', '4pfyvq9l8r.skadnetwork', '2fnua5tdw4.skadnetwork',
@@ -59,8 +61,11 @@ const config: ExpoConfig = {
       'react-native-google-mobile-ads',
       { androidAppId: 'ca-app-pub-2632164502661597~7978681227', iosAppId: 'ca-app-pub-2632164502661597~2534782857', skAdNetworkItems: ADMOB_SK_AD_NETWORK_ITEMS },
     ],
-    // 내 정보 '프로필 이미지 변경' — 사진 보관함에서 고르기만 한다(카메라·마이크 권한 불필요)
-    ['expo-image-picker', { photosPermission: '프로필 이미지로 쓸 사진을 고르기 위해 사진 보관함에 접근합니다.', cameraPermission: false, microphonePermission: false }],
+    // 폰 결과 화면 문제별 카메라 버튼 — 풀이를 문서 스캔(가장자리 인식·자동 자르기)으로 찍어 올린다(기존 앱 책갈피 '새 풀이'와 같은 플러그인)
+    ['react-native-document-scanner-plugin', { cameraPermission: CAMERA_PERMISSION }],
+    // 내 정보 '프로필 이미지 변경' — 사진 보관함에서 고르기만 한다(마이크 권한 불필요).
+    // 카메라 문구는 스캐너와 같게 둔다(false면 이 플러그인이 카메라 권한 문구를 지우고 Android 카메라 권한을 막는다)
+    ['expo-image-picker', { photosPermission: '프로필 이미지로 쓸 사진을 고르기 위해 사진 보관함에 접근합니다.', cameraPermission: CAMERA_PERMISSION, microphonePermission: false }],
     // 태블릿 launch screen 로고: iPad 3배(300pt). Android 태블릿은 SplashScreen 원형 마스크(지름 192dp) 때문에 흰 바탕만 두고
     // 3배(300dp) 로고는 앱의 TabletLaunchOverlay가 그린다.
     // expo-splash-screen보다 앞에 둬야 그 결과를 덮어쓴다(plugins/withTabletSplash.js 주석 참고).

@@ -4,7 +4,7 @@ import mobileAds, { BannerAd, BannerAdSize, MaxAdContentRating, TestIds } from '
 import { SafeAreaProvider, useSafeAreaFrame, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from './theme';
 
-// 화면 하단 Google 광고(AdMob 배너). 캔버스(풀이) 화면을 뺀 모든 화면에서 루트 레이아웃이 Stack 아래에 둔다(AdSlotFrame).
+// 화면 하단 Google 광고(AdMob 배너). 전체 화면(풀이 캔버스·폰 결과 화면, layout/fullScreenRoutes)을 뺀 모든 화면에서 루트 레이아웃이 Stack 아래에 둔다(AdSlotFrame).
 // 기존 앱 `components/banner`(Go3MathBanner)와 같은 광고 단위·크기(FULL_BANNER 468×60)·비개인화 요청. 개발 빌드는 테스트 광고.
 const AD_UNIT_ID = __DEV__
   ? TestIds.BANNER
@@ -24,9 +24,6 @@ export async function initMobileAds() {
   });
   return mobileAds().initialize();
 }
-
-/** 광고 자리를 두지 않는 캔버스 화면 */
-export const CANVAS_ROUTES = ['/notebook'];
 
 /**
  * 화면(children) 아래에 광고 자리를 둔다. 홈 인디케이터 여백은 광고 자리가 맡는다.
