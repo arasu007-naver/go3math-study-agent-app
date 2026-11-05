@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { createMessageBoxFetchers } from '../../adapters/messageBoxFetchers';
 import { createNoticeFetchers } from '../../adapters/noticeFetchers';
 import { createProfileEditors } from '../../adapters/profileEditors';
@@ -16,12 +16,12 @@ import { ResearchPanel } from '../../kit/research/ResearchPanel';
 import { TimelinePanel } from '../../kit/timeline/TimelinePanel';
 import { apolloClient } from '../../state/bootstrap';
 import { storage } from '../../storage';
-import { colors, layout, motion, radius, space, type } from '../../ui/theme';
+import { layout, motion } from '../../ui/theme';
 import { Toast } from '../../ui/toast/Toast';
 import { DockWrapper } from '../DockWrapper';
-import { InstructionCard } from '../InstructionCard';
 import type { AgentSession, SessionSnapshot } from '../session';
 import { ChatRail, RAIL_W } from './ChatRail';
+import { ChatTimeline } from './ChatTimeline';
 import type { DockKind } from './DrawerFooter';
 
 // 태블릿 모드(§4.5, §4.6): 왼쪽에 끌어서 옮길 수 있는 세로 pill 툴바가 늘 떠 있고, 항목을 누르면 툴바 오른쪽에 dock이 열린다(Stage는 그대로).
@@ -103,31 +103,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
 
       {dock && (
         <DockWrapper title={DOCK_TITLES[dock]} left={layout.gutter + RAIL_W + layout.gutter} onClose={() => setDock(null)}>
-          {dock === 'chat' && (
-            <ScrollView contentContainerStyle={styles.chat}>
-              {ins ? (
-                <InstructionCard
-                  instruction={ins}
-                  paused={state.pausedDefault !== null}
-                  onChoice={(id) => session.selectChoice(ins.messageId, id)}
-                  onDismiss={() => session.dismissInstruction(ins.messageId)}
-                />
-              ) : (
-                <Text style={styles.muted}>지금은 안내가 없어요.</Text>
-              )}
-              {state.history.length > 0 && (
-                <View style={styles.history}>
-                  <Text style={styles.historyTitle}>이전 메시지</Text>
-                  {state.history.slice(-5).map((h) => (
-                    <View key={h.messageId} style={[styles.bubble, h.source === 'tutor' ? styles.bubbleTutor : styles.bubbleAgent]}>
-                      <Text style={styles.bubbleWho}>{h.source === 'tutor' ? '튜터' : '에이전트'}</Text>
-                      <Text style={styles.bubbleText}>{h.text}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </ScrollView>
-          )}
+          {dock === 'chat' && <ChatTimeline state={state} session={session} />}
           {dock === 'timeline' && (
             <TimelinePanel
               fetchers={timelineFetchers}
@@ -179,15 +155,3 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  chat: { gap: space.lg, paddingHorizontal: space.lg, paddingBottom: space.lg },
-  muted: { ...type.body, color: colors.muted },
-  history: { gap: space.sm },
-  historyTitle: { ...type.caption, color: colors.muted },
-  bubble: { padding: space.md, borderRadius: radius.lg, gap: space.xxs },
-  bubbleAgent: { backgroundColor: colors.accentSoft },
-  bubbleTutor: { backgroundColor: colors.cardMuted },
-  bubbleWho: { ...type.caption, color: colors.muted },
-  bubbleText: { ...type.body, color: colors.text },
-});
