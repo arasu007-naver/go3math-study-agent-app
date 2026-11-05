@@ -45,6 +45,7 @@ export class AgentSession {
   private appSeq = 0;
   private attempt = 0;
   private closed = false;
+  private stageBeforeLocal: SessionSnapshot['stage'] = null;
   private readonly store: KeyValueStore;
   readonly sessionId: string;
 
@@ -100,6 +101,18 @@ export class AgentSession {
 
   dismissInstruction(messageId: string) {
     this.update(resolveInstruction(this.state, messageId));
+  }
+
+  /** 학생이 직접 연 위젯(Stage 헤더 책갈피 버튼). 에이전트 명령이 아닌 유일한 Stage 교체로, 다음 show_component가 오면 그대로 덮어쓴다 */
+  showLocalComponent(componentId: string, props: Record<string, unknown>) {
+    this.stageBeforeLocal = this.state.stage;
+    this.update({ ...this.state, stage: { componentId, props }, fallbackText: null });
+  }
+
+  /** showLocalComponent 전에 떠 있던 화면(문제 목록 등)으로 되돌린다. 없었으면 빈 Stage */
+  restoreStage() {
+    this.update({ ...this.state, stage: this.stageBeforeLocal });
+    this.stageBeforeLocal = null;
   }
 
   private handleOpen() {

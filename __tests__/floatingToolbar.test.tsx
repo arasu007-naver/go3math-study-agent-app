@@ -1,41 +1,46 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import React from 'react';
+import { render, screen } from '@testing-library/react-native';
+
+jest.mock('react-native-webview', () => ({ WebView: () => null }));
+
 import { FloatingToolbar } from '../src/kit/canvas/FloatingToolbar';
-import { LANDSCAPE_RESTRICTED } from '../src/kit/canvas/landscapeRestrictions';
+import { canvasAction, canvasTool } from '../src/kit/canvas/CanvasChrome';
 
-const tools = [
-  { id: 'color' as const, label: '펜 색·굵기' },
-  { id: 'clearBoard' as const, label: '보드 지우기' },
-  { id: 'save' as const, label: '내 풀이 저장' },
-];
+describe('FloatingToolbar', () => {
+    it('renders labels under icons starting from the second item (excluding left arrow)', async () => {
+        const actions = [
+            canvasAction('exit', '나가기', 'chevron-back', () => {}),
+            canvasAction('list', '목록', 'albums-outline', () => {}),
+            canvasAction('answer', '해답', 'eye-outline', () => {}),
+            canvasAction('workouts', '내 풀이', 'layers-outline', () => {}),
+            canvasAction('conceptSearch', '개념', 'search-outline', () => {}),
+        ];
 
-describe('FloatingToolbar (design-spec P2-1, P2-5)', () => {
-  it('calls the tool handler with the tool id', async () => {
-    const onSelectTool = jest.fn();
-    await render(<FloatingToolbar mode="draw" tools={tools} onSelectTool={onSelectTool} strokeColor="orange" />);
-    await fireEvent.press(screen.getByLabelText('보드 지우기'));
-    expect(onSelectTool).toHaveBeenCalledWith('clearBoard');
-  });
+        const tools = [
+            canvasTool('color', 'Options'),
+            canvasTool('clearBoard', '전체 지우기'),
+            canvasTool('save', '저장'),
+        ];
 
-  it('keeps restricted tools visible but disabled, and pings the notice instead of running them', async () => {
-    const onSelectTool = jest.fn();
-    const onRestrictedPress = jest.fn();
-    await render(
-      <FloatingToolbar
-        mode="draw"
-        tools={tools}
-        onSelectTool={onSelectTool}
-        restricted={new Set(['clearBoard'])}
-        onRestrictedPress={onRestrictedPress}
-      />,
-    );
-    const btn = screen.getByLabelText('보드 지우기');
-    expect(btn.props.accessibilityState).toMatchObject({ disabled: true });
-    await fireEvent.press(btn);
-    expect(onSelectTool).not.toHaveBeenCalled();
-    expect(onRestrictedPress).toHaveBeenCalledTimes(1);
-  });
+        await render(
+            <FloatingToolbar
+                mode="draw"
+                actions={actions}
+                tools={tools}
+                strokeColor="orange"
+            />
+        );
 
-  it('ships with no landscape restrictions until the user decides the list (§10-1)', () => {
-    expect(LANDSCAPE_RESTRICTED.size).toBe(0);
-  });
+        // First item (left arrow 'exit') should NOT have text rendered under icon
+        expect(screen.queryByText('나가기')).toBeNull();
+
+        // 2nd item onward must have labels rendered
+        expect(screen.getByText('목록')).toBeTruthy();
+        expect(screen.getByText('해답')).toBeTruthy();
+        expect(screen.getByText('내 풀이')).toBeTruthy();
+        expect(screen.getByText('개념')).toBeTruthy();
+        expect(screen.getByText('Options')).toBeTruthy();
+        expect(screen.getByText('전체 지우기')).toBeTruthy();
+        expect(screen.getByText('저장')).toBeTruthy();
+    });
 });

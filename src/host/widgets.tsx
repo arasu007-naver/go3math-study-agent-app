@@ -8,7 +8,7 @@ import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { ExamSearchPanel, type ExamSearchMode } from '../kit/exam-search/ExamSearchPanel';
 import { ResearchPanel, type ResearchCategory } from '../kit/research/ResearchPanel';
 import type { ExamSelection } from '../kit/exam-search/query';
-import { ProblemListPanel, type ProblemSource } from '../kit/problem-list/ProblemListPanel';
+import { ProblemListPanel, BookmarksPanel, type ProblemSource } from '../kit/problem-list/ProblemListPanel';
 import { TopicTabsPanel } from '../kit/topic-panel/TopicTabsPanel';
 import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
 import { UNITIMAGE } from '../config/api.constants';
@@ -79,6 +79,24 @@ function ProblemListWidget({ props, session }: WidgetProps) {
   );
 }
 
+function BookmarksWidget({ props, session }: WidgetProps) {
+  const source = (props.source as ProblemSource | undefined) ?? { kind: 'bookmarks' };
+  return (
+    <BookmarksPanel
+      fetchers={problemListFetchers}
+      source={source}
+      onSelectProblem={({ index, problem }) =>
+        session.emit('problem_selected', {
+          index,
+          sourceType: problem.sourceType,
+          sourceId: problem.sourceId,
+        })
+      }
+      onSolve={({ index, set }) => openNotebook(set.title, set.problems, index)}
+    />
+  );
+}
+
 function ExamSearchWidget({ props, session }: WidgetProps) {
   return (
     <ExamSearchPanel
@@ -108,6 +126,8 @@ export const widgets: Record<string, (p: WidgetProps) => ReactElement> = {
   topic_list: TopicListWidget,
   problem_preview: ProblemPreviewWidget,
   problem_list: ProblemListWidget,
+  bookmarks: BookmarksWidget,
+  bookmarks_panel: BookmarksWidget,
   exam_search: ExamSearchWidget,
   research: ResearchWidget,
 };

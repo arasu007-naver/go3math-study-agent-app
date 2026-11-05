@@ -26,6 +26,7 @@ export const registry: Record<string, RegistryEntry> = {
       source: z.discriminatedUnion('kind', [
         z.object({ kind: z.literal('task'), taskId: z.number().int() }),
         z.object({ kind: z.literal('exam_query'), query: z.record(z.string(), z.unknown()) }),
+        z.object({ kind: z.literal('bookmarks') }),
       ]),
     }),
   },

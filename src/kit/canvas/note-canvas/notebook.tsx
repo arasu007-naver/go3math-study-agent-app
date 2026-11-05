@@ -161,7 +161,7 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
                 {/* 기존 상단 버튼 줄(펜 속성·보드 지우기·내 풀이 저장)을 하단 가운데 떠 있는 툴바로 옮겼다(design-spec P2-1). 부르는 함수는 같다. */}
                 <CanvasChrome
                     actions={screenActions}
-                    tools={[canvasTool('color', `펜 색·굵기 (${canvasStrokeColor} : ${canvasStrokeWidth})`), canvasTool('clearBoard', '보드 지우기'), canvasTool('save', '내 풀이 저장')]}
+                    tools={[canvasTool('color', 'Options'), canvasTool('clearBoard', '전체 지우기'), canvasTool('save', '저장')]}
                     strokeColor={canvasStrokeColor}
                     onSelectTool={(id) => {
                         if (id === 'color') setVisiblePencilProps(true);

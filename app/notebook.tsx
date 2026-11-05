@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType, type Ref } from 'react';
-import { Dimensions, FlatList, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Modal, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useLazyQuery, useMutation } from '@apollo/client/react';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 import { Redirect, router } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CREATE_RECORD, SEND_REQUEST_MESSAGE } from '@/src/api/graphql/mutations';
+import { CREATE_RECORD, SEND_REQUEST_MESSAGE, ADD_BOOKMARK } from '@/src/api/graphql/mutations';
 import { UNIT_TRIES } from '@/src/api/graphql/queries';
 import { UNITANSWER } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
@@ -36,6 +36,7 @@ const NotebookCanvasPanel = LegacyNotebookCanvasPanel as unknown as ComponentTyp
 const { width, height } = Dimensions.get('window');
 
 export default function NotebookScreen() {
+  const { width, height } = useWindowDimensions();
   const session = solveStore.useStore();
   const panelRef = useRef<PanelHandle | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
@@ -44,6 +45,8 @@ export default function NotebookScreen() {
   const [sheetListVisible, setSheetListVisible] = useState(false);
   const [workoutNotes, setWorkoutNotes] = useState<string[]>([]);
   const [pageLoadProgress, setPageLoadProgress] = useState(0);
+  const [bookmarkedKeys, setBookmarkedKeys] = useState<Set<string>>(new Set());
+  const [showingAnswerKeys, setShowingAnswerKeys] = useState<Set<string>>(new Set());
 
   const [createNewRecord] = useMutation<{ createRecord: { id: number } }>(CREATE_RECORD, {
     onError: (e) => console.warn('[notebook] createRecord failed:', e.message),
@@ -51,7 +54,37 @@ export default function NotebookScreen() {
   const [sendExplainRequest] = useMutation(SEND_REQUEST_MESSAGE, {
     onError: (e) => console.warn('[notebook] sendExplainRequest failed:', e.message),
   });
+  const [addBookmark] = useMutation(ADD_BOOKMARK, {
+    onError: (e) => console.warn('[notebook] addBookmark failed:', e.message),
+  });
   const [getTries] = useLazyQuery<{ tries: { content: string }[] }>(UNIT_TRIES, { fetchPolicy: 'network-only' });
+
+  const handleBookmark = useCallback(async (item: SolveProblem) => {
+    const key = `${item.sourceType}-${item.sourceId}`;
+    try {
+      await addBookmark({
+        variables: {
+          sourceType: item.sourceType,
+          sourceId: Number(item.sourceId),
+        },
+      });
+      setBookmarkedKeys((prev) => new Set(prev).add(key));
+    } catch (e) {
+      console.warn('[notebook] handleBookmark failed:', e);
+    }
+  }, [addBookmark]);
+
+  const toggleAnswer = useCallback((key: string) => {
+    setShowingAnswerKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
 
   const handlePresentModalPress = useCallback(() => sheetRef.current?.present(), []);
   const handlePresentWorkoutSheetListModalPress = useCallback(() => workoutSheetListRef.current?.present(), []);
@@ -113,22 +146,88 @@ export default function NotebookScreen() {
     setTimeout(handlePresentWorkoutSheetListModalPress, 20);
   };
 
+  const modalWidth = Math.round((width * 60) / 100);
+  const modalHeight = Math.round(height * 0.65);
+  const itemWidth = Math.min(380, Math.floor(modalWidth - 48));
+  const bodyHeight = Math.max(260, modalHeight - 130);
+
   return (
     <SafeAreaView style={styles.root}>
       <Modal animationType="fade" transparent visible={sheetListVisible} onRequestClose={() => setSheetListVisible(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setSheetListVisible(false)} />
-        <View style={styles.listContainer}>
+        <View
+          style={[
+            styles.listContainer,
+            {
+              width: modalWidth,
+              height: modalHeight,
+              top: Math.round((height - modalHeight) / 2),
+              left: Math.round((width - modalWidth) / 2),
+            },
+          ]}
+        >
           <FlatList
             data={units}
-            keyExtractor={(item, index) => item.sourceType + '-' + item.sourceId + '-' + index}
+            keyExtractor={(item, index) => `${item.sourceType}-${item.sourceId}-${index}`}
             horizontal
-            renderItem={({ item, index }) => (
-              <View style={{ width: 372 }}>
-                <ImageAdjustCard imgPath={item.image} imgWidth={360} index={index}>
-                  <GoButton title={'교체'} onPress={() => setCurrentSheet(item)} />
-                </ImageAdjustCard>
-              </View>
-            )}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item, index }) => {
+              const itemKey = `${item.sourceType}-${item.sourceId}-${index}`;
+              const isShowingAnswer = showingAnswerKeys.has(itemKey);
+              const isBookmarked = bookmarkedKeys.has(`${item.sourceType}-${item.sourceId}`);
+              const itemAnswerUrl = UNITANSWER(item.sourceType, item.sourceId);
+
+              return (
+                <View style={[styles.itemCard, { width: itemWidth }]}>
+                  {/* 카드 바디 (문제 이미지 또는 해답 웹뷰) */}
+                  <View style={[styles.itemBody, { height: bodyHeight }]}>
+                    {isShowingAnswer ? (
+                      <View style={styles.answerWrapper}>
+                        <View style={[styles.answerContainer, { height: bodyHeight - 17 }]}>
+                          {itemAnswerUrl ? (
+                            <WebView
+                              originWhitelist={['*']}
+                              source={{ uri: itemAnswerUrl }}
+                              style={styles.answerWebView}
+                              startInLoadingState
+                              nestedScrollEnabled
+                              renderLoading={() => <Go3MathLoader style={styles.fullSize} />}
+                            />
+                          ) : null}
+                        </View>
+                        <View style={styles.accentBar} />
+                      </View>
+                    ) : (
+                      <ScrollView style={styles.problemScrollView} contentContainerStyle={styles.problemScrollContent} showsVerticalScrollIndicator={false}>
+                        <ImageAdjustCard imgPath={item.image} imgWidth={itemWidth} index={index}>
+                          <></>
+                        </ImageAdjustCard>
+                      </ScrollView>
+                    )}
+                  </View>
+
+                  {/* 아래 한 줄 버튼 그룹 */}
+                  <View style={styles.cardButtonGroup}>
+                    <GoButton title="교체" size="small" onPress={() => setCurrentSheet(item)} />
+                    <View style={styles.cardButtonGroupRight}>
+                      <GoButton
+                        title={isBookmarked ? '책갈피됨' : '책갈피'}
+                        size="small"
+                        variant={isBookmarked ? 'filled' : 'outline'}
+                        disabled={isBookmarked}
+                        onPress={() => handleBookmark(item)}
+                      />
+                      <GoButton
+                        title={isShowingAnswer ? '문제' : '해답'}
+                        size="small"
+                        variant={isShowingAnswer ? 'filled' : 'outline'}
+                        onPress={() => toggleAnswer(itemKey)}
+                      />
+                    </View>
+                  </View>
+                </View>
+              );
+            }}
           />
           <View style={styles.buttonContainerStyle}>
             <GoButton title={'닫기'} onPress={() => setSheetListVisible(false)} />
@@ -142,9 +241,9 @@ export default function NotebookScreen() {
         saveMentorRequestShot={onMentoringRequestSave}
         screenActions={[
           canvasAction('exit', '나가기', 'chevron-back', () => (router.canGoBack() ? router.back() : router.replace('/'))),
-          ...(units.length > 1 ? [canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true))] : []),
-          canvasAction('answer', '답안 예시', 'eye-outline', handlePresentModalPress),
-          canvasAction('workouts', '내 이전 풀이', 'layers-outline', handlePresentWorkoutSheetListModalPress),
+          canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true)),
+          canvasAction('answer', '해답', 'eye-outline', handlePresentModalPress),
+          canvasAction('workouts', '내 풀이', 'layers-outline', handlePresentWorkoutSheetListModalPress),
         ]}
       />
       <BottomSheetModal ref={sheetRef} handleComponent={SheetHandle}>
@@ -198,19 +297,71 @@ const styles = StyleSheet.create({
   modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   listContainer: {
     backgroundColor: '#FFF',
-    height: height / 2,
-    width,
-    top: height / 4,
-    left: 20,
-    padding: 24,
-    borderRadius: 10,
+    padding: 20,
+    borderRadius: 12,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  buttonContainerStyle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: 48 },
+  listContent: {
+    alignItems: 'flex-start',
+  },
+  itemCard: {
+    marginRight: 16,
+  },
+  itemBody: {
+    width: '100%',
+  },
+  problemScrollView: {
+    width: '100%',
+    height: '100%',
+  },
+  problemScrollContent: {
+    alignItems: 'center',
+  },
+  answerWrapper: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+  },
+  answerContainer: {
+    width: '100%',
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  answerWebView: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  accentBar: {
+    height: 9,
+    backgroundColor: colors.accentSoftPress,
+    width: '100%',
+    marginTop: 8,
+    borderRadius: radius.sm,
+  },
+  cardButtonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 8,
+  },
+  cardButtonGroupRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  fullSize: {
+    width: '100%',
+    height: '100%',
+  },
+  buttonContainerStyle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: 44, marginTop: 6 },
   bottomContainerStyle: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-end', width: '100%', height: height / 2 },
   tryContainer: { width: width / 3 + 18 },
   tryImageContainer: { alignItems: 'flex-start', justifyContent: 'flex-start', width: width / 3 + 12 },

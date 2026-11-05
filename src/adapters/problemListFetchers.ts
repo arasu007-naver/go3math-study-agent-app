@@ -3,8 +3,10 @@
 // - collection(문제 모음): getUnitsOfMathCollection(collectionId) → units의 qPath 이미지
 // - bookmark(책갈피): task JSON의 units(sourceType·sourceId) → UNITIMAGE
 // - topic(주제): GET_UNITS_IN_TOPIC(collectionId = 주제 id)의 JSON units → 기존 callGetTopicUnits와 같은 qPath 이미지
+// - bookmarks(내 책갈피): MY_BOOKMARKS → 각 책갈피의 image(기존 BookmarksViewerModal과 같다)
 import type { ApolloClient } from '@apollo/client';
-import { GET_UNITS_IN_TOPIC, TASK_OF_ID } from '../api/graphql/queries';
+import { ADD_BOOKMARK, REMOVE_BOOKMARK } from '../api/graphql/mutations';
+import { GET_UNITS_IN_TOPIC, MY_BOOKMARKS, TASK_OF_ID } from '../api/graphql/queries';
 import { getMemberMathPreExams, getUnitsOfMathCollection } from '../api/rest';
 import { ESSAY_TITLE_PATH_PREFIX, UNITIMAGE } from '../config/api.constants';
 import type { Problem, ProblemListFetchers } from '../kit/problem-list/ProblemListPanel';
@@ -24,8 +26,27 @@ async function searchExams(query: Record<string, unknown>): Promise<Problem[]> {
 
 export function createProblemListFetchers(client: ApolloClient): ProblemListFetchers {
   return {
+    async addBookmark(sourceType: string, sourceId: number) {
+      await client.mutate({
+        mutation: ADD_BOOKMARK,
+        variables: { sourceType, sourceId: Number(sourceId) },
+      });
+    },
+    async removeBookmark(sourceType: string, sourceId: number) {
+      await client.mutate({
+        mutation: REMOVE_BOOKMARK,
+        variables: { sourceType, sourceId: Number(sourceId) },
+      });
+    },
     async fetchProblems(source) {
       if (source.kind === 'exam_query') return { title: '📝 기출 검색', problems: await searchExams(source.query) };
+      if (source.kind === 'bookmarks') {
+        const { data } = await client.query<{ bookmarks: Problem[] | null }>({ query: MY_BOOKMARKS, fetchPolicy: 'network-only' });
+        return {
+          title: '🔖 내 책갈피',
+          problems: (data?.bookmarks ?? []).map((b) => ({ sourceType: b.sourceType, sourceId: b.sourceId, image: b.image })),
+        };
+      }
 
       const { data } = await client.query<{ taskOfId: TimelineTask | null }>({
         query: TASK_OF_ID,

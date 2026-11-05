@@ -2,7 +2,6 @@
  * 소셜 로그인 — 기존 앱(qoolla-student-app `components/buttons/oauth.tsx`)과 같은 방식으로 되돌림.
  * 각 네이티브 SDK로 토큰을 받아 www.qoolla.com `/api/hello`에 보내고 기존 app-token을 받는다(qoollaToken.ts).
  * - Apple: identityToken(iOS만)   - Google: idToken   - Naver: accessToken   - Kakao: idToken
- * Supabase는 로그인에 쓰지 않는다(민감 자료 저장용으로만 쓸 예정).
  */
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';

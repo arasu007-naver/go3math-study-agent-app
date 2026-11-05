@@ -1,8 +1,8 @@
 import type { ComponentProps, ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown, useReducedMotion } from 'react-native-reanimated';
 import { PlaybackControls } from '../script-player/PlaybackToolbar';
-import { colors, layout, motion, radius, shadow, space, z } from '../../ui/theme';
+import { colors, fontFamily, layout, motion, radius, shadow, space, z } from '../../ui/theme';
 
 // 캔버스 하단 가운데에 떠 있는 pill 툴바(design-spec P2-1). 펜 속성 버튼·보드 지우기·저장 등 캔버스에 원래 있던 도구만 노출하고,
 // 각 버튼은 기존 GoButton이 부르던 함수를 그대로 부른다. 재생 모드는 PlaybackToolbar의 버튼(PlaybackControls)을 담는다.
@@ -10,7 +10,7 @@ export type ToolId = 'color' | 'clearBoard' | 'clearMemo' | 'save';
 
 export type FloatingTool = { id: ToolId; icon?: ReactNode; label: string; disabled?: boolean };
 /** 캔버스 화면(라우트)이 넘기는 화면 버튼(나가기·목록 등). 그리기 도구 앞에 놓이고 구분선으로 나뉜다. */
-export type FloatingAction = { id: string; icon: ReactNode; label: string; onPress(): void };
+export type FloatingAction = { id: string; icon: ReactNode; label: string; onPress(): void; hideLabel?: boolean };
 
 export type FloatingToolbarProps = {
   mode: 'draw' | 'playback';
@@ -53,16 +53,28 @@ export function FloatingToolbar({
       {/* 보이는 캔버스가 툴바보다 좁으면 가로 스크롤로 잘리지 않게 한다 */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.bar}>
-          {actions.map((a) => (
-            <Pressable
-              key={a.id}
-              onPress={a.onPress}
-              accessibilityRole="button"
-              accessibilityLabel={a.label}
-              style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}>
-              {a.icon}
-            </Pressable>
-          ))}
+          {actions.map((a) => {
+            const hasLabel = !a.hideLabel && a.id !== 'exit' && Boolean(a.label);
+            return (
+              <Pressable
+                key={a.id}
+                onPress={a.onPress}
+                accessibilityRole="button"
+                accessibilityLabel={a.label}
+                style={({ pressed }) => [
+                  styles.btn,
+                  hasLabel ? styles.btnWithLabel : styles.btnIconOnly,
+                  pressed && styles.btnPressed,
+                ]}>
+                <View style={styles.iconSlot}>{a.icon}</View>
+                {hasLabel && (
+                  <Text style={styles.btnLabel} numberOfLines={1}>
+                    {a.label}
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
           {actions.length > 0 && <View style={styles.divider} />}
           {mode === 'draw'
             ? tools.map((t) => {
@@ -77,8 +89,19 @@ export function FloatingToolbar({
                     accessibilityLabel={t.label}
                     accessibilityHint={blocked ? '가로 화면에서는 사용할 수 없습니다' : undefined}
                     accessibilityState={{ selected: on, disabled: t.disabled || blocked }}
-                    style={({ pressed }) => [styles.btn, on && styles.btnOn, pressed && styles.btnPressed, (t.disabled || blocked) && styles.btnOff]}>
-                    {t.id === 'color' ? <View style={[styles.swatch, { backgroundColor: strokeColor }]} /> : t.icon}
+                    style={({ pressed }) => [
+                      styles.btn,
+                      styles.btnWithLabel,
+                      on && styles.btnOn,
+                      pressed && styles.btnPressed,
+                      (t.disabled || blocked) && styles.btnOff,
+                    ]}>
+                    <View style={styles.iconSlot}>
+                      {t.id === 'color' ? <View style={[styles.swatch, { backgroundColor: strokeColor }]} /> : t.icon}
+                    </View>
+                    <Text style={[styles.btnLabel, on && styles.btnLabelOn]} numberOfLines={1}>
+                      {t.label}
+                    </Text>
                   </Pressable>
                 );
               })
@@ -105,10 +128,42 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     ...shadow.float,
   },
-  btn: { width: layout.hit, height: layout.hit, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  btn: {
+    height: layout.toolbarH - 8,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnIconOnly: {
+    width: layout.hit,
+    paddingHorizontal: 0,
+  },
+  btnWithLabel: {
+    minWidth: layout.hit,
+    paddingHorizontal: space.xs,
+    paddingVertical: 2,
+    gap: 1,
+  },
+  iconSlot: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnLabel: {
+    fontSize: 10,
+    lineHeight: 13,
+    fontFamily: fontFamily.semibold,
+    fontWeight: '600',
+    color: colors.subtle,
+    textAlign: 'center',
+  },
+  btnLabelOn: {
+    color: colors.accentText,
+  },
   btnOn: { backgroundColor: colors.accentSoft },
   btnPressed: { backgroundColor: colors.accentSoftPress },
   btnOff: { opacity: 0.38 },
-  divider: { width: StyleSheet.hairlineWidth * 2, height: layout.footerIcon, backgroundColor: colors.line, marginHorizontal: space.xs },
-  swatch: { width: 22, height: 22, borderRadius: radius.pill, borderWidth: 2, borderColor: colors.card, ...shadow.card },
+  divider: { width: StyleSheet.hairlineWidth * 2, height: 24, backgroundColor: colors.line, marginHorizontal: space.xs },
+  swatch: { width: 20, height: 20, borderRadius: radius.pill, borderWidth: 2, borderColor: colors.card, ...shadow.card },
 });

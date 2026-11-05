@@ -120,3 +120,23 @@ describe('AgentSession (M2)', () => {
     expect(capped[1].seq).toBe(2);
   });
 });
+
+describe('AgentSession local Stage (책갈피 버튼)', () => {
+  it('shows bookmarks over the current problem list and restores it', () => {
+    const { server, session } = setup();
+    server.accept();
+    const list = { source: { kind: 'task', taskId: 7 } };
+    server.push(1, 'show_component', { componentId: 'problem_list', props: list });
+    session.showLocalComponent('problem_list', { source: { kind: 'bookmarks' } });
+    expect(session.getSnapshot().stage).toEqual({ componentId: 'problem_list', props: { source: { kind: 'bookmarks' } } });
+    session.restoreStage();
+    expect(session.getSnapshot().stage).toEqual({ componentId: 'problem_list', props: list });
+  });
+
+  it('restores an empty Stage when nothing was shown before', () => {
+    const { session } = setup();
+    session.showLocalComponent('problem_list', { source: { kind: 'bookmarks' } });
+    session.restoreStage();
+    expect(session.getSnapshot().stage).toBeNull();
+  });
+});

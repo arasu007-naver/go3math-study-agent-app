@@ -13,6 +13,10 @@ jest.mock('react-native-document-scanner-plugin', () => ({
   ResponseType: { Base64: 'base64' },
   ScanDocumentResponseStatus: { Success: 'success', Cancel: 'cancel' },
 }));
+jest.mock('react-native-webview', () => {
+  const { View } = require('react-native');
+  return { WebView: (props: any) => <View testID="webview" {...props} /> };
+});
 jest.mock('react-native-blob-util', () => ({ __esModule: true, default: { fetch: jest.fn(async () => ({})) } }));
 jest.mock('../src/api/rest', () => ({ requestStorageUrl: jest.fn() }));
 jest.mock('../src/kit/ui/image-dynamic-dims', () => () => null);

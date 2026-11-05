@@ -2,10 +2,15 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 import { initialRouterState, routeCommand } from '../src/agent/commandRouter';
 import { createProblemListFetchers } from '../src/adapters/problemListFetchers';
 import { getMemberMathPreExams, getUnitsOfMathCollection } from '../src/api/rest';
-import { ProblemListPanel, type ProblemListFetchers } from '../src/kit/problem-list/ProblemListPanel';
+import { BookmarksPanel, ProblemListPanel, type ProblemListFetchers } from '../src/kit/problem-list/ProblemListPanel';
 import { authStore } from '../src/state/auth';
+import { colors } from '../src/ui/theme';
 
 jest.mock('react-native-mmkv', () => ({ createMMKV: () => ({ getString: () => undefined, set: () => {}, remove: () => {} }) }));
+jest.mock('react-native-webview', () => {
+  const { View } = require('react-native');
+  return { WebView: (props: any) => <View testID="webview" {...props} /> };
+});
 jest.mock('../src/api/rest', () => ({ getMemberMathPreExams: jest.fn(), getUnitsOfMathCollection: jest.fn() }));
 // Image.getSize는 jest-expo 목에서 동작하지 않아 이미지 크기 계산 컴포넌트를 비운다
 jest.mock('../src/kit/ui/image-dynamic-dims', () => () => null);
@@ -22,6 +27,7 @@ describe('problem_list command', () => {
       props: { source: { kind: 'task', taskId: 7 } },
     });
     expect(routeCommand(initialRouterState, cmd({ source: { kind: 'exam_query', query } }), 'tablet').state.stage?.componentId).toBe('problem_list');
+    expect(routeCommand(initialRouterState, cmd({ source: { kind: 'bookmarks' } }), 'tablet').state.stage?.componentId).toBe('problem_list');
     expect(routeCommand(initialRouterState, cmd({ source: { kind: 'ids', ids: [1] } }), 'tablet').ack?.payload).toMatchObject({ ok: false, code: 'invalid_props' });
   });
 });
@@ -65,6 +71,13 @@ describe('problemListFetchers (legacy goNoteTab sources)', () => {
     const task = { id: 6, taskType: 'bookmark', task: JSON.stringify({ regDate: '2026-10-01', units: [{ sourceType: 'PREMISE', sourceId: 33 }] }) };
     const set = await createProblemListFetchers(client(task)).fetchProblems({ kind: 'task', taskId: 6 });
     expect(set.problems).toEqual([{ sourceType: 'PREMISE', sourceId: 33, image: expect.stringMatching(/\/premise\/33\.png$/) }]);
+  });
+
+  it('bookmarks source loads my bookmarks (MY_BOOKMARKS)', async () => {
+    const bookmarks = [{ sourceType: 'UNIT', sourceId: 51, image: 'https://img/51.png', essayId: null, tries: [] }];
+    const c = { query: jest.fn(async () => ({ data: { bookmarks } })) } as any;
+    const set = await createProblemListFetchers(c).fetchProblems({ kind: 'bookmarks' });
+    expect(set).toEqual({ title: '🔖 내 책갈피', problems: [{ sourceType: 'UNIT', sourceId: 51, image: 'https://img/51.png' }] });
   });
 
   it('topic task loads the topic units by collectionId', async () => {
@@ -131,5 +144,90 @@ describe('ProblemListPanel pencil FAB', () => {
     await render(<ProblemListPanel fetchers={fetchers} source={{ kind: 'task', taskId: 1 }} onSelectProblem={jest.fn()} />);
     await waitFor(() => expect(screen.getByText('📝 모음')).toBeTruthy());
     expect(screen.queryByLabelText('문제 풀이 시작')).toBeNull();
+  });
+});
+
+describe('ProblemListPanel selection border and buttons', () => {
+  const problems = [
+    { sourceType: 'UNIT', sourceId: 10, image: 'https://img/10.png' },
+    { sourceType: 'UNIT', sourceId: 20, image: 'https://img/20.png' },
+  ];
+
+  it('selects the first item by default on entry and applies selected border', async () => {
+    const fetchers: ProblemListFetchers = {
+      fetchProblems: jest.fn(async () => ({ title: '📝 문제 목록', problems })),
+    };
+    await render(<ProblemListPanel fetchers={fetchers} source={{ kind: 'task', taskId: 1 }} onSelectProblem={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('📝 문제 목록')).toBeTruthy());
+
+    const firstCard = screen.getByLabelText('1번 문제');
+    const secondCard = screen.getByLabelText('2번 문제');
+
+    expect(firstCard.props.accessibilityState.selected).toBe(true);
+    expect(secondCard.props.accessibilityState.selected).toBe(false);
+
+    // Verify cardOn style contains accent border
+    const firstStyle = Array.isArray(firstCard.props.style) ? Object.assign({}, ...firstCard.props.style) : firstCard.props.style;
+    expect(firstStyle.borderColor).toBe(colors.accent);
+    expect(firstStyle.borderWidth).toBe(2);
+  });
+
+  it('renders "해답" and "책갈피" buttons on right for problem list and handles interactions', async () => {
+    const addBookmark = jest.fn(async () => {});
+    const fetchers: ProblemListFetchers = {
+      fetchProblems: jest.fn(async () => ({ title: '📝 문제 목록', problems })),
+      addBookmark,
+    };
+    await render(<ProblemListPanel fetchers={fetchers} source={{ kind: 'task', taskId: 1 }} onSelectProblem={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('📝 문제 목록')).toBeTruthy());
+
+    const answerButtons = screen.getAllByText('해답');
+    const bookmarkButtons = screen.getAllByText('책갈피');
+    expect(answerButtons.length).toBe(2);
+    expect(bookmarkButtons.length).toBe(2);
+
+    // Click bookmark button for 1st problem
+    fireEvent.press(bookmarkButtons[0]);
+    await waitFor(() => expect(addBookmark).toHaveBeenCalledWith('UNIT', 10));
+    expect(screen.getByText('책갈피됨')).toBeTruthy();
+
+    // Click answer button for 1st problem -> toggles to '문제' and renders webview
+    fireEvent.press(answerButtons[0]);
+    await waitFor(() => expect(screen.getByText('문제')).toBeTruthy());
+    expect(screen.getByTestId('webview')).toBeTruthy();
+
+    await new Promise((r) => setTimeout(r, 450));
+    // Click '문제' -> toggles back to problem
+    fireEvent.press(screen.getByText('문제'));
+    await waitFor(() => expect(screen.getAllByText('해답').length).toBe(2));
+  });
+
+  it('renders "해답" and "책갈피 해제" buttons on right for BookmarksPanel and handles removal', async () => {
+    const removeBookmark = jest.fn(async () => {});
+    const fetchers: ProblemListFetchers = {
+      fetchProblems: jest.fn(async () => ({ title: '🔖 내 책갈피', problems })),
+      removeBookmark,
+    };
+    await render(<BookmarksPanel fetchers={fetchers} onSelectProblem={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('🔖 내 책갈피')).toBeTruthy());
+
+    // First card selected by default in BookmarksPanel
+    const firstCard = screen.getByLabelText('1번 문제');
+    expect(firstCard.props.accessibilityState.selected).toBe(true);
+    const firstStyle = Array.isArray(firstCard.props.style) ? Object.assign({}, ...firstCard.props.style) : firstCard.props.style;
+    expect(firstStyle.borderColor).toBe(colors.accent);
+
+    const answerButtons = screen.getAllByText('해답');
+    const removeButtons = screen.getAllByText('책갈피 해제');
+    expect(answerButtons.length).toBe(2);
+    expect(removeButtons.length).toBe(2);
+
+    // Click remove bookmark on 1st problem
+    fireEvent.press(removeButtons[0]);
+    await waitFor(() => expect(removeBookmark).toHaveBeenCalledWith('UNIT', 10));
+
+    // After removal, only 1 problem remains
+    await waitFor(() => expect(screen.queryByLabelText('2번 문제')).toBeNull());
+    expect(screen.getByLabelText('1번 문제')).toBeTruthy();
   });
 });

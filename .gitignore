@@ -48,5 +48,3 @@ GoogleService-Info.plist
 *.keystore
 .env*
 
-# Supabase CLI local cache
-supabase/.temp/
