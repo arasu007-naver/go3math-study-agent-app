@@ -1,44 +1,74 @@
 /**
  * PDF 보기 모달 — 기존 `pages/share/pdf-view.tsx`(react-native-pdf, 비밀번호 PDF)를 화면 이동 대신 모달로.
  * 보존: 상단에 '비밀번호: …' 표시, 비밀번호로 PDF 열기, 캐시 사용. 바뀐 점: 닫기 버튼, 광고 래퍼 제외,
- * 화면 가운데 창(최대 화면 폭 60% · 높이 80%).
+ * 화면 가운데 창(최대 화면 폭 60% · 높이 80%). 폰은 문제 목록 화면처럼 화면 전체(위 '뒤로' 헤더, 탭 바·광고 가림).
  */
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Pdf from 'react-native-pdf';
-import { colors, type } from '../../ui/theme';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useDeviceMode } from '../../layout/deviceMode';
+import { colors, layout, type } from '../../ui/theme';
 
 export type PdfDoc = { url: string; password?: string | null };
 
 export function PdfViewerModal({ doc, onClose }: { doc: PdfDoc | null; onClose(): void }) {
   const [error, setError] = useState<string | null>(null);
   const { width, height } = useWindowDimensions();
+  const phone = useDeviceMode() === 'phone';
+  const title = doc?.password ? `비밀번호: ${doc.password}` : 'PDF';
+
+  const body = error ? (
+    <Text style={styles.error}>PDF를 열지 못했어요. ({error})</Text>
+  ) : (
+    doc && (
+      <Pdf
+        source={{ uri: doc.url, cache: true }}
+        // 기본값 true는 react-native-blob-util 0.25에서 "Use of own trust manager but none defined"로 실패한다. 인증서 검사는 기본대로.
+        trustAllCerts={false}
+        password={doc.password ?? undefined}
+        renderActivityIndicator={() => <ActivityIndicator color="orange" />}
+        onError={(e) => setError(String((e as Error)?.message ?? e))}
+        style={styles.pdf}
+      />
+    )
+  );
+
+  if (phone) {
+    // 모달은 앱 화면 트리 밖이라 safe area provider를 따로 둔다(광고 자리용으로 아래 inset을 0으로 바꾼 값을 물려받지 않게)
+    return (
+      <Modal visible={!!doc} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose} onShow={() => setError(null)}>
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.full}>
+            <View style={styles.fullHeader}>
+              <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onClose} hitSlop={8} style={styles.back}>
+                <Ionicons name="chevron-back" size={26} color={colors.accentText} />
+                <Text style={styles.backText}>뒤로</Text>
+              </Pressable>
+              <Text style={styles.fullTitle} numberOfLines={1}>
+                {title}
+              </Text>
+              <View style={styles.back} />
+            </View>
+            {body}
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </Modal>
+    );
+  }
 
   return (
     <Modal visible={!!doc} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose} onShow={() => setError(null)}>
       <View style={styles.backdrop}>
         <View style={[styles.root, { maxWidth: width * 0.6, maxHeight: height * 0.8 }]}>
           <View style={styles.header}>
-            <Text style={styles.title}>{doc?.password ? `비밀번호: ${doc.password}` : 'PDF'}</Text>
+            <Text style={styles.title}>{title}</Text>
             <Pressable accessibilityRole="button" onPress={onClose} style={styles.close}>
               <Text style={styles.closeText}>닫기</Text>
             </Pressable>
           </View>
-          {error ? (
-            <Text style={styles.error}>PDF를 열지 못했어요. ({error})</Text>
-          ) : (
-            doc && (
-              <Pdf
-                source={{ uri: doc.url, cache: true }}
-                // 기본값 true는 react-native-blob-util 0.25에서 "Use of own trust manager but none defined"로 실패한다. 인증서 검사는 기본대로.
-                trustAllCerts={false}
-                password={doc.password ?? undefined}
-                renderActivityIndicator={() => <ActivityIndicator color="orange" />}
-                onError={(e) => setError(String((e as Error)?.message ?? e))}
-                style={styles.pdf}
-              />
-            )
-          )}
+          {body}
         </View>
       </View>
     </Modal>
@@ -53,5 +83,11 @@ const styles = StyleSheet.create({
   close: { minHeight: 44, minWidth: 64, alignItems: 'center', justifyContent: 'center', borderRadius: 22, borderWidth: 1, borderColor: colors.accent },
   closeText: { ...type.bodyStrong, color: colors.accentText },
   pdf: { flex: 1, backgroundColor: '#F4F4F5' },
+  // 폰: 문제 목록 화면의 Stack 헤더처럼 왼쪽 '뒤로', 가운데 제목
+  full: { flex: 1, backgroundColor: '#FFFFFF' },
+  fullHeader: { height: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.line },
+  fullTitle: { flex: 1, textAlign: 'center', ...type.bodyStrong, color: colors.text },
+  back: { minWidth: 72, minHeight: layout.hit, flexDirection: 'row', alignItems: 'center' },
+  backText: { ...type.body, color: colors.accentText },
   error: { padding: 24, ...type.body, color: colors.muted },
 });
