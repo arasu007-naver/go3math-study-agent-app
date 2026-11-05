@@ -7,7 +7,7 @@ import { colors, layout, radius, shadow, space, z } from '../../ui/theme';
 import { NOT_READY_HINT, type DockKind, type FooterKind } from './DrawerFooter';
 
 /** 툴바 항목(위→아래). 드래그 손잡이 다음, 맨 아래 채팅 버튼 앞에 놓인다. */
-const RAIL_ITEMS: { kind: FooterKind; label: string; icon: keyof typeof Ionicons.glyphMap; disabled?: boolean }[] = [
+export const RAIL_ITEMS: { kind: FooterKind; label: string; icon: keyof typeof Ionicons.glyphMap; disabled?: boolean }[] = [
   { kind: 'timeline', label: '타임라인', icon: 'home-outline' },
   { kind: 'notice', label: '공지', icon: 'megaphone-outline' },
   { kind: 'search', label: '검색', icon: 'search-outline' },
@@ -36,8 +36,22 @@ export function nextHorizontal(horizontal: boolean, top: number, height: number)
 }
 
 /**
+ * 끄는 중 한 프레임: 손가락이 가리키는 툴바 위치(left, top, 범위로 자르기 전)에서 다음 방향과 실제 위치.
+ * 방향이 바뀌어도 손잡이(툴바 맨 앞 칸 = 툴바 top·left)는 그대로 두고 모양만 바꾼다.
+ * 가로 툴바가 손잡이 오른쪽에 들어갈 자리가 없으면(오른쪽 변 근처) 옆으로 밀려나지 않게 세로로 둔다.
+ */
+export function railMove(horizontal: boolean, left: number, top: number, width: number, height: number) {
+  'worklet';
+  const h = nextHorizontal(horizontal, top, height) && (horizontal || left + RAIL_H + layout.gutter <= width);
+  const mx = Math.max(layout.gutter, width - (h ? RAIL_H : RAIL_W) - layout.gutter);
+  const my = Math.max(layout.gutter, height - (h ? RAIL_W : RAIL_H) - layout.gutter);
+  return { horizontal: h, x: Math.min(Math.max(left, layout.gutter), mx), y: Math.min(Math.max(top, layout.gutter), my) };
+}
+
+/**
  * 늘 떠 있는 pill 툴바. 맨 앞 손잡이를 끌어 화면 안 아무 곳으로나 옮길 수 있고,
  * 끄는 중 위 변(앱 상단)이나 아래 변(광고 자리 상단) 가까이 가면 가로로, 다시 멀어지면 세로로 바뀐다(nextHorizontal).
+ * 바뀔 때 손잡이 위치는 그대로다(툴바가 통째로 옮겨지지 않는다).
  * 항목을 누르면 해당 dock을 열고(열린 항목을 다시 누르면 닫음), 맨 아래 채팅 버튼은 채팅 dock을 연다(읽지 않음 점 표시).
  */
 export function ChatRail({
@@ -78,22 +92,13 @@ export function ChatRail({
     })
     .onUpdate((e) => {
       // 방향은 범위로 자르기 전 top으로 정한다(범위 끝에 붙은 채로도 계속 끌면 방향이 바뀌게)
-      let top = startY.value + e.translationY;
-      const h = nextHorizontal(horiz.value, top, height);
-      if (h !== horiz.value) {
-        // 아래 변 쪽에서 바뀌면 툴바 bottom을 그대로 둔다(세로↔가로 높이 차만큼 top을 옮김). 위 변 쪽은 top이 그대로
-        if (top > height / 2) {
-          const shift = h ? RAIL_H - RAIL_W : RAIL_W - RAIL_H;
-          startY.value += shift;
-          top += shift;
-        }
-        horiz.value = h;
-        runOnJS(setHorizontal)(h);
+      const next = railMove(horiz.value, startX.value + e.translationX, startY.value + e.translationY, width, height);
+      if (next.horizontal !== horiz.value) {
+        horiz.value = next.horizontal;
+        runOnJS(setHorizontal)(next.horizontal);
       }
-      const mx = Math.max(layout.gutter, width - (h ? RAIL_H : RAIL_W) - layout.gutter);
-      const my = Math.max(layout.gutter, height - (h ? RAIL_W : RAIL_H) - layout.gutter);
-      x.value = Math.min(Math.max(startX.value + e.translationX, layout.gutter), mx);
-      y.value = Math.min(Math.max(top, layout.gutter), my);
+      x.value = next.x;
+      y.value = next.y;
     });
 
   const style = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }, { translateY: y.value }] }));

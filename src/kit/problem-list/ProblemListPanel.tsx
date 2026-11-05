@@ -3,8 +3,9 @@
  * 카드 모양은 주제 문제 목록(TopicUnitList)과 같다: 'N번' + 문제 이미지, 넓으면 2열.
  * 데이터는 fetcher로 주입받고(어떤 출처의 문제인지는 source로 넘긴다), 고른 문제는 onSelectProblem으로 올린다.
  * 오른쪽 아래 연필 버튼(onSolve)은 마지막으로 고른 문제(없으면 1번)부터 풀이 화면을 연다.
+ * renderFooter(선택)는 카드 이미지 아래 한 줄(폰 결과 화면의 해답·카메라 버튼).
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { PencilFab } from '../ui/PencilFab';
@@ -27,11 +28,13 @@ export function ProblemListPanel({
   source,
   onSelectProblem,
   onSolve,
+  renderFooter,
 }: {
   fetchers: ProblemListFetchers;
   source: ProblemSource;
   onSelectProblem(a: { index: number; problem: Problem }): void;
   onSolve?(a: { index: number; set: ProblemSet }): void;
+  renderFooter?(a: { index: number; problem: Problem }): ReactNode;
 }) {
   const { width } = useWindowDimensions();
   const [set, setSet] = useState<ProblemSet | null>(null);
@@ -80,6 +83,7 @@ export function ProblemListPanel({
             style={({ pressed }) => [styles.card, { width: cardWidth }, index === selected && styles.cardOn, pressed && styles.pressed]}>
             <Text style={styles.cardLabel}>{index + 1}번</Text>
             <DynamicDimensionsImage source={{ uri: problem.image }} width={cardWidth - 16} />
+            {renderFooter?.({ index, problem })}
           </Pressable>
         ))}
       </ScrollView>
