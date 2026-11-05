@@ -265,8 +265,8 @@
     "semantic_hash": ""
   },
   "src/agent/tablet/ChatRail.tsx": {
-    "mtime": 1793840760.7799983,
-    "ast_hash": "dc19b4377d4e5b5f9a04b853ca89ecfd",
+    "mtime": 1793844503.070942,
+    "ast_hash": "6056ed7994315b12efb5a16ce5d37087",
     "semantic_hash": ""
   },
   "src/agent/tablet/DrawerFooter.tsx": {
@@ -1040,8 +1040,8 @@
     "semantic_hash": ""
   },
   "__tests__/chatRail.test.ts": {
-    "mtime": 1793840045.621694,
-    "ast_hash": "9d75703cae7779f25095ed5ce0c194f2",
+    "mtime": 1793844503.0710738,
+    "ast_hash": "3b96a88be1983228a72ce92caf6ab8d9",
     "semantic_hash": ""
   },
   "src/ui/SheetHandle.tsx": {
