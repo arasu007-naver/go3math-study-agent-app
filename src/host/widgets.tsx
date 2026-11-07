@@ -27,6 +27,11 @@ export function openNotebook(title: string | undefined, problems: SolveProblem[]
   router.push('/notebook');
 }
 
+/** 실황 수업 dock의 주제 실황 수업: 주제 실황 캔버스 화면(/topic-live-class)으로 */
+export function openTopicLiveClass(topicId: number, taskId?: number) {
+  router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(taskId ? { taskId: String(taskId) } : {}) } });
+}
+
 function TopicListWidget({ props, session }: WidgetProps) {
   return (
     <TopicTabsPanel
@@ -74,7 +79,12 @@ function ProblemListWidget({ props, session }: WidgetProps) {
           ...(source.kind === 'task' ? { taskId: source.taskId } : {}),
         })
       }
-      onSolve={({ index, set }) => openNotebook(set.title, set.problems, index, source.kind === 'task' ? source.taskId : undefined)}
+      onSolve={({ index, set }) =>
+        // 주제 실황 수업은 문제 하나가 아니라 선생님 진행을 따라가는 실황 캔버스로 연다
+        source.kind === 'topic_live'
+          ? openTopicLiveClass(source.topicId)
+          : openNotebook(set.title, set.problems, index, source.kind === 'task' ? source.taskId : undefined)
+      }
     />
   );
 }

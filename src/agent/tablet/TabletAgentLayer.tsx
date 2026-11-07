@@ -9,7 +9,7 @@ import { createTimelineFetchers } from '../../adapters/timelineFetchers';
 import { logout } from '../../auth/logout';
 import { useMyInfo } from '../../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../../config/exam.constants';
-import { openNotebook, topicFetchers } from '../../host/widgets';
+import { openNotebook, openTopicLiveClass, topicFetchers } from '../../host/widgets';
 import { DiaryPanel } from '../../kit/diary/DiaryPanel';
 import { LiveClassListPanel } from '../../kit/live-class/LiveClassListPanel';
 import { MessageBoxPanel } from '../../kit/profile/MessageBoxPanel';
@@ -137,8 +137,15 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
             />
           )}
           {dock === 'liveClass' && (
-            // 고른 수업의 문제를 Stage 문제 목록으로. problem_list가 뜨면 dock은 닫힌다(선생님 수업 문제 변경은 문제 목록이 구독)
-            <LiveClassListPanel fetchers={liveClassFetchers} onOpen={(source) => session.showLocalComponent('problem_list', { source })} />
+            // 고른 수업의 문제를 Stage 문제 목록으로. problem_list가 뜨면 dock은 닫힌다(선생님 수업 문제 변경은 문제 목록이 구독).
+            // 주제 실황 수업은 곧바로 실황 캔버스 화면으로 넘어간다(나오면 Stage에 그 주제 문제 목록이 남는다)
+            <LiveClassListPanel
+              fetchers={liveClassFetchers}
+              onOpen={(source) => {
+                session.showLocalComponent('problem_list', { source });
+                if (source.kind === 'topic_live') openTopicLiveClass(source.topicId);
+              }}
+            />
           )}
           {dock === 'profile' && (
             <>
