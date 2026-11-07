@@ -32,6 +32,11 @@ export function openTopicLiveClass(topicId: number, taskId?: number) {
   router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(taskId ? { taskId: String(taskId) } : {}) } });
 }
 
+/** 실황 수업 dock의 선생님 수업: 선생님 수업 캔버스 화면(/hotline-class)으로 */
+export function openHotlineClass(tutorId: string, taskId?: number) {
+  router.push({ pathname: '/hotline-class', params: { tutorId, ...(taskId ? { taskId: String(taskId) } : {}) } });
+}
+
 function TopicListWidget({ props, session }: WidgetProps) {
   return (
     <TopicTabsPanel
@@ -80,10 +85,12 @@ function ProblemListWidget({ props, session }: WidgetProps) {
         })
       }
       onSolve={({ index, set }) =>
-        // 주제 실황 수업은 문제 하나가 아니라 선생님 진행을 따라가는 실황 캔버스로 연다
+        // 실황 수업(주제·선생님)은 문제 하나가 아니라 선생님 진행을 따라가는 실황 캔버스로 연다
         source.kind === 'topic_live'
           ? openTopicLiveClass(source.topicId)
-          : openNotebook(set.title, set.problems, index, source.kind === 'task' ? source.taskId : undefined)
+          : source.kind === 'hotline'
+            ? openHotlineClass(source.tutorId)
+            : openNotebook(set.title, set.problems, index, source.kind === 'task' ? source.taskId : undefined)
       }
     />
   );

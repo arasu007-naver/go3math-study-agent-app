@@ -53,7 +53,7 @@ const { width, height } = Dimensions.get('window');
 const strokeWidths = [3, 4, 6, 9, 15, 24];
 const strokeColors = ['orange', 'blue', 'black', 'red', 'green']
 
-const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, topicUnits, onQuizReceived }: any, ref) => {
+const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, topicUnits, onQuizReceived, screenActions }: any, ref) => {
     const webViewRef = useRef<any>(null);
     const webCanvasRef = useRef<any>(null);
     const { state, dispatch } = useContext(AppCtx);
@@ -713,6 +713,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                     </View>}
                 {/* 기존 상단 버튼 줄을 하단 가운데 떠 있는 툴바로 옮겼다(design-spec P2-1). 부르는 함수·액션은 같다. */}
                 <CanvasChrome
+                    actions={screenActions}
                     tools={[canvasTool('color', 'Options'), canvasTool('clearBoard', '전체 지우기'), canvasTool('clearMemo', '내 필기 지우기'), canvasTool('save', '저장')]}
                     strokeColor={canvasStrokeColor}
                     onSelectTool={(id) => {
