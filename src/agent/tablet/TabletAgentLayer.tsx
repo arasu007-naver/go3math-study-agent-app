@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { createLiveClassFetchers } from '../../adapters/liveClassFetchers';
 import { createMessageBoxFetchers } from '../../adapters/messageBoxFetchers';
 import { createNoticeFetchers } from '../../adapters/noticeFetchers';
 import { createProfileEditors } from '../../adapters/profileEditors';
+import { createRecordFetchers } from '../../adapters/recordFetchers';
 import { createTimelineFetchers } from '../../adapters/timelineFetchers';
 import { logout } from '../../auth/logout';
 import { useMyInfo } from '../../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../../config/exam.constants';
-import { topicFetchers } from '../../host/widgets';
-import { NoticesPanel } from '../../kit/notices/NoticesPanel';
+import { openNotebook, topicFetchers } from '../../host/widgets';
+import { DiaryPanel } from '../../kit/diary/DiaryPanel';
+import { LiveClassListPanel } from '../../kit/live-class/LiveClassListPanel';
 import { MessageBoxPanel } from '../../kit/profile/MessageBoxPanel';
 import { MyInfoPanel } from '../../kit/profile/MyInfoPanel';
 import { ProfileActions } from '../../kit/profile/ProfileActions';
@@ -33,11 +36,13 @@ export const TOAST_PREVIEW_CHARS = 30;
 export type { DockKind };
 /** dock에 열 수 있는 패널: 메뉴 dock + 채팅 */
 type Panel = DockKind | 'chat';
-const DOCK_TITLES: Record<Panel, string> = { chat: '에이전트', timeline: 'Study', search: '검색', notice: '공지', profile: '내 정보' };
+const DOCK_TITLES: Record<Panel, string> = { chat: 'Study Log', timeline: 'Study', search: '검색', notice: 'Diary', profile: '내 정보', liveClass: '실황 수업' };
 const noticeFetchers = createNoticeFetchers(apolloClient);
 const timelineFetchers = createTimelineFetchers(apolloClient);
 const messageBoxFetchers = createMessageBoxFetchers(apolloClient);
 const profileEditors = createProfileEditors(apolloClient);
+const recordFetchers = createRecordFetchers(apolloClient);
+const liveClassFetchers = createLiveClassFetchers();
 
 export function toastPreview(text: string): string {
   return text.length > TOAST_PREVIEW_CHARS ? `${text.slice(0, TOAST_PREVIEW_CHARS - 1)}…` : text;
@@ -77,10 +82,12 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     prevIns.current = ins;
   }, [ins]);
 
-  // Stage에 문제 목록이 뜰 때마다(이미 문제 목록이 떠 있어도 새 show_component면) 문제를 보며 풀 수 있게 dock을 닫는다
+  // Stage에 문제 목록이 뜰 때마다(이미 문제 목록이 떠 있어도 새 show_component면) 문제를 보며 풀 수 있게 dock을 닫는다.
+  // 단 Diary dock의 '가자!!!'로 띄운 그날 문제 목록(source.kind 'list')은 dock을 그대로 둔다
   const stage = state.stage;
   useEffect(() => {
-    if (stage && (stage.componentId === 'problem_list' || stage.componentId === 'problem_preview')) setDock(null);
+    const fromDiary = (stage?.props.source as { kind?: string } | undefined)?.kind === 'list';
+    if (stage && !fromDiary && (stage.componentId === 'problem_list' || stage.componentId === 'problem_preview')) setDock(null);
   }, [stage]);
 
   const openChat = () => {
@@ -92,8 +99,8 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   const toggleDock = (kind: Panel) => {
     if (dock === kind) return setDock(null);
     if (kind === 'chat') return openChat();
-    // 타임라인·검색·공지는 학습 흐름에 속하므로 에이전트에 알린다(프로토콜 menu_selected). 내 정보는 앱 안에서만.
-    if (kind !== 'profile') session.emit('menu_selected', { menu: kind });
+    // 타임라인·검색·공지는 학습 흐름에 속하므로 에이전트에 알린다(프로토콜 menu_selected). 내 정보·실황 수업은 앱 안에서만.
+    if (kind !== 'profile' && kind !== 'liveClass') session.emit('menu_selected', { menu: kind });
     setDock(kind);
   };
 
@@ -117,7 +124,22 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
               }}
             />
           )}
-          {dock === 'notice' && <NoticesPanel fetchers={noticeFetchers} />}
+          {dock === 'notice' && (
+            <DiaryPanel
+              recordFetchers={recordFetchers}
+              noticeFetchers={noticeFetchers}
+              onSolveDay={(day, problems) => {
+                // Stage에 그날 문제 목록을 띄우고 곧바로 풀이 화면으로. dock은 그대로 두어 풀이 화면에서 나오면 지금 상태로 돌아온다
+                const title = `${day} 일자`;
+                session.showLocalComponent('problem_list', { source: { kind: 'list', title, problems } });
+                openNotebook(title, problems, 0);
+              }}
+            />
+          )}
+          {dock === 'liveClass' && (
+            // 고른 수업의 문제를 Stage 문제 목록으로. problem_list가 뜨면 dock은 닫힌다(선생님 수업 문제 변경은 문제 목록이 구독)
+            <LiveClassListPanel fetchers={liveClassFetchers} onOpen={(source) => session.showLocalComponent('problem_list', { source })} />
+          )}
           {dock === 'profile' && (
             <>
               <MyInfoPanel info={myInfo} />

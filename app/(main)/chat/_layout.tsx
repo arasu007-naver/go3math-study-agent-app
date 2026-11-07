@@ -8,7 +8,7 @@ export default function ChatTabLayout() {
   return (
     <Stack screenOptions={{ headerBackTitle: '뒤로' }}>
       {/* 탭 첫 화면은 제목 헤더 없이(탭 바 라벨이 제목). child 화면의 뒤로 버튼은 '뒤로' */}
-      <Stack.Screen name="index" options={{ title: '에이전트', headerShown: false }} />
+      <Stack.Screen name="index" options={{ title: 'Study Log', headerShown: false }} />
     </Stack>
   );
 }

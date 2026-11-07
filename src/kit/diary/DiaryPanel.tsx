@@ -1,0 +1,174 @@
+/**
+ * 태블릿 Diary dock — 위: 월간 풀이 달력(RecordsCalendar), 아래: 탭.
+ * '공지' 탭은 늘 맨 앞에 고정(달력이 보는 달의 공지). 달력에서 풀이 있는 날을 누르면 그날 탭을 추가해 열고(이미 있으면 그 탭으로),
+ * 날 탭 내용은 그날 풀이(이미지) 목록(DailyRecordsList). '답안 예시'를 누르면 그 탭 안이 해답 화면으로 바뀌고 '풀이 목록'으로 돌아온다.
+ * 날 탭은 ✕로 닫는다. 달력·탭 바는 고정이고 탭 내용 영역만 스크롤해 문제·풀이 이미지를 끝까지 볼 수 있다.
+ */
+import { Ionicons } from '@expo/vector-icons';
+import moment from 'moment';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { UNITANSWER } from '../../config/api.constants';
+import { colors, layout, radius, shadow, space, type } from '../../ui/theme';
+import { NoticesPanel, type NoticeFetchers } from '../notices/NoticesPanel';
+import QoollaWebView from '../ui/web-view';
+import { DailyRecordsList, type DailyRecord, type DailyRecordsFetchers, type DayProblem } from './DailyRecordsList';
+import { RecordsCalendar, type RecordsCalendarFetchers } from './RecordsCalendar';
+
+const NOTICE_TAB = 'notice';
+
+export function DiaryPanel({
+  recordFetchers,
+  noticeFetchers,
+  onSolveDay,
+}: {
+  recordFetchers: RecordsCalendarFetchers & DailyRecordsFetchers;
+  noticeFetchers: NoticeFetchers;
+  /** 날 탭 오른쪽 아래 '가자!!!' FAB: 그날(day 'YYYY-MM-DD') 문제들로 풀이 화면을 연다 */
+  onSolveDay?(day: string, problems: DayProblem[]): void;
+}) {
+  // 달력이 보고 있는 달('YYYY-MM') = 공지를 받을 달
+  const [month, setMonth] = useState(() => moment().format('YYYY-MM'));
+  // 연 날('YYYY-MM-DD')들, 연 순서대로
+  const [days, setDays] = useState<string[]>([]);
+  const [active, setActive] = useState<string>(NOTICE_TAB);
+  // 탭 내용 영역 폭(풀이 이미지 폭)
+  const [width, setWidth] = useState(0);
+  // 날 탭별로 열어 둔 해답(없으면 그 탭은 풀이 목록)
+  const [answers, setAnswers] = useState<Record<string, DailyRecord>>({});
+  const hideAnswer = (day: string) =>
+    setAnswers((a) => {
+      const next = { ...a };
+      delete next[day];
+      return next;
+    });
+
+  // 날 탭별 그날 문제(풀이 목록을 받으면 채워진다). 있으면 탭 내용 오른쪽 아래 '가자!!!' FAB
+  const [dayProblems, setDayProblems] = useState<Record<string, DayProblem[]>>({});
+  const showFab = !!onSolveDay && active !== NOTICE_TAB && (dayProblems[active]?.length ?? 0) > 0;
+
+  const openDay = (day: string) => {
+    setDays((ds) => (ds.includes(day) ? ds : [...ds, day]));
+    setActive(day);
+  };
+
+  const closeDay = (day: string) => {
+    setDays((ds) => ds.filter((d) => d !== day));
+    hideAnswer(day);
+    if (active === day) setActive(NOTICE_TAB);
+  };
+
+  // 달력·탭 바는 고정, 탭 내용 영역만 ScrollView로 스크롤한다.
+  // 공지·풀이 목록은 스스로 스크롤하지 않고(scrollable=false) 항목을 모두 그린다. 해답 화면은 WebView가 스스로 스크롤한다
+  return (
+    <>
+      <RecordsCalendar fetchers={recordFetchers} onMonthChange={setMonth} onSelectDay={openDay} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabBar} contentContainerStyle={styles.tabBarContent}>
+        <Tab label="공지" on={active === NOTICE_TAB} onPress={() => setActive(NOTICE_TAB)} />
+        {days.map((d) => (
+          <Tab key={d} label={moment(d).format('M월/D일')} on={active === d} onPress={() => setActive(d)} onClose={() => closeDay(d)} />
+        ))}
+      </ScrollView>
+      {active !== NOTICE_TAB && answers[active] ? (
+        <AnswerView record={answers[active]} onBack={() => hideAnswer(active)} />
+      ) : (
+        // FAB가 스크롤과 함께 움직이지 않도록 ScrollView를 감싼 View 위에 띄운다
+        <View style={styles.body}>
+          <ScrollView
+            testID="diary-tab-body"
+            style={styles.body}
+            contentContainerStyle={showFab && styles.fabRoom}
+            onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+            {active === NOTICE_TAB ? (
+              <NoticesPanel fetchers={noticeFetchers} month={month} scrollable={false} />
+            ) : (
+              width > 0 && (
+                <DailyRecordsList
+                  key={active}
+                  fetchers={recordFetchers}
+                  day={active}
+                  width={width}
+                  scrollable={false}
+                  onLoadProblems={(p) => setDayProblems((m) => ({ ...m, [active]: p }))}
+                  onShowAnswer={(r) => setAnswers((a) => ({ ...a, [active]: r }))}
+                />
+              )
+            )}
+          </ScrollView>
+          {showFab && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${moment(active).format('M월 D일')} 문제 풀기`}
+              onPress={() => onSolveDay(active, dayProblems[active])}
+              style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}>
+              <Text style={styles.fabText}>가자!!!</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
+    </>
+  );
+}
+
+/** 날 탭 안의 해답 화면(폰은 해답 화면을 따로 연다). 위 '풀이 목록'으로 그날 목록에 돌아간다 */
+function AnswerView({ record, onBack }: { record: DailyRecord; onBack(): void }) {
+  return (
+    <View style={styles.body}>
+      <Pressable accessibilityRole="button" accessibilityLabel="풀이 목록으로" onPress={onBack} style={styles.back}>
+        <Ionicons name="chevron-back" size={18} color={colors.accentText} />
+        <Text style={styles.backText}>풀이 목록</Text>
+      </Pressable>
+      <QoollaWebView originWhitelist={['*']} source={{ uri: UNITANSWER(record.sourceType, record.sourceId)! }} />
+    </View>
+  );
+}
+
+function Tab({ label, on, onPress, onClose }: { label: string; on: boolean; onPress(): void; onClose?(): void }) {
+  return (
+    <View style={[styles.tab, on && styles.tabOn]}>
+      <Pressable
+        accessibilityRole="tab"
+        accessibilityLabel={onClose ? `${label} 풀이` : label}
+        accessibilityState={{ selected: on }}
+        onPress={onPress}
+        style={styles.tabLabel}>
+        <Text style={[styles.tabText, on && styles.tabTextOn]}>{label}</Text>
+      </Pressable>
+      {onClose && (
+        <Pressable accessibilityRole="button" accessibilityLabel={`${label} 탭 닫기`} hitSlop={8} onPress={onClose} style={styles.close}>
+          <Ionicons name="close" size={14} color={on ? colors.accentText : colors.muted} />
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  tabBar: { flexGrow: 0, backgroundColor: colors.card, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  tabBarContent: { paddingHorizontal: space.sm, gap: space.xs },
+  // 선택 탭은 아래 주황 밑줄
+  tab: { flexDirection: 'row', alignItems: 'center', height: layout.hit, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabOn: { borderBottomColor: colors.accent },
+  tabLabel: { height: '100%', justifyContent: 'center', paddingHorizontal: space.md },
+  tabText: { ...type.body, color: colors.muted },
+  tabTextOn: { color: colors.accentText, fontWeight: '700' },
+  close: { marginLeft: -space.sm, paddingRight: space.sm, height: '100%', justifyContent: 'center' },
+  body: { flex: 1 },
+  // FAB에 마지막 풀이·버튼이 가리지 않게 아래 여백
+  fabRoom: { paddingBottom: 48 + space.lg * 2 },
+  fab: {
+    position: 'absolute',
+    right: space.lg,
+    bottom: space.lg,
+    height: 48,
+    paddingHorizontal: space.lg,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    ...shadow.float,
+  },
+  fabPressed: { backgroundColor: colors.accentPress },
+  fabText: { fontSize: 15, fontWeight: '700', color: colors.onAccent },
+  back: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', height: layout.hit, paddingHorizontal: space.sm },
+  backText: { ...type.body, color: colors.accentText },
+});

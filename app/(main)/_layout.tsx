@@ -4,10 +4,11 @@ import { getAgentSession } from '@/src/agent/useAgentSession';
 import { useAuthGate } from '@/src/auth/useAuthGate';
 import { useDeviceMode } from '@/src/layout/deviceMode';
 import { isFullScreenRoute } from '@/src/layout/fullScreenRoutes';
+import { StudyLogIcon } from '@/src/ui/StudyLogIcon';
 import { colors, layout, radius, shadow, space } from '@/src/ui/theme';
 
 // 태블릿: 탭 바 없이 에이전트 홈(index: Stage + ChatRail·dock).
-// 폰: 하단 탭 History · 검색 · Diary · 내 정보 · 채팅(이 순서). Diary는 월간 풀이 달력 + 공지(공지 탭 대신).
+// 폰: 하단 탭 History · 검색 · Diary · 내 정보 · Study Log(이 순서). Diary는 월간 풀이 달력 + 공지(공지 탭 대신).
 // 탭 화면 위에는 제목 헤더를 두지 않는다(탭 바 라벨이 제목 역할). 결과 child 화면만 뒤로 버튼 헤더를 둔다.
 // 검색·타임라인·채팅 탭은 폴더 Stack이라 결과 화면이 child로 쌓인다. 로그인 전이면 로그인 화면으로.
 const PHONE_TABS: {
@@ -21,7 +22,8 @@ const PHONE_TABS: {
   { name: 'search', title: '검색', icon: 'search-outline', menu: 'search' },
   { name: 'diary', title: 'Diary', icon: 'calendar-outline' },
   { name: 'profile', title: '내 정보', icon: 'person-circle-outline' },
-  { name: 'chat', title: '채팅', icon: 'chatbubble-ellipses-outline' },
+  // 아이콘은 Ionicons 대신 StudyLogIcon(assets/images/study-log.svg)으로 그린다(아래 tabBarIcon)
+  { name: 'chat', title: 'Study Log', icon: 'chatbubble-ellipses-outline' },
 ];
 
 // 폰 탭 바: 태블릿 ChatRail처럼 좌우 끝이 둥근 떠 있는 바 + 그림자. 화면 가장자리·아래 광고 자리와 조금 띄운다.
@@ -41,6 +43,10 @@ const PHONE_TAB_BAR = {
   backgroundColor: colors.card,
   ...shadow.float,
 };
+
+function StudyLogTabIcon({ color }: { color: string }) {
+  return <StudyLogIcon size={layout.footerIcon} color={color} />;
+}
 
 export default function MainLayout() {
   const mode = useDeviceMode();
@@ -69,7 +75,7 @@ export default function MainLayout() {
         <Tabs.Screen
           key={t.name}
           name={t.name}
-          options={{ title: t.title, href: phone ? undefined : null, tabBarIcon: icon(t.icon), tabBarAccessibilityLabel: t.title }}
+          options={{ title: t.title, href: phone ? undefined : null, tabBarIcon: t.name === 'chat' ? StudyLogTabIcon : icon(t.icon), tabBarAccessibilityLabel: t.title }}
           listeners={{
             tabPress: () => {
               if (t.menu) getAgentSession().emit('menu_selected', { menu: t.menu });

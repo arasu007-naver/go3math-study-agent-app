@@ -22,7 +22,7 @@ const problemListFetchers = createProblemListFetchers(apolloClient);
 type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
 
 /** 문제 목록의 연필 버튼: 문제 묶음을 넘기고 풀이 화면(/notebook)으로 */
-function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number) {
+export function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number) {
   solveStore.dispatch({ title, problems, index, taskId, topicId });
   router.push('/notebook');
 }

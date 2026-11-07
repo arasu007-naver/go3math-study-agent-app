@@ -3,15 +3,16 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { StudyLogIcon } from '../../ui/StudyLogIcon';
 import { colors, layout, radius, shadow, space, z } from '../../ui/theme';
 import { NOT_READY_HINT, type DockKind, type FooterKind } from './DrawerFooter';
 
 /** 툴바 항목(위→아래). 드래그 손잡이 다음, 맨 아래 채팅 버튼 앞에 놓인다. */
 export const RAIL_ITEMS: { kind: FooterKind; label: string; icon: keyof typeof Ionicons.glyphMap; disabled?: boolean }[] = [
   { kind: 'timeline', label: '타임라인', icon: 'home-outline' },
-  { kind: 'notice', label: '공지', icon: 'megaphone-outline' },
+  { kind: 'notice', label: 'Diary', icon: 'calendar-outline' },
   { kind: 'search', label: '검색', icon: 'search-outline' },
-  { kind: 'liveClass', label: '실황 수업', icon: 'radio-outline', disabled: true },
+  { kind: 'liveClass', label: '실황 수업', icon: 'radio-outline' },
   { kind: 'profile', label: '내 정보', icon: 'person-circle-outline' },
 ];
 
@@ -135,7 +136,7 @@ export function ChatRail({
           accessibilityState={{ selected: active === 'chat' }}
           onPress={() => onItem('chat')}
           style={({ pressed }) => [styles.item, styles.chat, pressed && styles.chatPressed]}>
-          <Ionicons name={active === 'chat' ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} size={layout.footerIcon} color={colors.accentText} />
+          <StudyLogIcon size={layout.footerIcon} color={colors.accentText} />
           {unread && <View style={styles.dot} />}
         </Pressable>
       </Animated.View>

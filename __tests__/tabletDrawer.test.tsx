@@ -12,7 +12,7 @@ jest.mock('react-native-blob-util', () => ({}));
 const session = { emit: jest.fn(), selectChoice: jest.fn(), dismissInstruction: jest.fn() } as any;
 const base: SessionSnapshot = { ...initialRouterState, connected: true };
 const say = (messageId: string) => ({ messageId, text: '안내', choices: [], source: 'default' as const });
-const chatOpen = () => screen.queryByLabelText('에이전트 dock') !== null;
+const chatOpen = () => screen.queryByLabelText('Study Log dock') !== null;
 
 describe('TabletAgentLayer dock', () => {
   it('closes the dock with its edge button', async () => {

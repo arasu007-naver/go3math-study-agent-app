@@ -21,7 +21,12 @@ import { PencilFab } from '../ui/PencilFab';
 export type ProblemSource =
   | { kind: 'task'; taskId: number }
   | { kind: 'exam_query'; query: Record<string, unknown> }
-  | { kind: 'bookmarks' };
+  | { kind: 'bookmarks' }
+  /** 앱이 이미 가진 문제 묶음(태블릿 Diary dock의 그날 문제 '가자!!!'). 조회 없이 그대로 보인다 */
+  | { kind: 'list'; title: string; problems: Problem[] }
+  /** 실황 수업 dock: 선생님 수업(문제가 수업 중 늘거나 줄 수 있다 — subscribe) · 주제 실황 수업 */
+  | { kind: 'hotline'; tutorId: string; title: string }
+  | { kind: 'topic_live'; topicId: number; title: string };
 
 export type Problem = { sourceType: string; sourceId: number; image: string };
 export type ProblemSet = { title: string; subtitle?: string | null; problems: Problem[] };
@@ -30,6 +35,8 @@ export interface ProblemListFetchers {
   fetchProblems(source: ProblemSource): Promise<ProblemSet>;
   addBookmark?(sourceType: string, sourceId: number): Promise<void>;
   removeBookmark?(sourceType: string, sourceId: number): Promise<void>;
+  /** 출처의 문제가 바뀔 때마다 onChange를 부른다(선생님 수업). 돌려준 함수로 구독을 끝낸다. 바뀌지 않는 출처면 undefined */
+  subscribe?(source: ProblemSource, onChange: () => void): (() => void) | undefined;
 }
 
 export function ProblemListPanel({
@@ -72,6 +79,26 @@ export function ProblemListPanel({
       .catch((e) => alive && setError(String(e?.message ?? e)));
     return () => {
       alive = false;
+    };
+  }, [fetchers, key]);
+
+  // 문제가 바뀌었다는 알림이 오면 목록을 비우지 않고 새로 받아 바꾼다(고른 문제는 범위 안이면 그대로)
+  useEffect(() => {
+    let alive = true;
+    const src: ProblemSource = JSON.parse(key);
+    const unsubscribe = fetchers.subscribe?.(src, () => {
+      fetchers
+        .fetchProblems(src)
+        .then((s) => {
+          if (!alive) return;
+          setSet(s);
+          setSelected((prev) => (s.problems.length === 0 ? null : prev !== null && prev < s.problems.length ? prev : 0));
+        })
+        .catch((e) => console.warn('[ProblemListPanel] refetch failed:', e));
+    });
+    return () => {
+      alive = false;
+      unsubscribe?.();
     };
   }, [fetchers, key]);
 

@@ -5,8 +5,8 @@ import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSprin
 import { colors, layout, motion, radius, shadow, space, type } from '../../ui/theme';
 
 /** dock 패널 종류(기존 값). 하단 바의 실황 수업·주간 공부는 재사용할 카드가 아직 없어 비활성 칸으로만 둔다(사용자 결정 2026-11-02). */
-export type DockKind = 'timeline' | 'search' | 'notice' | 'profile';
-export type FooterKind = DockKind | 'liveClass' | 'weeklyStudy';
+export type DockKind = 'timeline' | 'search' | 'notice' | 'profile' | 'liveClass';
+export type FooterKind = DockKind | 'weeklyStudy';
 
 export const FOOTER_ITEMS: { kind: FooterKind; label: string; short: string; icon: keyof typeof Ionicons.glyphMap; disabled?: boolean }[] = [
   { kind: 'notice', label: '공지', short: '공지', icon: 'megaphone-outline' },

@@ -8,6 +8,7 @@
 import { HeaderBackButton } from '@react-navigation/elements';
 import { useIsFocused } from '@react-navigation/native';
 import { Stack, router, useLocalSearchParams, type Href } from 'expo-router';
+import moment from 'moment';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -119,10 +120,12 @@ export function SearchTabScreen() {
   );
 }
 
-/** Diary 탭: 기존 DiaryScreen의 월간 풀이 달력(상단 고정) + 그 아래 공지사항(목록만 스크롤) */
+/** Diary 탭: 기존 DiaryScreen의 월간 풀이 달력(상단 고정) + 그 아래 달력과 같은 달 공지사항(목록만 스크롤) */
 export function DiaryTabScreen() {
   const focused = useIsFocused();
   const [reloadKey, setReloadKey] = useState(0);
+  // 달력이 보고 있는 달('YYYY-MM') = 공지를 받을 달(태블릿 Diary dock과 같다)
+  const [month, setMonth] = useState(() => moment().format('YYYY-MM'));
   const wasFocused = useRef(focused);
   // 탭에 다시 들어올 때마다 그 달 기록을 새로 받는다(기존 DiaryScreen의 focus 재조회). 첫 진입은 달력이 스스로 받는다
   useEffect(() => {
@@ -131,9 +134,12 @@ export function DiaryTabScreen() {
   }, [focused]);
   return (
     <TabPage>
-      <RecordsCalendar fetchers={recordFetchers} reloadKey={reloadKey} onSelectDay={(day) => router.push(href('/diary/day', { day }))} />
+      <RecordsCalendar fetchers={recordFetchers} reloadKey={reloadKey}
+        onSelectDay={(day) => router.push(href('/diary/day', { day }))}
+        onMonthChange={setMonth}
+      />
       <View style={styles.diaryNotices}>
-        <NoticesPanel fetchers={noticeFetchers} />
+        <NoticesPanel fetchers={noticeFetchers} month={month} />
       </View>
     </TabPage>
   );

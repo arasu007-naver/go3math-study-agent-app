@@ -23,16 +23,24 @@ export function RecordsCalendar({
   fetchers,
   reloadKey,
   onSelectDay,
+  onMonthChange,
 }: {
   fetchers: RecordsCalendarFetchers;
   reloadKey?: number;
   onSelectDay?(day: string): void;
+  /** 보고 있는 달('YYYY-MM')이 바뀔 때(처음 그릴 때 포함). 같은 달 공지를 맞춰 받는 데 쓴다 */
+  onMonthChange?(month: string): void;
 }) {
   const [month, setMonth] = useState(() => moment().startOf('month'));
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const requestId = useRef(0);
   const monthKey = month.format('YYYY-MM');
+
+  useEffect(() => {
+    onMonthChange?.(monthKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 달이 바뀔 때만 알린다
+  }, [monthKey]);
 
   useEffect(() => {
     const id = ++requestId.current;

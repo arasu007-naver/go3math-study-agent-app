@@ -154,6 +154,7 @@ export function TimelinePanel({
               accessibilityRole="button"
               accessibilityLabel={`${d.title} 학습하기`}
               onPress={() => onSelectTask(item)}
+              hitSlop={6}
               style={({ pressed }) => [styles.go, pressed && { backgroundColor: '#D35400' }]}>
               <Text style={styles.goText}> 가자!!! </Text>
             </Pressable>
@@ -170,8 +171,9 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, fontWeight: '700', color: 'orange' },
   line: { fontSize: 14, color: '#18181B' },
   date: { fontSize: 12, color: '#18181B', textAlign: 'right' },
-  go: { alignSelf: 'flex-end', minHeight: 44, paddingHorizontal: 20, borderRadius: 22, backgroundColor: '#FF8800', justifyContent: 'center' },
-  goText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  // 크기는 GoButton small(높이 32)과 맞춘다. 누르는 영역은 hitSlop으로 44를 유지
+  go: { alignSelf: 'flex-end', minHeight: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#FF8800', justifyContent: 'center' },
+  goText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   // 기존 cardDivider
   divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },

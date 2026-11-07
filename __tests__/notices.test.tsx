@@ -15,6 +15,18 @@ describe('NoticesPanel', () => {
     expect(fetchNotices).toHaveBeenCalledWith({ page: 0, pageSize: 36 });
   });
 
+  it('loads only the given month and reloads when the month changes', async () => {
+    const fetchNotices = jest.fn(async () => []);
+    const fetchMonthNotices = jest.fn(async (month: string) => [{ id: month, title: `${month} 공지` }]);
+    const { rerender } = await render(<NoticesPanel fetchers={{ fetchNotices, fetchMonthNotices }} month="2026-11" />);
+    await waitFor(() => expect(screen.getByText('2026-11 공지')).toBeTruthy());
+    await rerender(<NoticesPanel fetchers={{ fetchNotices, fetchMonthNotices }} month="2026-10" />);
+    await waitFor(() => expect(screen.getByText('2026-10 공지')).toBeTruthy());
+    expect(screen.queryByText('2026-11 공지')).toBeNull();
+    expect(fetchMonthNotices).toHaveBeenCalledWith('2026-10');
+    expect(fetchNotices).not.toHaveBeenCalled();
+  });
+
   it('shows the empty placeholder', async () => {
     render(<NoticesPanel fetchers={fetchers(async () => [])} />);
     await waitFor(() => expect(screen.getByText('공지 사항이 없습니다.')).toBeTruthy());
