@@ -6,6 +6,8 @@ const STORAGE_BASE_URL = 'https://qoolla1storage1account.blob.core.windows.net/q
 
 // === API Endpoints ===
 const API_BASE_URL = 'https://api-v2.qoolla.com';
+// Java(Spring) API — graphql-api-server에서 옮겨 오는 조회가 여기로 간다(`api-v2` 저장소, 배포 이름 api-v3)
+const API_V3_URL = 'https://apiv3.qoolla.com';
 const CACHE_URL = 'https://m-cache.qoolla.com';
 const LOGIN_URL = 'https://www.qoolla.com' //'https://www.qoolla.com';
 const SERVICE_URL = 'https://www.qoolla.com';
@@ -88,6 +90,7 @@ const STUDY_NOTE_URL = (noteId: string | number) =>
 export {
     STORAGE_BASE_URL,
     API_BASE_URL,
+    API_V3_URL,
     CACHE_URL,
     LOGIN_URL,
     SERVICE_URL,

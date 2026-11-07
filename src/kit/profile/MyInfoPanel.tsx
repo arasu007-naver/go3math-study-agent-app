@@ -4,16 +4,17 @@
  * 바뀐 점: AppCtx 대신 props로 받는다. '나가기' 버튼은 없앴다(로그아웃은 drawer 하단 '로그 아웃').
  * 아직 안 옮김: '정보 변경'(ChangeProfilePage 필요). 쪽지 목록은 MessageBoxPanel.
  */
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, radius, space } from '../../ui/theme';
 
 export const DEFAULT_AVATAR_URL = 'https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/public/go3math.png';
 
 export type MyInfo = { name?: string | null; email?: string | null; imageUrl?: string | null; via?: string };
 
-export function MyInfoPanel({ info }: { info: MyInfo }) {
+/** style: 바깥 여백 덮어쓰기(폰 '내 정보' 탭은 아래 버튼 줄과 붙이려고 paddingBottom 0) */
+export function MyInfoPanel({ info, style }: { info: MyInfo; style?: StyleProp<ViewStyle> }) {
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, style]}>
       <View style={styles.card}>
         <Image source={{ uri: info.imageUrl || DEFAULT_AVATAR_URL }} style={styles.avatar} />
         <View style={styles.text}>

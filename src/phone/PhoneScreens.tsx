@@ -9,12 +9,13 @@ import { HeaderBackButton } from '@react-navigation/elements';
 import { useIsFocused } from '@react-navigation/native';
 import { Stack, router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createMessageBoxFetchers } from '../adapters/messageBoxFetchers';
 import { createNoticeFetchers } from '../adapters/noticeFetchers';
 import { createProblemListFetchers } from '../adapters/problemListFetchers';
 import { createProfileEditors } from '../adapters/profileEditors';
+import { createRecordFetchers } from '../adapters/recordFetchers';
 import { createSolutionPhotoUploader, type SolutionTarget } from '../adapters/solutionPhoto';
 import { createTimelineFetchers } from '../adapters/timelineFetchers';
 import { ChatTimeline } from '../agent/tablet/ChatTimeline';
@@ -24,6 +25,8 @@ import { useMyInfo } from '../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { UNITANSWER } from '../config/api.constants';
 import { topicFetchers } from '../host/widgets';
+import { DailyRecordsList } from '../kit/diary/DailyRecordsList';
+import { RecordsCalendar } from '../kit/diary/RecordsCalendar';
 import { NoticesPanel } from '../kit/notices/NoticesPanel';
 import { ProblemActionRow } from '../kit/problem-list/ProblemActionRow';
 import { ProblemListPanel, type ProblemSource } from '../kit/problem-list/ProblemListPanel';
@@ -36,7 +39,6 @@ import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
 import QoollaWebView from '../kit/ui/web-view';
 import { apolloClient } from '../state/bootstrap';
 import { storage } from '../storage';
-import { ClassicPlaceholder } from '../ui/ClassicPlaceholder';
 import { colors } from '../ui/theme';
 
 /** 결과 화면을 child로 쌓는 탭(각 탭 폴더의 Stack) */
@@ -47,6 +49,7 @@ const noticeFetchers = createNoticeFetchers(apolloClient);
 const messageBoxFetchers = createMessageBoxFetchers(apolloClient);
 const problemListFetchers = createProblemListFetchers(apolloClient);
 const profileEditors = createProfileEditors(apolloClient);
+const recordFetchers = createRecordFetchers(apolloClient);
 const uploadSolution = createSolutionPhotoUploader(apolloClient);
 
 const href = (path: string, params: Record<string, string | number | undefined>) => {
@@ -116,27 +119,36 @@ export function SearchTabScreen() {
   );
 }
 
-export function NoticeTabScreen() {
+/** Diary 탭: 기존 DiaryScreen의 월간 풀이 달력(상단 고정) + 그 아래 공지사항(목록만 스크롤) */
+export function DiaryTabScreen() {
+  const focused = useIsFocused();
+  const [reloadKey, setReloadKey] = useState(0);
+  const wasFocused = useRef(focused);
+  // 탭에 다시 들어올 때마다 그 달 기록을 새로 받는다(기존 DiaryScreen의 focus 재조회). 첫 진입은 달력이 스스로 받는다
+  useEffect(() => {
+    if (focused && !wasFocused.current) setReloadKey((k) => k + 1);
+    wasFocused.current = focused;
+  }, [focused]);
   return (
     <TabPage>
-      <NoticesPanel fetchers={noticeFetchers} />
+      <RecordsCalendar fetchers={recordFetchers} reloadKey={reloadKey} onSelectDay={(day) => router.push(href('/diary/day', { day }))} />
+      <View style={styles.diaryNotices}>
+        <NoticesPanel fetchers={noticeFetchers} />
+      </View>
     </TabPage>
   );
-}
-
-export function LiveTabScreen() {
-  return <ClassicPlaceholder title="실황 수업" />;
 }
 
 export function ProfileTabScreen() {
   const myInfo = useMyInfo();
   return (
     <TabPage>
-      <ScrollView contentContainerStyle={styles.profile}>
-        <MyInfoPanel info={myInfo} />
-        <MessageBoxPanel fetchers={messageBoxFetchers} />
+      {/* 프로필 카드·버튼 줄은 상단 고정, 개인 사서함 목록(FlatList)만 스크롤 */}
+      <View style={styles.profile}>
+        <MyInfoPanel info={myInfo} style={styles.profileInfo} />
         <ProfileActions name={myInfo.name} editors={profileEditors} onLogout={() => void logout()} />
-      </ScrollView>
+        <MessageBoxPanel fetchers={messageBoxFetchers} />
+      </View>
     </TabPage>
   );
 }
@@ -247,7 +259,24 @@ export function SolutionResultScreen() {
   );
 }
 
+/** Diary 탭 child: 달력에서 누른 날의 풀이 기록(기존 DailyRecordsViewPage). '답안 예시'는 이 탭의 해답 화면으로 */
+export function DiaryDayScreen() {
+  const { day } = useLocalSearchParams<{ day: string }>();
+  return (
+    <View style={styles.page}>
+      <Stack.Screen options={{ title: `${day} 일자` }} />
+      <DailyRecordsList
+        fetchers={recordFetchers}
+        day={day}
+        onShowAnswer={(r) => router.push(href('/diary/solution', { sourceType: r.sourceType, sourceId: r.sourceId }))}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.card },
-  profile: { paddingVertical: 12, gap: 12 },
+  diaryNotices: { flex: 1 },
+  profile: { flex: 1, paddingTop: 12 },
+  profileInfo: { paddingBottom: 0 },
 });
