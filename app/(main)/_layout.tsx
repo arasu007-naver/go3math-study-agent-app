@@ -63,29 +63,29 @@ export default function MainLayout() {
 
   return (
     <>
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.accentText,
-        tabBarInactiveTintColor: colors.muted,
-        // 결과 child 화면(문제 목록 등)은 폰 화면 전체를 쓰므로 탭 바를 숨긴다
-        tabBarStyle: phone && !isFullScreenRoute(pathname) ? PHONE_TAB_BAR : { display: 'none' },
-        headerShown: false,
-      }}>
-      {/* 태블릿 홈. 폰에서는 탭에 두지 않고 index가 타임라인 탭으로 보낸다 */}
-      <Tabs.Screen name="index" options={{ href: phone ? null : undefined }} />
-      {PHONE_TABS.map((t) => (
-        <Tabs.Screen
-          key={t.name}
-          name={t.name}
-          options={{ title: t.title, href: phone ? undefined : null, tabBarIcon: t.name === 'chat' ? StudyLogTabIcon : icon(t.icon), tabBarAccessibilityLabel: t.title }}
-          listeners={{
-            tabPress: () => {
-              if (t.menu) getAgentSession().emit('menu_selected', { menu: t.menu });
-            },
-          }}
-        />
-      ))}
-    </Tabs>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: colors.accentText,
+          tabBarInactiveTintColor: colors.muted,
+          // 결과 child 화면(문제 목록 등)은 폰 화면 전체를 쓰므로 탭 바를 숨긴다
+          tabBarStyle: phone && !isFullScreenRoute(pathname) ? PHONE_TAB_BAR : { display: 'none' },
+          headerShown: false,
+        }}>
+        {/* 태블릿 홈. 폰에서는 탭에 두지 않고 index가 타임라인 탭으로 보낸다 */}
+        <Tabs.Screen name="index" options={{ href: phone ? null : undefined }} />
+        {PHONE_TABS.map((t) => (
+          <Tabs.Screen
+            key={t.name}
+            name={t.name}
+            options={{ title: t.title, href: phone ? undefined : null, tabBarIcon: t.name === 'chat' ? StudyLogTabIcon : icon(t.icon), tabBarAccessibilityLabel: t.title }}
+            listeners={{
+              tabPress: () => {
+                if (t.menu) getAgentSession().emit('menu_selected', { menu: t.menu });
+              },
+            }}
+          />
+        ))}
+      </Tabs>
     {/* 로그인 후에만 에이전트 세션을 구독하는 앱 전역 모달 시트(학습장 등) */}
     <SheetHost />
     </>

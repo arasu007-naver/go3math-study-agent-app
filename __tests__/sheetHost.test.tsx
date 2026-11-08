@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { SheetHost } from '../src/host/SheetHost';
 import type { AgentSession, SessionSnapshot } from '../src/agent/session';
 import { initialRouterState } from '../src/agent/commandRouter';
@@ -32,6 +32,12 @@ function fakeSession() {
     emit: jest.Mock;
     closeSheet: jest.Mock;
   };
+}
+
+function findModal(): any {
+  let node: any = screen.getByLabelText('학습장 배경');
+  while (node && !node.props.onRequestClose) node = node.parent;
+  return node;
 }
 
 beforeEach(() => jest.clearAllMocks());
@@ -90,5 +96,44 @@ describe('SheetHost', () => {
     await waitFor(() => expect(session.closeSheet).toHaveBeenCalledTimes(1));
     expect(session.emit).toHaveBeenCalledTimes(1);
     expect(session.emit).toHaveBeenCalledWith('study_note_saved', { taskId: 8 });
+  });
+
+  it('double backdrop press emits once', async () => {
+    const session = fakeSession();
+    await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await screen.findByText('학습장 · t');
+    await fireEvent.press(screen.getByLabelText('학습장 배경'));
+    await fireEvent.press(screen.getByLabelText('학습장 배경'));
+    expect(session.emit).toHaveBeenCalledTimes(1);
+    expect(session.closeSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('dismiss during pending save emits once', async () => {
+    let release!: () => void;
+    mockRegister.mockImplementationOnce(() => new Promise<void>((r) => (release = r)));
+    const session = fakeSession();
+    await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await screen.findByText('학습장 · t');
+    await fireEvent.press(screen.getByText('거의'));
+    const savePress = fireEvent.press(screen.getByText('저장'));
+    findModal().props.onRequestClose(); // 저장 act가 끝나기 전이라 fireEvent를 겹쳐 쓰지 않는다
+    release();
+    await savePress;
+    await new Promise((r) => setTimeout(r, 20));
+    expect(session.emit).toHaveBeenCalledTimes(1);
+    expect(session.emit).toHaveBeenCalledWith('study_note_dismissed', { taskId: 7 });
+    expect(session.closeSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('Android back (onRequestClose) dismisses once', async () => {
+    const session = fakeSession();
+    await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await screen.findByText('학습장 · t');
+    const node = findModal();
+    await act(async () => node.props.onRequestClose());
+    await act(async () => node.props.onRequestClose());
+    expect(session.emit).toHaveBeenCalledTimes(1);
+    expect(session.emit).toHaveBeenCalledWith('study_note_dismissed', { taskId: 7 });
+    expect(session.closeSheet).toHaveBeenCalledTimes(1);
   });
 });

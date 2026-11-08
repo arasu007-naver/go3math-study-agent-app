@@ -1,5 +1,5 @@
 // 위젯 = kit 패널을 감싸는 얇은 어댑터(§4.4): fetcher 주입, kit 콜백 → 에이전트 이벤트 변환, 프리셋 반영.
-import type { ReactElement } from 'react';
+import { useRef, type MutableRefObject, type ReactElement } from 'react';
 import { router } from 'expo-router';
 import type { AgentSession } from '../agent/session';
 import { createProblemListFetchers } from '../adapters/problemListFetchers';
@@ -152,9 +152,23 @@ export const widgets: Record<string, (p: WidgetProps) => ReactElement> = {
   research: ResearchWidget,
 };
 
-/** 학습장 시트: 저장·닫기를 에이전트 이벤트로 알리고 시트를 닫는다. taskId가 바뀌면 key로 양식을 다시 마운트한다 */
-function StudyNoteWidget({ props, session }: WidgetProps) {
+/** 시트 위젯 props: 호스트의 배경 탭·뒤로가기를 위젯이 처리하도록 dismissRef에 닫기 핸들러를 등록한다 */
+export type SheetWidgetProps = WidgetProps & { dismissRef: MutableRefObject<(() => void) | null> };
+
+/**
+ * 학습장 시트: 저장·닫기를 에이전트 이벤트로 알리고 시트를 닫는다. taskId가 바뀌면 key로 양식을 다시 마운트한다.
+ * 같은 taskId에서는 saved/dismissed 중 먼저 온 하나만 내보내고 closeSheet도 한 번만 부른다(늦은 onDone은 무시).
+ */
+function StudyNoteWidget({ props, session, dismissRef }: SheetWidgetProps) {
   const taskId = props.taskId as number;
+  const finishedFor = useRef<number | null>(null);
+  const finish = (forTask: number, result: 'saved' | 'dismissed') => {
+    if (forTask !== taskId || finishedFor.current === forTask) return;
+    finishedFor.current = forTask;
+    session.emit(result === 'saved' ? 'study_note_saved' : 'study_note_dismissed', { taskId: forTask });
+    session.closeSheet();
+  };
+  dismissRef.current = () => finish(taskId, 'dismissed');
   return (
     <StudyNoteForm
       key={taskId}
@@ -164,15 +178,12 @@ function StudyNoteWidget({ props, session }: WidgetProps) {
       topicHints={props.topicHints as string[] | undefined}
       fetchers={studyNoteFetchers}
       store={storage}
-      onDone={(result) => {
-        session.emit(result === 'saved' ? 'study_note_saved' : 'study_note_dismissed', { taskId });
-        session.closeSheet();
-      }}
+      onDone={(result) => finish(taskId, result)}
     />
   );
 }
 
 /** Stage 대신 모달 시트로 뜨는 위젯(registry placement: 'sheet') */
-export const sheetWidgets: Record<string, (p: WidgetProps) => ReactElement> = {
+export const sheetWidgets: Record<string, (p: SheetWidgetProps) => ReactElement> = {
   study_note: StudyNoteWidget,
 };
