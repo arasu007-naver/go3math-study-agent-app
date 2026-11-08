@@ -20,6 +20,7 @@ import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
 import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizResponseModal';
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
+import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { authStore } from '@/src/state/auth';
 import { SheetHandle } from '@/src/ui/SheetHandle';
 import { colors, radius } from '@/src/ui/theme';
@@ -47,6 +48,7 @@ export default function TopicLiveClassScreen() {
   const params = useLocalSearchParams<{ topicId?: string; taskId?: string }>();
   const topicId = Number(params.topicId);
   const taskId = Number(params.taskId ?? 0);
+  const { countSolved } = useSolveFinished({ taskId: taskId || undefined, kind: 'topic_live' });
   const { width, height } = useWindowDimensions();
   const isFocused = useIsFocused();
   const panelRef = useRef<PanelHandle | null>(null);
@@ -161,6 +163,7 @@ export default function TopicLiveClassScreen() {
   if (!topicId) return <Redirect href="/" />;
 
   const onSave = (imageUrl: string, sourceType: string, sourceId: number) => {
+    countSolved();
     void createNewRecord({
       variables: { sourceType, sourceId: Number(sourceId), taskId, fileName: imageUrl, photoUnitId: 0, topicId },
     });

@@ -3,6 +3,7 @@ import { useRef, type MutableRefObject, type ReactElement } from 'react';
 import { router } from 'expo-router';
 import type { AgentSession } from '../agent/session';
 import { createProblemListFetchers } from '../adapters/problemListFetchers';
+import { ensureTaskId, type TaskSpec } from '../adapters/ensureTask';
 import { createTopicFetchers } from '../adapters/topicFetchers';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { ExamSearchPanel, type ExamSearchMode } from '../kit/exam-search/ExamSearchPanel';
@@ -24,21 +25,35 @@ const studyNoteFetchers = createStudyNoteFetchers(apolloClient);
 
 export type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
 
+/** 캔버스를 열기 전 taskId를 확보한다(없고 spec이 있을 때만 task를 만든다). 실패해도 undefined로 캔버스는 연다 */
+const resolveTaskId = (taskId: number | undefined, spec: TaskSpec | undefined) => (spec ? ensureTaskId(taskId, spec) : Promise.resolve(taskId));
+
+/** 문제 묶음 → 책갈피/목록 task에 넣는 문제 식별자 목록 */
+const unitsOf = (problems: { sourceType: string; sourceId: number }[]) => problems.map(({ sourceType, sourceId }) => ({ sourceType, sourceId }));
+
 /** 문제 목록의 연필 버튼: 문제 묶음을 넘기고 풀이 화면(/notebook)으로 */
-export function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number) {
-  solveStore.dispatch({ title, problems, index, taskId, topicId });
+export async function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number, spec?: TaskSpec) {
+  const id = await resolveTaskId(taskId, spec);
+  solveStore.dispatch({ title, problems, index, taskId: id, topicId });
   router.push('/notebook');
 }
 
 /** 실황 수업 dock의 주제 실황 수업: 주제 실황 캔버스 화면(/topic-live-class)으로 */
-export function openTopicLiveClass(topicId: number, taskId?: number) {
-  router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(taskId ? { taskId: String(taskId) } : {}) } });
+export async function openTopicLiveClass(topicId: number, taskId?: number, spec?: TaskSpec) {
+  const id = await resolveTaskId(taskId, spec);
+  router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(id ? { taskId: String(id) } : {}) } });
 }
 
 /** 실황 수업 dock의 선생님 수업: 선생님 수업 캔버스 화면(/hotline-class)으로 */
-export function openHotlineClass(tutorId: string, taskId?: number) {
-  router.push({ pathname: '/hotline-class', params: { tutorId, ...(taskId ? { taskId: String(taskId) } : {}) } });
+export async function openHotlineClass(tutorId: string, taskId?: number, spec?: TaskSpec) {
+  const id = await resolveTaskId(taskId, spec);
+  router.push({ pathname: '/hotline-class', params: { tutorId, ...(id ? { taskId: String(id) } : {}) } });
 }
+
+/** 실황 수업 dock·문제 목록이 공유하는 실황 수업 spec */
+export const topicLiveSpec = (topicId: number): TaskSpec => ({ taskType: 'topic', task: { topicId } });
+export const hotlineSpec = (tutorId: string): TaskSpec => ({ taskType: 'hotline', task: { tutorId } });
+export const listSpec = (problems: { sourceType: string; sourceId: number }[]): TaskSpec => ({ taskType: 'list', task: { problems: unitsOf(problems) } });
 
 function TopicListWidget({ props, session }: WidgetProps) {
   return (
@@ -55,22 +70,38 @@ function TopicListWidget({ props, session }: WidgetProps) {
 
 function ProblemPreviewWidget({ props, session }: WidgetProps) {
   const topicId = props.topicId as number;
+  const taskId = props.taskId as number | undefined;
   return (
     <TopicUnitList
       fetchers={topicFetchers}
       topicId={topicId}
       onSelectUnit={({ unitIdx }) => session.emit('unit_selected', { topicId, unitIdx })}
       onSolve={({ unitIdx, topic }) =>
-        openNotebook(
+        void openNotebook(
           topic.title,
           topic.units.map((u) => ({ sourceType: u.sourceType, sourceId: u.sourceId, image: UNITIMAGE(u.sourceType, u.sourceId) ?? '' })),
           unitIdx,
-          undefined,
+          taskId,
           topicId,
+          topicLiveSpec(topicId),
         )
       }
     />
   );
+}
+
+/** 문제 목록 출처별 [taskId, topicId, spec]: task는 이미 taskId가 있고, 나머지는 없으면 만든다 */
+function notebookArgs(source: ProblemSource, problems: { sourceType: string; sourceId: number }[]): [number | undefined, undefined, TaskSpec | undefined] {
+  switch (source.kind) {
+    case 'task':
+      return [source.taskId, undefined, undefined];
+    case 'exam_query':
+      return [source.taskId, undefined, { taskType: 'selection', task: source.query }];
+    case 'bookmarks':
+      return [source.taskId, undefined, { taskType: 'bookmark', task: { units: unitsOf(problems) } }];
+    default:
+      return [undefined, undefined, listSpec(problems)];
+  }
 }
 
 function ProblemListWidget({ props, session }: WidgetProps) {
@@ -89,11 +120,11 @@ function ProblemListWidget({ props, session }: WidgetProps) {
       }
       onSolve={({ index, set }) =>
         // 실황 수업(주제·선생님)은 문제 하나가 아니라 선생님 진행을 따라가는 실황 캔버스로 연다
-        source.kind === 'topic_live'
-          ? openTopicLiveClass(source.topicId)
+        void (source.kind === 'topic_live'
+          ? openTopicLiveClass(source.topicId, undefined, topicLiveSpec(source.topicId))
           : source.kind === 'hotline'
-            ? openHotlineClass(source.tutorId)
-            : openNotebook(set.title, set.problems, index, source.kind === 'task' ? source.taskId : undefined)
+            ? openHotlineClass(source.tutorId, undefined, hotlineSpec(source.tutorId))
+            : openNotebook(set.title, set.problems, index, ...notebookArgs(source, set.problems)))
       }
     />
   );
@@ -112,7 +143,7 @@ function BookmarksWidget({ props, session }: WidgetProps) {
           sourceId: problem.sourceId,
         })
       }
-      onSolve={({ index, set }) => openNotebook(set.title, set.problems, index)}
+      onSolve={({ index, set }) => void openNotebook(set.title, set.problems, index, ...notebookArgs(source, set.problems))}
     />
   );
 }

@@ -15,6 +15,7 @@ import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import GoButton from '@/src/kit/ui/go-button';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
+import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
 import { SheetHandle } from '@/src/ui/SheetHandle';
 import { colors, radius } from '@/src/ui/theme';
@@ -38,6 +39,7 @@ const { width, height } = Dimensions.get('window');
 export default function NotebookScreen() {
   const { width, height } = useWindowDimensions();
   const session = solveStore.useStore();
+  const { countSolved } = useSolveFinished({ taskId: session?.taskId || undefined, kind: 'self' });
   const panelRef = useRef<PanelHandle | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
   const workoutSheetListRef = useRef<BottomSheetModal>(null);
@@ -124,6 +126,7 @@ export default function NotebookScreen() {
     });
 
   const onSave = (imageUrl: string) => {
+    countSolved();
     void recordOf(imageUrl);
     setWorkoutNotes((notes) => [imageUrl, ...notes]);
     setTimeout(handlePresentWorkoutSheetListModalPress, 20);

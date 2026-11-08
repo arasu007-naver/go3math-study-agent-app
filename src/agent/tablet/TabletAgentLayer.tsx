@@ -9,7 +9,7 @@ import { createTimelineFetchers } from '../../adapters/timelineFetchers';
 import { logout } from '../../auth/logout';
 import { useMyInfo } from '../../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../../config/exam.constants';
-import { openHotlineClass, openNotebook, openTopicLiveClass, topicFetchers } from '../../host/widgets';
+import { hotlineSpec, listSpec, openHotlineClass, openNotebook, openTopicLiveClass, topicFetchers, topicLiveSpec } from '../../host/widgets';
 import { DiaryPanel } from '../../kit/diary/DiaryPanel';
 import { LiveClassListPanel } from '../../kit/live-class/LiveClassListPanel';
 import { MessageBoxPanel } from '../../kit/profile/MessageBoxPanel';
@@ -139,7 +139,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
                 // Stage에 그날 문제 목록을 띄우고 곧바로 풀이 화면으로. dock은 그대로 두어 풀이 화면에서 나오면 지금 상태로 돌아온다
                 const title = `${day} 일자`;
                 session.showLocalComponent('problem_list', { source: { kind: 'list', title, problems } });
-                openNotebook(title, problems, 0);
+                void openNotebook(title, problems, 0, undefined, undefined, listSpec(problems));
               }}
             />
           )}
@@ -150,8 +150,8 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
               fetchers={liveClassFetchers}
               onOpen={(source) => {
                 session.showLocalComponent('problem_list', { source });
-                if (source.kind === 'topic_live') openTopicLiveClass(source.topicId);
-                else if (source.kind === 'hotline') openHotlineClass(source.tutorId);
+                if (source.kind === 'topic_live') void openTopicLiveClass(source.topicId, undefined, topicLiveSpec(source.topicId));
+                else if (source.kind === 'hotline') void openHotlineClass(source.tutorId, undefined, hotlineSpec(source.tutorId));
               }}
             />
           )}

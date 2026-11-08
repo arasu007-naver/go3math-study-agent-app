@@ -20,8 +20,8 @@ import { PencilFab } from '../ui/PencilFab';
 /** 출처: 타임라인 학습 기록(task), 기출 검색 조건(검색 dock · exam_search의 '가자') 또는 내 책갈피(Stage 헤더 책갈피 버튼) */
 export type ProblemSource =
   | { kind: 'task'; taskId: number }
-  | { kind: 'exam_query'; query: Record<string, unknown> }
-  | { kind: 'bookmarks' }
+  | { kind: 'exam_query'; query: Record<string, unknown>; taskId?: number }
+  | { kind: 'bookmarks'; taskId?: number }
   /** 앱이 이미 가진 문제 묶음(태블릿 Diary dock의 그날 문제 '가자!!!'). 조회 없이 그대로 보인다 */
   | { kind: 'list'; title: string; problems: Problem[] }
   /** 실황 수업 dock: 선생님 수업(문제가 수업 중 늘거나 줄 수 있다 — subscribe) · 주제 실황 수업 */
