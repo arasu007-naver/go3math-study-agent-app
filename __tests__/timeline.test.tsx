@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { TimelinePanel, describeTask, type TimelineFetchers, type TimelineTask } from '../src/kit/timeline/TimelinePanel';
+import { TimelinePanel, describeNote, describeTask, noteModeOf, type TimelineFetchers, type TimelineTask } from '../src/kit/timeline/TimelinePanel';
 
 const fetchers = (impl: TimelineFetchers['fetchTasks']): TimelineFetchers => ({ fetchTasks: impl });
 
@@ -46,5 +46,40 @@ describe('TimelinePanel', () => {
   it('shows the error message when the fetch fails', async () => {
     render(<TimelinePanel fetchers={fetchers(async () => { throw new Error('로그인이 필요해요'); })} onSelectTask={jest.fn()} />);
     await waitFor(() => expect(screen.getByText('학습 기록을 불러오지 못했어요. (로그인이 필요해요)')).toBeTruthy());
+  });
+});
+
+describe('describeNote / noteModeOf', () => {
+  const t = (note: TimelineTask['note']): TimelineTask => ({ id: 1, taskType: 'selection', note });
+  it('summarizes the note with the achievement label', () => {
+    expect(describeNote(t({ description: '일반항 구하기', achievementRate: 75 }))).toBe('✏️ 일반항 구하기 · 거의');
+    expect(describeNote(t({ tutorDescription: '귀납적 정의', description: '나' }))).toBe('✏️ 귀납적 정의');
+    expect(describeNote(t({ description: '메모', achievementRate: 30 }))).toBe('✏️ 메모');
+    expect(describeNote(t(null))).toBeNull();
+    expect(describeNote(t({ description: '' }))).toBeNull();
+  });
+  it('picks live mode for tutor notes', () => {
+    expect(noteModeOf(t({ noteType: 'tutor' }))).toBe('live');
+    expect(noteModeOf(t({ tutorDescription: 'x' }))).toBe('live');
+    expect(noteModeOf({ id: 1, taskType: 'selection' })).toBe('self');
+  });
+});
+
+describe('TimelinePanel note button', () => {
+  it('shows note summary or placeholder and opens the note', async () => {
+    const onOpenNote = jest.fn();
+    const withNote: TimelineTask = { ...selection, id: '12', note: { description: '일반항 구하기', achievementRate: 75 } };
+    render(<TimelinePanel fetchers={fetchers(async () => [selection, withNote])} onSelectTask={jest.fn()} onOpenNote={onOpenNote} />);
+    await waitFor(() => expect(screen.getByText('학습장을 남겨 보세요')).toBeTruthy());
+    expect(screen.getByText('✏️ 일반항 구하기 · 거의')).toBeTruthy();
+    fireEvent.press(screen.getAllByLabelText('📝 기출 검색 학습장')[0]);
+    expect(onOpenNote).toHaveBeenCalledWith(selection);
+  });
+
+  it('has no note button without onOpenNote', async () => {
+    render(<TimelinePanel fetchers={fetchers(async () => [selection])} onSelectTask={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('📝 기출 검색')).toBeTruthy());
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(screen.queryByText('학습장을 남겨 보세요')).toBeNull();
   });
 });

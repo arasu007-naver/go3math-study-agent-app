@@ -8,6 +8,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import moment from 'moment';
+import { colors, radius, space, type } from '../../ui/theme';
+import { ACHIEVEMENTS } from '../study-note/model';
 import { SkeletonCards } from '../ui/SkeletonCards';
 
 export type TimelineTask = {
@@ -21,6 +23,12 @@ export type TimelineTask = {
   description?: string | null;
   topicTitle?: string | null;
   topicDescription?: string | null;
+  note?: {
+    description?: string | null;
+    achievementRate?: number | null;
+    noteType?: string | null;
+    tutorDescription?: string | null;
+  } | null;
 };
 
 export interface TimelineFetchers {
@@ -74,13 +82,30 @@ export function describeTask(t: TimelineTask): { title: string; subtitle: string
   }
 }
 
+/** 카드 학습장 요약 `✏️ 내용 · 달성률 라벨`. 내용이 없으면 null */
+export function describeNote(t: TimelineTask): string | null {
+  const n = t.note;
+  const text = n?.tutorDescription || n?.description;
+  if (!text) return null;
+  const label = ACHIEVEMENTS.find((a) => a.value === n?.achievementRate)?.label;
+  return label ? `✏️ ${text} · ${label}` : `✏️ ${text}`;
+}
+
+/** 튜터가 쓴 노트면 live, 아니면 self */
+export function noteModeOf(t: TimelineTask): 'self' | 'live' {
+  return t.note?.noteType === 'tutor' || t.note?.tutorDescription ? 'live' : 'self';
+}
+
 export function TimelinePanel({
   fetchers,
   onSelectTask,
+  onOpenNote,
   pageSize = TASKS_PAGE_SIZE,
 }: {
   fetchers: TimelineFetchers;
   onSelectTask(task: TimelineTask): void;
+  /** 주면 카드에 학습장 요약 줄과 버튼을 보인다 */
+  onOpenNote?(task: TimelineTask): void;
   pageSize?: number;
 }) {
   const [tasks, setTasks] = useState<TimelineTask[] | null>(null);
@@ -140,6 +165,7 @@ export function TimelinePanel({
       ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footer} color="orange" /> : null}
       renderItem={({ item }) => {
         const d = describeTask(item);
+        const note = describeNote(item);
         return (
           <View style={styles.card}>
             <Text style={styles.title}>{d.title}</Text>
@@ -147,17 +173,34 @@ export function TimelinePanel({
             {d.lines.map((l) => (
               <Text key={l} style={styles.line}>{l}</Text>
             ))}
+            {onOpenNote && (
+              <Text style={[styles.note, { color: note ? colors.subtle : colors.muted }]} numberOfLines={1}>
+                {note ?? '학습장을 남겨 보세요'}
+              </Text>
+            )}
             {item.lastVisitedAt != null && (
               <Text style={styles.date}>{`🕑 ${moment(item.lastVisitedAt * 1000).format('YYYY-MM-DD A h')}시`}</Text>
             )}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${d.title} 학습하기`}
-              onPress={() => onSelectTask(item)}
-              hitSlop={6}
-              style={({ pressed }) => [styles.go, pressed && { backgroundColor: '#D35400' }]}>
-              <Text style={styles.goText}> 가자!!! </Text>
-            </Pressable>
+            <View style={styles.actions}>
+              {onOpenNote && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${d.title} 학습장`}
+                  onPress={() => onOpenNote(item)}
+                  hitSlop={6}
+                  style={styles.noteBtn}>
+                  <Text style={styles.noteBtnText}>학습장</Text>
+                </Pressable>
+              )}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${d.title} 학습하기`}
+                onPress={() => onSelectTask(item)}
+                hitSlop={6}
+                style={({ pressed }) => [styles.go, pressed && { backgroundColor: '#D35400' }]}>
+                <Text style={styles.goText}> 가자!!! </Text>
+              </Pressable>
+            </View>
           </View>
         );
       }}
@@ -172,7 +215,18 @@ const styles = StyleSheet.create({
   line: { fontSize: 14, color: '#18181B' },
   date: { fontSize: 12, color: '#18181B', textAlign: 'right' },
   // 크기는 GoButton small(높이 32)과 맞춘다. 누르는 영역은 hitSlop으로 44를 유지
-  go: { alignSelf: 'flex-end', minHeight: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#FF8800', justifyContent: 'center' },
+  note: { ...type.body },
+  actions: { flexDirection: 'row', alignSelf: 'flex-end', alignItems: 'center', gap: space.sm },
+  noteBtn: {
+    minHeight: 32,
+    paddingHorizontal: space.md,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    justifyContent: 'center',
+  },
+  noteBtnText: { ...type.bodyStrong, color: colors.subtle },
+  go: { minHeight: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#FF8800', justifyContent: 'center' },
   goText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   // 기존 cardDivider
   divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },

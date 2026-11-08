@@ -35,7 +35,7 @@ import { MessageBoxPanel } from '../kit/profile/MessageBoxPanel';
 import { MyInfoPanel } from '../kit/profile/MyInfoPanel';
 import { ProfileActions } from '../kit/profile/ProfileActions';
 import { ResearchPanel } from '../kit/research/ResearchPanel';
-import { TimelinePanel, describeTask } from '../kit/timeline/TimelinePanel';
+import { TimelinePanel, describeTask, noteModeOf } from '../kit/timeline/TimelinePanel';
 import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
 import QoollaWebView from '../kit/ui/web-view';
 import { apolloClient } from '../state/bootstrap';
@@ -94,6 +94,13 @@ export function TimelineTabScreen() {
           });
           openProblems('timeline', { kind: 'task', taskId: Number(t.id) }, describeTask(t).title.replace(/^📝\s*/, ''));
         }}
+        onOpenNote={(t) =>
+          session.showLocalSheet('study_note', {
+            taskId: Number(t.id),
+            mode: noteModeOf(t),
+            title: describeTask(t).title.replace(/^📝\s*/, ''),
+          })
+        }
       />
     </TabPage>
   );

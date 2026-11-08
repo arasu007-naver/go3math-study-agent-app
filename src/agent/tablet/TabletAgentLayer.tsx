@@ -16,7 +16,7 @@ import { MessageBoxPanel } from '../../kit/profile/MessageBoxPanel';
 import { MyInfoPanel } from '../../kit/profile/MyInfoPanel';
 import { ProfileActions } from '../../kit/profile/ProfileActions';
 import { ResearchPanel } from '../../kit/research/ResearchPanel';
-import { TimelinePanel } from '../../kit/timeline/TimelinePanel';
+import { TimelinePanel, describeTask, noteModeOf } from '../../kit/timeline/TimelinePanel';
 import { apolloClient } from '../../state/bootstrap';
 import { storage } from '../../storage';
 import { layout, motion } from '../../ui/theme';
@@ -122,6 +122,13 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
                   ...(t.collectionId != null ? { collectionId: Number(t.collectionId) } : {}),
                 });
               }}
+              onOpenNote={(t) =>
+                session.showLocalSheet('study_note', {
+                  taskId: Number(t.id),
+                  mode: noteModeOf(t),
+                  title: describeTask(t).title.replace(/^📝\s*/, ''),
+                })
+              }
             />
           )}
           {dock === 'notice' && (
