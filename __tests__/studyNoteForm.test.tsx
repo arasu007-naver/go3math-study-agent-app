@@ -41,7 +41,7 @@ describe('StudyNoteForm', () => {
     await fireEvent.press(screen.getByText('계산'));
     await fireEvent.press(screen.getByText('저장'));
     await waitFor(() => expect(onDone).toHaveBeenCalledWith('saved'));
-    expect(fetchers.register).toHaveBeenCalledWith(7, { achievementRate: 75, difficulties: 'concept,calc' });
+    expect(fetchers.register).toHaveBeenCalledWith(7, { achievementRate: 75, difficulties: 'concept,calc', description: '', expectations: '' });
   });
 
   it('save is disabled until something is entered', async () => {

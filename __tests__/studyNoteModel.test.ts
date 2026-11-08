@@ -66,12 +66,18 @@ describe('toInput', () => {
   it('omits expectations in live mode', () => {
     expect('expectations' in toInput(form, 'live')).toBe(false);
   });
-  it('trims and truncates to 200 chars, omitting empty values', () => {
+  it('trims and truncates to 200 chars, sending empty text as empty strings', () => {
     const out = toInput({ ...emptyForm(), description: ` ${'가'.repeat(250)} `, expectations: '   ' }, 'self');
     expect(out.description).toBe('가'.repeat(200));
-    expect('expectations' in out).toBe(false);
-    expect('difficulties' in out).toBe(false);
+    expect(out.expectations).toBe('');
+    expect(out.difficulties).toBe('');
     expect('achievementRate' in out).toBe(false);
+  });
+  it('clearing description and chips sends empty strings so update clears them', () => {
+    const loaded = fromNote({ taskId: 1, description: '예전', difficulties: 'concept', expectations: '복습', achievementRate: 50 });
+    const cleared = { ...loaded, description: '', difficulties: [], expectations: '' };
+    expect(toInput(cleared, 'self')).toEqual({ achievementRate: 50, description: '', difficulties: '', expectations: '' });
+    expect(toInput(cleared, 'live')).toEqual({ achievementRate: 50, description: '', difficulties: '' });
   });
   it('prefers the selected achievement over the legacy rate', () => {
     expect(toInput({ ...emptyForm(), achievement: 100, legacyRate: 60 }, 'self').achievementRate).toBe(100);

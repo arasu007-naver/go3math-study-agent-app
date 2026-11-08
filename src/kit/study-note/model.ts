@@ -116,21 +116,15 @@ function clean(text: string): string {
   return text.trim().slice(0, MAX_TEXT);
 }
 
+/** 글·난관은 비어 있어도 ''로 보낸다(서버 update는 빠진 필드를 건드리지 않아 지운 값이 남는다). expectations는 self 모드에서만 */
 export function toInput(s: FormState, mode: 'self' | 'live'): StudyNoteInput {
   const out: StudyNoteInput = {};
 
   const rate = s.achievement ?? s.legacyRate;
   if (rate !== null) out.achievementRate = rate;
 
-  const difficulties = [...s.difficulties, ...(s.legacyDifficultyText ? [s.legacyDifficultyText] : [])].join(',');
-  if (difficulties) out.difficulties = difficulties;
-
-  const description = clean(s.description);
-  if (description) out.description = description;
-
-  if (mode === 'self') {
-    const expectations = clean(s.expectations);
-    if (expectations) out.expectations = expectations;
-  }
+  out.difficulties = [...s.difficulties, ...(s.legacyDifficultyText ? [s.legacyDifficultyText] : [])].join(',');
+  out.description = clean(s.description);
+  if (mode === 'self') out.expectations = clean(s.expectations);
   return out;
 }
