@@ -115,6 +115,15 @@ export class AgentSession {
     this.stageBeforeLocal = null;
   }
 
+  /** 클라이언트가 직접 여는 모달 시트(학습장 등). Stage는 건드리지 않는다 */
+  showLocalSheet(componentId: string, props: Record<string, unknown>) {
+    this.update({ ...this.state, sheet: { componentId, props } });
+  }
+
+  closeSheet() {
+    this.update({ ...this.state, sheet: null });
+  }
+
   private handleOpen() {
     this.attempt = 0;
     this.setConnected(true);

@@ -1,7 +1,7 @@
 // 명령 → UI 상태 전이(reducer). 단일 진실 원천(명세서 §3.2). 순수 함수라 화면 컴포넌트와 무관하게
 // 상태가 유지되어 폴더블 모드 전환 후에도 열린 instruction·Stage가 그대로 옮겨진다(§4.7).
 import { parseCommand, type AppEventPayloads, type TimelineItem } from '../protocol';
-import { resolveComponent } from '../host/registry';
+import { registry, resolveComponent } from '../host/registry';
 import type { DeviceMode } from '../layout/deviceMode';
 
 export type Instruction = {
@@ -21,6 +21,8 @@ export type RouterState = {
   lastAgentSeq: number;
   acked: Record<string, AppEventPayloads['ack']>; // command id → 이미 보낸 ack (멱등 재송용)
   stage: StageView | null;
+  /** Stage를 덮지 않는 모달 시트 슬롯(registry placement: 'sheet') */
+  sheet: StageView | null;
   fallbackText: string | null; // 위젯을 띄우지 못했을 때 텍스트 대체 안내
   instruction: Instruction | null;
   pausedDefault: Instruction | null; // 튜터 instruction 처리 중 일시정지된 기본 흐름
@@ -34,6 +36,7 @@ export const initialRouterState: RouterState = {
   lastAgentSeq: 0,
   acked: {},
   stage: null,
+  sheet: null,
   fallbackText: null,
   instruction: null,
   pausedDefault: null,
@@ -84,7 +87,11 @@ export function routeCommand(state: RouterState, raw: unknown, mode: DeviceMode)
     case 'show_component': {
       const r = resolveComponent(cmd.payload.componentId, cmd.payload.props, mode);
       if (r.ok) {
-        next = { ...state, stage: { componentId: cmd.payload.componentId, props: r.props }, fallbackText: null };
+        const view = { componentId: cmd.payload.componentId, props: r.props };
+        next =
+          registry[cmd.payload.componentId]?.placement === 'sheet'
+            ? { ...state, sheet: view }
+            : { ...state, stage: view, fallbackText: null };
       } else {
         payload = { ok: false, stage: 'failed', code: r.code, message: r.message };
         next = { ...state, fallbackText: FALLBACK_TEXT };
@@ -112,7 +119,8 @@ export function routeCommand(state: RouterState, raw: unknown, mode: DeviceMode)
     }
     case 'close_component': {
       const id = cmd.payload.componentId;
-      if (!id || state.stage?.componentId === id) next = { ...state, stage: null };
+      if (id && state.sheet?.componentId === id) next = { ...state, sheet: null };
+      else if (!id || state.stage?.componentId === id) next = { ...state, stage: null };
       break;
     }
     case 'timeline_append':

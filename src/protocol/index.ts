@@ -131,6 +131,10 @@ export type AppEventPayloads = {
   task_selected: { taskId: number; taskType: string; collectionId?: number };
   // 채팅 타임라인 카드(reopenable)를 눌렀을 때
   timeline_item_selected: { itemId: string };
+  // 풀이(직접/주제 라이브/핫라인)가 끝났을 때. 에이전트가 학습장 양식을 띄울지 결정한다.
+  solve_finished: { taskId?: number; kind: 'self' | 'topic_live' | 'hotline'; solvedCount: number };
+  study_note_saved: { taskId: number };
+  study_note_dismissed: { taskId: number };
   app_state: { state: 'foreground' | 'background' };
   client_error: { where: string; message: string; commandId?: string };
 };

@@ -3,7 +3,8 @@ import type { DeviceMode } from '../layout/deviceMode';
 
 // 명세서 §4.4: show_component는 registry에 있는 id만 허용하고 props를 zod로 검증한다.
 // M3: topic_list / problem_preview / problem_list / exam_search / research가 kit 패널 + 실데이터(조회 전용)로 동작한다. 나머지 id는 unsupported.
-export type RegistryEntry = { propsSchema: z.ZodTypeAny; mode: 'both' | DeviceMode };
+// placement: 'stage'(기본)는 Stage 슬롯, 'sheet'는 Stage를 건드리지 않는 모달 시트 슬롯.
+export type RegistryEntry = { propsSchema: z.ZodTypeAny; mode: 'both' | DeviceMode; placement?: 'stage' | 'sheet' };
 
 export const registry: Record<string, RegistryEntry> = {
   // 태블릿은 Stage에 문제 목록만 띄운다(검색·주제는 drawer dock). 아래 셋은 폰 Stage 전용.
@@ -17,7 +18,7 @@ export const registry: Record<string, RegistryEntry> = {
   },
   problem_preview: {
     mode: 'both',
-    propsSchema: z.object({ topicId: z.number().int() }),
+    propsSchema: z.object({ topicId: z.number().int(), taskId: z.number().int().optional() }),
   },
   // 기존 TabletQuestionsViewerModal 대신: 타임라인 기록(task)이나 기출 검색 조건의 문제 목록(주제 기록은 problem_preview)
   problem_list: {
@@ -25,8 +26,8 @@ export const registry: Record<string, RegistryEntry> = {
     propsSchema: z.object({
       source: z.discriminatedUnion('kind', [
         z.object({ kind: z.literal('task'), taskId: z.number().int() }),
-        z.object({ kind: z.literal('exam_query'), query: z.record(z.string(), z.unknown()) }),
-        z.object({ kind: z.literal('bookmarks') }),
+        z.object({ kind: z.literal('exam_query'), query: z.record(z.string(), z.unknown()), taskId: z.number().int().optional() }),
+        z.object({ kind: z.literal('bookmarks'), taskId: z.number().int().optional() }),
       ]),
     }),
   },
@@ -49,6 +50,17 @@ export const registry: Record<string, RegistryEntry> = {
   research: {
     mode: 'phone',
     propsSchema: z.object({ category: z.enum(['recent', 'pre', 'mentor']).optional() }),
+  },
+  // 풀이 종료 후 학습장 입력 양식. Stage 대신 모달 시트로 뜬다.
+  study_note: {
+    mode: 'both',
+    placement: 'sheet',
+    propsSchema: z.object({
+      taskId: z.number().int(),
+      mode: z.enum(['self', 'live']),
+      title: z.string().optional(),
+      topicHints: z.array(z.string()).max(5).optional(),
+    }),
   },
 };
 
