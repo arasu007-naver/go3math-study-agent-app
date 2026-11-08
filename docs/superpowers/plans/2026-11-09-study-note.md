@@ -446,14 +446,14 @@
     | Diary `list` | `{ taskType: 'list', task: { problems: [{ sourceType, sourceId }] } }` |
 
   - `create`는 기존 `CREATE_SELECTION_TASK`(`$taskType`, `$task`)를 `{ taskType: spec.taskType, task: JSON.stringify(spec.task) }`로 호출하고 `createTask.id`를 숫자로 돌려준다.
-  - **서버 확인 필요:** `hotline`과 `list`는 기존 앱에 없던 taskType이다. 서버가 이 값을 거절하면 `ensureTaskId`는 `undefined`를 돌려주고 `client_error`를 보고한다. 캔버스는 그대로 열리고, 그 세션에서는 학습장을 묻지 않는다.
+  - **서버 확인 결과:** 서버는 어떤 taskType이든 받지만 타임라인은 `hotline`·`list`를 보여 주지 못한다. 그래서 앱은 `selection`·`topic`만 만들고, `bookmark`·`list`·`hotline` spec에는 `create`도 `client_error`도 없이 `undefined`를 돌려준다. 캔버스는 그대로 열리고, 그 세션에서는 학습장을 묻지 않는다.
 
 - [ ] **Step 1: 실패하는 테스트 작성**
   - `ensureTask.test.ts`
     - taskId가 있으면 `create`를 호출하지 않고 그 값을 돌려준다.
     - 없으면 `create`의 결과를 돌려준다.
     - `create`가 reject하면 `undefined`를 돌려주고, `report('study_note.ensure_task', …)`를 1회 호출한다.
-    - Review Focus 4: 같은 spec(`JSON.stringify` 기준)으로 동시에 두 번 호출하면 `create`는 1회만 호출되고 두 호출 모두 같은 id를 받는다. 완료된 뒤 다시 호출하면 새로 만든다.
+    - Review Focus 4: 같은 spec(`JSON.stringify` 기준)으로 동시에 두 번 호출하면 `create`는 1회만 호출되고 두 호출 모두 같은 id를 받는다.
   - `solveFinished.test.tsx`: `useSolveFinished`를 쓰는 테스트 컴포넌트를 렌더하고, `countSolved()`를 2번 부른 뒤 unmount한다.
     - 기대: `emit('solve_finished', { taskId: 7, kind: 'self', solvedCount: 2 })` 1회
     - taskId가 undefined이면 payload에 `taskId` 키가 없다.

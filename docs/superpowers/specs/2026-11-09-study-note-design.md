@@ -195,6 +195,8 @@ lint(`npx expo lint`)와 typecheck(`npx tsc --noEmit`)를 통과해야 완료다
 3. **강의자 설명 필드:** 실황 수업 강의자 설명은 학생 필드(`description`)와 **별도 필드**로 받는다. 예: `studyNote.tutorDescription`, 또는 `noteType='tutor'`인 별도 노트. 학생이 저장할 때 강의자 설명을 덮어쓰지 않아야 한다.
 4. **목록 요약:** `getTaskHistory`(`MY_TASKS`)에 노트 요약을 추가한다. 예: `note { description achievementRate noteType tutorDescription }`. 카드마다 따로 조회하지 않기 위해서다.
 5. **기록:** 메모를 저장하면 채팅 타임라인에 `timeline_append`로 기록을 남기고, 일간·주간 정리에 반영한다.
+6. **task 생성:** 서버 `createTask`는 같은 내용의 task가 있어도 항상 새 행을 넣는다. 그래서 앱은 앱 세션 동안 spec별로 만든 taskId를 기억해 다시 만들지 않고, 타임라인이 보여 주는 `selection`과 `topic` task만 만든다.
+7. **시트 props:** `show_component('study_note')`에는 `taskId`·`mode`와 함께 `title`(카드·풀이 제목)과 `topicHints`(추천 문구, 예: 주제 제목)를 싣는다. `title`이 없으면 앱은 같은 taskId로 방금 푼 풀이 화면의 제목을 쓴다.
 
 서버 3번과 4번이 준비되기 전에는 앱이 다음처럼 동작한다.
 
