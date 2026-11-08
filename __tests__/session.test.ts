@@ -1,5 +1,6 @@
 import { AgentSession, OUTBOX_LIMIT, capOutbox, memoryStore, type Transport } from '../src/agent/session';
 import type { AppEvent } from '../src/protocol';
+import { MockAgentTransport } from '../src/agent/mockAgent';
 
 /** 테스트용 모의 서버: 보낸 명령을 기록하고 hello.resume 이후만 재전송한다. */
 class FakeServer implements Transport {
@@ -138,5 +139,69 @@ describe('AgentSession local Stage (책갈피 버튼)', () => {
     session.showLocalComponent('problem_list', { source: { kind: 'bookmarks' } });
     session.restoreStage();
     expect(session.getSnapshot().stage).toBeNull();
+  });
+});
+
+describe('MockAgentTransport study note', () => {
+  const ev = (kind: string, payload: object) => JSON.stringify({ kind, payload });
+
+  function mock() {
+    jest.useFakeTimers();
+    const got: any[] = [];
+    const t = new MockAgentTransport();
+    t.connect({ onOpen: () => {}, onClose: () => {}, onMessage: (d) => got.push(JSON.parse(d)) });
+    t.send(ev('hello', { device: { mode: 'tablet' } }));
+    jest.runOnlyPendingTimers();
+    got.length = 0;
+    const send = (kind: string, payload: object) => {
+      t.send(ev(kind, payload));
+      jest.runOnlyPendingTimers();
+    };
+    return { t, got, send };
+  }
+  afterEach(() => jest.useRealTimers());
+
+  it('asks for a self study note after solving', () => {
+    const { t, got, send } = mock();
+    send('solve_finished', { taskId: 7, kind: 'self', solvedCount: 1 });
+    expect(got).toHaveLength(1);
+    expect(got[0]).toMatchObject({ kind: 'show_component', payload: { componentId: 'study_note', props: { taskId: 7, mode: 'self' } } });
+    t.close();
+  });
+
+  it('uses live mode for topic_live and hotline', () => {
+    const { t, got, send } = mock();
+    send('solve_finished', { taskId: 7, kind: 'topic_live', solvedCount: 2 });
+    send('solve_finished', { taskId: 8, kind: 'hotline', solvedCount: 1 });
+    expect(got.map((m) => m.payload.props.mode)).toEqual(['live', 'live']);
+    t.close();
+  });
+
+  it('stays silent without a taskId or with zero solved', () => {
+    const { t, got, send } = mock();
+    send('solve_finished', { kind: 'self', solvedCount: 1 });
+    send('solve_finished', { taskId: 7, kind: 'self', solvedCount: 0 });
+    expect(got).toHaveLength(0);
+    t.close();
+  });
+
+  it('records the saved note and does not ask again for that task', () => {
+    const { t, got, send } = mock();
+    send('study_note_saved', { taskId: 7 });
+    const added = got.find((m) => m.kind === 'timeline_append');
+    expect(added.payload.items[0]).toMatchObject({ kind: 'task', title: '학습장을 남겼어요' });
+    got.length = 0;
+    send('solve_finished', { taskId: 7, kind: 'self', solvedCount: 1 });
+    expect(got).toHaveLength(0);
+    send('solve_finished', { taskId: 9, kind: 'self', solvedCount: 1 });
+    expect(got).toHaveLength(1);
+    t.close();
+  });
+
+  it('ignores a dismissed note', () => {
+    const { t, got, send } = mock();
+    send('study_note_dismissed', { taskId: 7 });
+    expect(got).toHaveLength(0);
+    t.close();
   });
 });

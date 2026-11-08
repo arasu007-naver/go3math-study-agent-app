@@ -14,6 +14,8 @@ export class MockAgentTransport implements Transport {
   private mode: 'phone' | 'tablet' = 'tablet';
   // 서버가 보관하는 채팅 타임라인 흉내. 다시 열 때 쓸 원래 요청을 항목 id로 기억한다
   private timeline: TimelineItem[] = seedTimeline();
+  // 학습장을 이미 남긴 학습 기록(taskId): 같은 기록은 다시 묻지 않는다
+  private notedTasks = new Set<number>();
   private reopen = new Map<string, { kind: string; payload: Record<string, any> }>();
 
   constructor(private readonly opts: { tutorDelayMs?: number } = {}) {}
@@ -85,6 +87,18 @@ export class MockAgentTransport implements Transport {
       case 'unit_selected':
         this.say(`${evt.payload.unitIdx + 1}번 문제예요. 연습장에 풀고 사진을 올려 주세요.`, [], 'prompt');
         break;
+      case 'solve_finished': {
+        const { taskId, kind, solvedCount } = evt.payload;
+        if (typeof taskId !== 'number' || !(solvedCount > 0) || this.notedTasks.has(taskId)) break;
+        this.cmd('show_component', { componentId: 'study_note', props: { taskId, mode: kind === 'self' ? 'self' : 'live' } });
+        break;
+      }
+      case 'study_note_saved':
+        this.notedTasks.add(evt.payload.taskId);
+        this.record('task', '학습장을 남겼어요', `기록 #${evt.payload.taskId}`, evt);
+        break;
+      case 'study_note_dismissed':
+        break; // 닫기만 한 경우는 무시한다(다음 풀이 후 다시 물을 수 있다)
       case 'back_requested':
         // 문제 목록에서 뒤로 → 빈 Stage(가운데 로고)
         if (evt.payload.from === 'problem_list') {
