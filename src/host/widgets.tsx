@@ -9,6 +9,8 @@ import { ExamSearchPanel, type ExamSearchMode } from '../kit/exam-search/ExamSea
 import { ResearchPanel, type ResearchCategory } from '../kit/research/ResearchPanel';
 import type { ExamSelection } from '../kit/exam-search/query';
 import { ProblemListPanel, BookmarksPanel, type ProblemSource } from '../kit/problem-list/ProblemListPanel';
+import { StudyNoteForm } from '../kit/study-note/StudyNoteForm';
+import { createStudyNoteFetchers } from '../adapters/studyNoteFetchers';
 import { TopicTabsPanel } from '../kit/topic-panel/TopicTabsPanel';
 import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
 import { UNITIMAGE } from '../config/api.constants';
@@ -18,8 +20,9 @@ import { storage } from '../storage';
 
 export const topicFetchers = createTopicFetchers(apolloClient);
 const problemListFetchers = createProblemListFetchers(apolloClient);
+const studyNoteFetchers = createStudyNoteFetchers(apolloClient);
 
-type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
+export type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
 
 /** 문제 목록의 연필 버튼: 문제 묶음을 넘기고 풀이 화면(/notebook)으로 */
 export function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number) {
@@ -147,4 +150,29 @@ export const widgets: Record<string, (p: WidgetProps) => ReactElement> = {
   bookmarks_panel: BookmarksWidget,
   exam_search: ExamSearchWidget,
   research: ResearchWidget,
+};
+
+/** 학습장 시트: 저장·닫기를 에이전트 이벤트로 알리고 시트를 닫는다. taskId가 바뀌면 key로 양식을 다시 마운트한다 */
+function StudyNoteWidget({ props, session }: WidgetProps) {
+  const taskId = props.taskId as number;
+  return (
+    <StudyNoteForm
+      key={taskId}
+      taskId={taskId}
+      mode={props.mode as 'self' | 'live'}
+      title={(props.title as string | undefined) ?? '학습장 기록'}
+      topicHints={props.topicHints as string[] | undefined}
+      fetchers={studyNoteFetchers}
+      store={storage}
+      onDone={(result) => {
+        session.emit(result === 'saved' ? 'study_note_saved' : 'study_note_dismissed', { taskId });
+        session.closeSheet();
+      }}
+    />
+  );
+}
+
+/** Stage 대신 모달 시트로 뜨는 위젯(registry placement: 'sheet') */
+export const sheetWidgets: Record<string, (p: WidgetProps) => ReactElement> = {
+  study_note: StudyNoteWidget,
 };

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs, usePathname } from 'expo-router';
 import { getAgentSession } from '@/src/agent/useAgentSession';
+import { SheetHost } from '@/src/host/SheetHost';
 import { useAuthGate } from '@/src/auth/useAuthGate';
 import { useDeviceMode } from '@/src/layout/deviceMode';
 import { isFullScreenRoute } from '@/src/layout/fullScreenRoutes';
@@ -61,6 +62,7 @@ export default function MainLayout() {
     };
 
   return (
+    <>
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.accentText,
@@ -84,5 +86,8 @@ export default function MainLayout() {
         />
       ))}
     </Tabs>
+    {/* 로그인 후에만 에이전트 세션을 구독하는 앱 전역 모달 시트(학습장 등) */}
+    <SheetHost />
+    </>
   );
 }
