@@ -1,5 +1,5 @@
 import type { KeyValueStore } from '../../storage/types';
-import type { FormState } from './model';
+import { emptyForm, type FormState } from './model';
 
 export const draftKey = (taskId: number): string => `agent:studyNoteDraft:${taskId}`;
 
@@ -9,7 +9,8 @@ export function loadDraft(store: KeyValueStore, taskId: number): FormState | nul
   try {
     const parsed: unknown = JSON.parse(raw);
     if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
-    return parsed as FormState;
+    const merged: FormState = { ...emptyForm(), ...(parsed as Partial<FormState>) };
+    return Array.isArray(merged.difficulties) ? merged : null;
   } catch {
     return null;
   }

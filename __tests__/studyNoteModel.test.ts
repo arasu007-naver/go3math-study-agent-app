@@ -120,6 +120,13 @@ describe('draft', () => {
     s.set(draftKey(7), '{broken');
     expect(loadDraft(s, 7)).toBeNull();
   });
+  it('fills missing fields from an older draft', () => {
+    const s = memoryStore();
+    s.set(draftKey(7), '{"description":"x"}');
+    expect(loadDraft(s, 7)).toEqual({ ...emptyForm(), description: 'x' });
+    s.set(draftKey(7), '{"difficulties":"concept"}');
+    expect(loadDraft(s, 7)).toBeNull();
+  });
   it('clears', () => {
     const s = memoryStore();
     saveDraft(s, 7, form);
