@@ -57,7 +57,7 @@
    ```ts
    show_component('study_note', { taskId: number; mode: 'self' | 'live' })
    ```
-   - 태블릿: drawer. 폰: 하단 탭 위 하단 모달. 다른 에이전트 위젯과 같은 자리다.
+   - 태블릿과 폰 모두 앱 전역 모달 시트로 띄운다. Stage(문제 목록)는 바꾸지 않는다. 양식이 뜨는 시점에는 캔버스가 이미 닫혀 있어 필기를 가리지 않는다. 구현 계획에서 drawer 대신 이 방식으로 정했다.
    - `taskId`가 없거나, 이미 메모가 있거나, 빈도 제한에 걸리면 묻지 않는다. 이 판단은 서버가 한다.
 4. `study_note`는 `src/host/registry.ts`에 `mode: 'both'`로 등록한다. props는 zod로 검증한다.
    ```ts
