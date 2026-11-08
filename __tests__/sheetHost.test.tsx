@@ -36,7 +36,7 @@ function fakeSession() {
 }
 
 function findModal(): any {
-  let node: any = screen.getByLabelText('학습장 배경');
+  let node: any = screen.getByLabelText('닫기');
   while (node && !node.props.onRequestClose) node = node.parent;
   return node;
 }
@@ -89,10 +89,16 @@ describe('SheetHost', () => {
     const session = fakeSession();
     await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
     await screen.findByText('학습장 · t');
-    await fireEvent.press(screen.getByLabelText('학습장 배경'));
+    await fireEvent.press(screen.getByLabelText('닫기'));
     expect(session.emit).toHaveBeenCalledTimes(1);
     expect(session.emit).toHaveBeenCalledWith('study_note_dismissed', { taskId: 7 });
     expect(session.closeSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('modal supports portrait and landscape', async () => {
+    await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={fakeSession()} />);
+    await screen.findByText('학습장 · t');
+    expect(findModal().props.supportedOrientations).toEqual(['portrait', 'landscape']);
   });
 
   it('renders nothing when sheet is null', async () => {
@@ -118,8 +124,8 @@ describe('SheetHost', () => {
     const session = fakeSession();
     await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
     await screen.findByText('학습장 · t');
-    await fireEvent.press(screen.getByLabelText('학습장 배경'));
-    await fireEvent.press(screen.getByLabelText('학습장 배경'));
+    await fireEvent.press(screen.getByLabelText('닫기'));
+    await fireEvent.press(screen.getByLabelText('닫기'));
     expect(session.emit).toHaveBeenCalledTimes(1);
     expect(session.closeSheet).toHaveBeenCalledTimes(1);
   });

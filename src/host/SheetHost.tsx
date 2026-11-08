@@ -28,9 +28,9 @@ export function SheetHost(props: Props) {
   const dismiss = () => dismissRef.current?.();
 
   return (
-    <Modal transparent visible animationType={reduceMotion ? 'fade' : 'slide'} onRequestClose={dismiss}>
+    <Modal transparent visible supportedOrientations={['portrait', 'landscape']} animationType={reduceMotion ? 'fade' : 'slide'} onRequestClose={dismiss}>
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable style={styles.scrim} accessibilityRole="button" accessibilityLabel="학습장 배경" onPress={dismiss} />
+        <Pressable style={styles.scrim} accessibilityRole="button" accessibilityLabel="닫기" onPress={dismiss} />
         <View style={[styles.card, mode === 'tablet' && styles.cardTablet]}>
           <Widget props={sheet.props} session={session} dismissRef={dismissRef} />
         </View>
