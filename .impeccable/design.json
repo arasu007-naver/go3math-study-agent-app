@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T00:00:00+09:00",
+  "title": "Design System: Go3 Math",
+  "extensions": {
+    "colorMeta": {
+      "accent": { "role": "primary", "displayName": "Desk Lamp Orange", "canonical": "#F97316", "tonalRamp": ["#7C2D12", "#9A3412", "#C2410C", "#EA580C", "#F97316", "#FED7AA", "#FFEDD5", "#FFF7ED"] },
+      "accent-press": { "role": "primary", "displayName": "Pressed Ember", "canonical": "#EA580C" },
+      "accent-text": { "role": "primary", "displayName": "Burnt Label", "canonical": "#C2410C" },
+      "accent-soft": { "role": "primary", "displayName": "Morning Glow", "canonical": "#FFF7ED" },
+      "accent-soft-press": { "role": "primary", "displayName": "Warm Press", "canonical": "#FFEDD5" },
+      "bg": { "role": "neutral", "displayName": "Desk Surface", "canonical": "#F7F7F8", "tonalRamp": ["#18181B", "#3F3F46", "#52525B", "#71717A", "#A1A1AA", "#D4D4D8", "#EFEFF1", "#F7F7F8"] },
+      "card": { "role": "neutral", "displayName": "Paper White", "canonical": "#FFFFFF" },
+      "card-muted": { "role": "neutral", "displayName": "Pencil Tray", "canonical": "#EFEFF1" },
+      "text": { "role": "neutral", "displayName": "Ink", "canonical": "#18181B" },
+      "subtle": { "role": "neutral", "displayName": "Graphite", "canonical": "#3F3F46" },
+      "muted": { "role": "neutral", "displayName": "Lead Gray", "canonical": "#71717A" },
+      "disabled": { "role": "neutral", "displayName": "Eraser Gray", "canonical": "#A1A1AA" },
+      "line": { "role": "neutral", "displayName": "Hairline", "canonical": "#E4E4E7" },
+      "line-strong": { "role": "neutral", "displayName": "Hairline Strong", "canonical": "#D4D4D8" },
+      "scrim": { "role": "neutral", "displayName": "Scrim", "canonical": "rgba(24,24,27,0.32)" },
+      "success": { "role": "status", "displayName": "Success", "canonical": "#16A34A" },
+      "danger": { "role": "status", "displayName": "Danger", "canonical": "#DC2626" },
+      "warn-soft": { "role": "status", "displayName": "Warn Soft", "canonical": "#FEF3C7" }
+    },
+    "typographyMeta": {
+      "heading": { "displayName": "Heading", "purpose": "패널·화면 제목." },
+      "title": { "displayName": "Title", "purpose": "카드·섹션 제목. 에이전트·튜터 문장은 이 크기에 400 굵기(Read-Aloud Rule)." },
+      "body-strong": { "displayName": "Body Strong", "purpose": "버튼 글자, toast 본문, 강조 항목." },
+      "body": { "displayName": "Body", "purpose": "일반 본문·목록·안내." },
+      "caption": { "displayName": "Caption", "purpose": "라벨·메타·도움말." },
+      "tab-label": { "displayName": "Tab Label", "purpose": "하단 바·툴바 라벨 전용, 한 줄." }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 4px 12px rgba(0,0,0,0.06)", "purpose": "바닥에 놓인 카드, 세그먼트 활성 pill. Android elevation 3." },
+      { "name": "float", "value": "0 8px 24px rgba(0,0,0,0.10)", "purpose": "Stage 위에 겹치는 drawer·dock·레일·툴바·toast·엣지 핸들. Android elevation 8." }
+    ],
+    "motion": [
+      { "name": "fast", "value": "150ms", "purpose": "눌림·작은 상태 변화." },
+      { "name": "base", "value": "220ms", "purpose": "기본 전환." },
+      { "name": "slow", "value": "320ms", "purpose": "drawer·dock 진입." },
+      { "name": "spring", "value": "damping 22, stiffness 240, mass 1", "purpose": "세그먼트 pill·drawer 스프링(reanimated 4)." },
+      { "name": "toast", "value": "6400ms", "purpose": "튜터 toast 자동 닫힘(스펙 고정값)." }
+    ],
+    "breakpoints": [
+      { "name": "tablet-enter", "value": "shortest side >= 600" },
+      { "name": "tablet-exit", "value": "shortest side < 560" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "카드당 하나뿐인 주 행동.",
+      "html": "<button class=\"ds-btn-primary\">주제 목록에서 고르기</button>",
+      "css": ".ds-btn-primary { min-height: 44px; padding: 0 12px; width: 280px; border: none; border-radius: 12px; background: #F97316; color: #FFFFFF; font-family: Pretendard, system-ui, sans-serif; font-size: 14px; font-weight: 600; line-height: 20px; transition: background 150ms; } .ds-btn-primary:hover { background: #EA580C; } .ds-btn-primary:active { background: #EA580C; } .ds-btn-primary:focus-visible { outline: 2px solid #C2410C; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "주 행동이 아닌 나머지 선택지.",
+      "html": "<button class=\"ds-btn-secondary\">10월 모의고사 검색</button>",
+      "css": ".ds-btn-secondary { min-height: 44px; padding: 0 12px; width: 280px; border: none; border-radius: 12px; background: #EFEFF1; color: #18181B; font-family: Pretendard, system-ui, sans-serif; font-size: 14px; font-weight: 600; line-height: 20px; transition: background 150ms; } .ds-btn-secondary:hover { background: #E4E4E7; } .ds-btn-secondary:active { background: #FFEDD5; } .ds-btn-secondary:focus-visible { outline: 2px solid #C2410C; outline-offset: 2px; }"
+    },
+    {
+      "name": "Instruction Card",
+      "kind": "card",
+      "refersTo": "surface-card",
+      "description": "에이전트·튜터 안내: 라벨, 읽을 문장, 선택지.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-label\">에이전트</div><p class=\"ds-say\">오늘은 무엇부터 할까요? 주제를 고르거나 10월 모의고사 문항을 검색할 수 있어요.</p><div class=\"ds-tutor\"><div class=\"ds-label ds-label-tutor\">김선생님</div><p class=\"ds-say\">21번은 그래프부터 그려 보세요.</p></div><button class=\"ds-c-primary\">주제 목록에서 고르기</button></div>",
+      "css": ".ds-card { width: 300px; padding: 16px; background: #FFFFFF; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.10); display: flex; flex-direction: column; gap: 8px; font-family: Pretendard, system-ui, sans-serif; } .ds-label { font-size: 12px; line-height: 16px; color: #71717A; } .ds-label-tutor { color: #18181B; } .ds-say { margin: 0; font-size: 16px; line-height: 22px; font-weight: 400; color: #18181B; } .ds-tutor { padding: 12px; border-radius: 12px; background: #EFEFF1; display: flex; flex-direction: column; gap: 4px; } .ds-c-primary { min-height: 44px; border: none; border-radius: 12px; background: #F97316; color: #fff; font: 600 14px/20px Pretendard, system-ui, sans-serif; } .ds-c-primary:hover { background: #EA580C; } .ds-c-primary:focus-visible { outline: 2px solid #C2410C; outline-offset: 2px; }"
+    },
+    {
+      "name": "Bottom Segment Bar",
+      "kind": "nav",
+      "refersTo": "segment-bar",
+      "description": "하단 고정 바 6칸, 활성 칸은 흰 원형 pill.",
+      "html": "<nav class=\"ds-seg\"><button class=\"ds-seg-i\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1zM15 9a3 3 0 010 6\"/></svg>공지</button><button class=\"ds-seg-i\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-4-4\"/></svg>검색</button><button class=\"ds-seg-i ds-on\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5h4\"/></svg>타임라인</button><button class=\"ds-seg-i\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M8 8a6 6 0 000 8M16 8a6 6 0 010 8\"/></svg>실황</button><button class=\"ds-seg-i\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><rect x=\"4\" y=\"5\" width=\"16\" height=\"15\" rx=\"2\"/><path d=\"M4 10h16M9 3v4M15 3v4\"/></svg>주간</button><button class=\"ds-seg-i\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/><path d=\"M6.5 18a6 6 0 0111 0\"/></svg>내 정보</button></nav>",
+      "css": ".ds-seg { display: flex; width: 520px; padding: 2px; background: #EFEFF1; border-radius: 999px; } .ds-seg-i { flex: 1; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: none; background: transparent; border-radius: 999px; color: #71717A; font: 600 11px/14px Pretendard, system-ui, sans-serif; transition: background 150ms; } .ds-seg-i:hover { background: #FFEDD5; } .ds-seg-i:focus-visible { outline: 2px solid #C2410C; outline-offset: -2px; } .ds-on { background: #FFFFFF; color: #C2410C; box-shadow: 0 4px 12px rgba(0,0,0,0.06); } .ds-on:hover { background: #FFFFFF; }"
+    },
+    {
+      "name": "Floating Toolbar",
+      "kind": "custom",
+      "refersTo": "floating-toolbar",
+      "description": "캔버스 하단 가운데 원형 도구 바.",
+      "html": "<div class=\"ds-tb\"><button class=\"ds-tb-b\" aria-label=\"뒤로\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M15 5l-7 7 7 7\"/></svg></button><button class=\"ds-tb-b\" aria-label=\"메모\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><rect x=\"6\" y=\"3\" width=\"12\" height=\"18\" rx=\"2\"/><path d=\"M9 8h6M9 12h6M9 16h3\"/></svg></button><span class=\"ds-tb-div\"></span><button class=\"ds-tb-b\" aria-label=\"펜 색\"><span class=\"ds-tb-dot\"></span></button><button class=\"ds-tb-b\" aria-label=\"지우기\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13\"/></svg></button></div>",
+      "css": ".ds-tb { display: inline-flex; align-items: center; gap: 4px; height: 52px; padding: 0 8px; background: #FFFFFF; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,0.10); } .ds-tb-b { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 999px; background: transparent; color: #3F3F46; transition: background 150ms; } .ds-tb-b:hover { background: #FFF7ED; } .ds-tb-b:active { background: #FFEDD5; } .ds-tb-b:focus-visible { outline: 2px solid #C2410C; outline-offset: -2px; } .ds-tb-div { width: 1px; height: 24px; background: #E4E4E7; margin: 0 4px; } .ds-tb-dot { width: 22px; height: 22px; border-radius: 999px; background: orange; }"
+    },
+    {
+      "name": "Tutor Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "우상단 튜터 메시지 알림, 6.4초 진행 바.",
+      "html": "<div class=\"ds-toast\"><div class=\"ds-toast-t\">김선생님</div><div class=\"ds-toast-b\">21번 풀이 사진 확인했어요. 두 번째 줄을…</div><span class=\"ds-toast-p\"></span></div>",
+      "css": ".ds-toast { position: relative; width: 360px; padding: 12px; display: flex; flex-direction: column; gap: 4px; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.10); font-family: Pretendard, system-ui, sans-serif; cursor: pointer; } .ds-toast:hover { background: #FCFCFD; } .ds-toast-t { font-size: 12px; line-height: 16px; color: #71717A; } .ds-toast-b { font-size: 14px; line-height: 20px; font-weight: 600; color: #18181B; } .ds-toast-p { position: absolute; left: 0; bottom: 0; height: 3px; width: 62%; background: #F97316; }"
+    },
+    {
+      "name": "Icon Button with Unread Dot",
+      "kind": "button",
+      "refersTo": "icon-button-on",
+      "description": "레일 항목: 44 원형, 켜짐 면과 읽지 않음 점.",
+      "html": "<button class=\"ds-ib\" aria-label=\"메시지\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M4 5h16v11H9l-5 4z\"/></svg><span class=\"ds-ib-dot\"></span></button>",
+      "css": ".ds-ib { position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 999px; background: #FFF7ED; color: #C2410C; transition: background 150ms; } .ds-ib:hover, .ds-ib:active { background: #FFEDD5; } .ds-ib:focus-visible { outline: 2px solid #C2410C; outline-offset: 2px; } .ds-ib-dot { position: absolute; top: 2px; right: 2px; width: 10px; height: 10px; box-sizing: border-box; border-radius: 999px; background: #EA580C; border: 2px solid #FFFFFF; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Desk",
+    "overview": "Go3 Math는 학생의 책상이다. 주인공은 학생의 필기와 문제이고, 인터페이스는 책상 위 도구처럼 한쪽에 물러나 있다가 필요할 때만 손에 잡힌다. 옅은 회색 바닥(`bg`) 위에 흰 카드(`card`)가 떠 있는 두 층 구조가 전부이고, 그 외의 장식은 없다. 영역은 선이 아니라 면과 아주 옅은 그림자로 나눈다.\n\n컴포넌트는 **부드럽고 또렷하다.** 모서리는 둥글고 터치 영역은 넉넉하다(최소 44). 화면마다 주 행동은 하나이며, 주황으로 칠해져 한눈에 들어온다. 나머지 선택지는 회색 면이라서 주 행동과 다투지 않는다. 에이전트와 튜터는 필요한 순간에만 drawer·toast·모달로 나타났다가 들어간다. 대화 화면이 앱의 중심을 차지하지 않는다.\n\n이 시스템은 과거에 주황 테두리로 칸막이를 친 화면을 버리고 만들어졌다. 게임 같은 학습 앱(배지·마스코트·화려한 보상 연출)과 채팅 앱 같은 화면(에이전트를 말풍선 대화창으로 만드는 것)도 피한다.",
+    "keyCharacteristics": [
+      "두 층: 회색 바닥 + 떠 있는 흰 카드. 가장자리와 카드 사이는 12.",
+      "주황은 행동·선택·읽지 않음·진행에만 쓴다.",
+      "Pretendard 400/600/700, 다섯 단계 위계와 하단 바 라벨.",
+      "오버레이(drawer, toast, 툴바)는 자기 영역만 터치를 받고, 그 밖의 필기는 막지 않는다.",
+      "모션은 짧고 차분하며, 감소 모션 설정을 따른다."
+    ],
+    "rules": [
+      { "name": "The Action-Only Orange Rule", "body": "주황은 행동·선택·읽지 않음·진행에만 쓴다. 테두리, 구획선, 제목 장식, 배경 면에는 쓰지 않는다.", "section": "colors" },
+      { "name": "The Ink Is Not Chrome Rule", "body": "필기 잉크 색(`orange, blue, black, red, green`)은 사용자 데이터이며 실황 동기화에 쓰이는 값이다. UI 크롬 토큰과 섞지 않고 바꾸지도 않는다.", "section": "colors" },
+      { "name": "The One Token File Rule", "body": "모든 색은 `src/ui/theme.ts`에서 가져온다. 새 hex를 화면 파일에 직접 쓰지 않는다. `surface`, `ground`, `border`, `agent*`, `tutor`는 하위 호환용이므로 새 코드에서 쓰지 않는다.", "section": "colors" },
+      { "name": "The Read-Aloud Rule", "body": "에이전트·튜터가 학생에게 건네는 문장은 Title 크기(16/22)에 Body 굵기(400)로 쓴다. 학생이 읽어야 하는 글이므로 작게 쓰지 않고, 굵게 해서 외치지도 않는다.", "section": "typography" },
+      { "name": "The Android Family Rule", "body": "굵기는 `fontWeight`만으로 고르지 않는다. 굵기별 `fontFamily`(Pretendard-Regular/SemiBold/Bold)를 함께 지정한다. 그래야 Android에서도 굵기가 맞게 나온다.", "section": "typography" },
+      { "name": "The Float-Means-Overlay Rule", "body": "Float 그림자는 Stage 위에 겹치는 요소에만 쓴다. 바닥에 놓인 카드에 쓰면 무엇이 떠 있는지 구분이 안 된다.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** 모든 스타일을 `StyleSheet.create`와 `src/ui/theme.ts` 토큰으로 쓴다.",
+      "**Do** 화면마다 주 행동은 주황 버튼 하나로 두고, 나머지는 Pencil Tray 보조 버튼으로 둔다.",
+      "**Do** 영역은 면(Desk Surface와 Paper White)과 12 간격으로 나눈다.",
+      "**Do** 모든 터치 대상을 최소 44로 만든다.",
+      "**Do** 오버레이에 `pointerEvents=\"box-none\"` 구조를 유지해, 자기 영역 밖의 필기 입력을 통과시킨다.",
+      "**Do** 애니메이션은 reanimated 4로 하고(fast 150 / base 220 / slow 320 ms, spring damping 22·stiffness 240), `useReducedMotion`을 따른다."
+    ],
+    "donts": [
+      "**Don't** 주황 테두리나 주황 선으로 화면을 칸막이처럼 나누지 않는다.",
+      "**Don't** 배지, 마스코트, 화려한 보상 연출처럼 게임 같은 학습 앱의 장식을 넣지 않는다.",
+      "**Don't** 에이전트를 말풍선이 줄줄이 쌓이는 채팅 앱 화면으로 만들지 않는다. 안내는 Instruction Card로 필요할 때만 띄운다.",
+      "**Don't** 화면 파일에 새 hex 값을 직접 쓰거나, 하위 호환 토큰(`surface`, `ground`, `border`, `agent*`, `tutor`)을 새 코드에 쓰지 않는다.",
+      "**Don't** toast 시간 6.4초와 모드 판단 기준(600/560)을 디자인 작업에서 바꾸지 않는다.",
+      "**Don't** 새 스타일 라이브러리(NativeWind, Tamagui, react-native-paper)를 들이지 않는다."
+    ]
+  }
+}
