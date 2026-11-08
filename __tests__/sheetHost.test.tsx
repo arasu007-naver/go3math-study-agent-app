@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import { SheetHost } from '../src/host/SheetHost';
 import type { AgentSession, SessionSnapshot } from '../src/agent/session';
 import { initialRouterState } from '../src/agent/commandRouter';
+import { solveStore } from '../src/state/solve';
 
 jest.mock('react-native-mmkv', () => ({ createMMKV: () => ({ getString: () => undefined, set: () => {}, remove: () => {} }) }));
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
@@ -40,7 +41,10 @@ function findModal(): any {
   return node;
 }
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  solveStore.dispatch(null);
+});
 
 describe('SheetHost', () => {
   it('renders the study note form when sheet is set', async () => {
@@ -49,6 +53,18 @@ describe('SheetHost', () => {
   });
 
   it('title defaults to 학습장 기록', async () => {
+    await render(<SheetHost state={snap({ taskId: 7, mode: 'self' })} session={fakeSession()} />);
+    expect(await screen.findByText('학습장 · 학습장 기록')).toBeTruthy();
+  });
+
+  it('sheet title falls back to solve session title for the same taskId', async () => {
+    solveStore.dispatch({ title: '수열 21번', problems: [], index: 0, taskId: 7 });
+    await render(<SheetHost state={snap({ taskId: 7, mode: 'self' })} session={fakeSession()} />);
+    expect(await screen.findByText('학습장 · 수열 21번')).toBeTruthy();
+  });
+
+  it('ignores the solve session title for another taskId', async () => {
+    solveStore.dispatch({ title: '수열 21번', problems: [], index: 0, taskId: 8 });
     await render(<SheetHost state={snap({ taskId: 7, mode: 'self' })} session={fakeSession()} />);
     expect(await screen.findByText('학습장 · 학습장 기록')).toBeTruthy();
   });

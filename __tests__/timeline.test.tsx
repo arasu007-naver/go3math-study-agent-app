@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { TimelinePanel, describeNote, describeTask, noteModeOf, type TimelineFetchers, type TimelineTask } from '../src/kit/timeline/TimelinePanel';
+import { TimelinePanel, describeNote, describeTask, noteModeOf, noteSheetProps, type TimelineFetchers, type TimelineTask } from '../src/kit/timeline/TimelinePanel';
 
 const fetchers = (impl: TimelineFetchers['fetchTasks']): TimelineFetchers => ({ fetchTasks: impl });
 
@@ -62,6 +62,22 @@ describe('describeNote / noteModeOf', () => {
     expect(noteModeOf(t({ noteType: 'tutor' }))).toBe('live');
     expect(noteModeOf(t({ tutorDescription: 'x' }))).toBe('live');
     expect(noteModeOf({ id: 1, taskType: 'selection' })).toBe('self');
+  });
+});
+
+describe('noteSheetProps', () => {
+  it('`noteSheetProps` includes topicHints for topic cards', () => {
+    expect(noteSheetProps({ id: '9', taskType: 'topic', topicTitle: '수열의 귀납적 정의', note: { noteType: 'tutor' } })).toEqual({
+      taskId: 9,
+      mode: 'live',
+      title: '수열의 귀납적 정의',
+      topicHints: ['수열의 귀납적 정의'],
+    });
+  });
+  it('omits topicHints for other cards and empty topic titles', () => {
+    expect('topicHints' in noteSheetProps({ id: 1, taskType: 'selection', task: '{}' })).toBe(false);
+    expect('topicHints' in noteSheetProps({ id: 2, taskType: 'topic', topicTitle: '' })).toBe(false);
+    expect(noteSheetProps({ id: 1, taskType: 'selection', task: '{}' })).toMatchObject({ taskId: 1, mode: 'self', title: '기출 검색' });
   });
 });
 

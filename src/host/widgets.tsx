@@ -218,6 +218,12 @@ export const widgets: Record<string, (p: WidgetProps) => ReactElement> = {
 /** 시트 위젯 props: 호스트의 배경 탭·뒤로가기를 위젯이 처리하도록 dismissRef에 닫기 핸들러를 등록한다 */
 export type SheetWidgetProps = WidgetProps & { dismissRef: MutableRefObject<(() => void) | null> };
 
+/** 서버가 title을 안 주면 같은 task로 방금 푼 풀이 화면의 제목을 쓴다 */
+function solveTitleFor(taskId: number): string | undefined {
+  const solve = solveStore.getState();
+  return solve?.taskId === taskId ? solve.title : undefined;
+}
+
 /**
  * 학습장 시트: 저장·닫기를 에이전트 이벤트로 알리고 시트를 닫는다. taskId가 바뀌면 key로 양식을 다시 마운트한다.
  * 같은 taskId에서는 saved/dismissed 중 먼저 온 하나만 내보내고 closeSheet도 한 번만 부른다(늦은 onDone은 무시).
@@ -237,7 +243,7 @@ function StudyNoteWidget({ props, session, dismissRef }: SheetWidgetProps) {
       key={taskId}
       taskId={taskId}
       mode={props.mode as 'self' | 'live'}
-      title={(props.title as string | undefined) ?? '학습장 기록'}
+      title={(props.title as string | undefined) ?? solveTitleFor(taskId) ?? '학습장 기록'}
       topicHints={props.topicHints as string[] | undefined}
       fetchers={studyNoteFetchers}
       store={storage}

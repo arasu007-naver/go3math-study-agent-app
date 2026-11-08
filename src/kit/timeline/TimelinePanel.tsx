@@ -96,6 +96,16 @@ export function noteModeOf(t: TimelineTask): 'self' | 'live' {
   return t.note?.noteType === 'tutor' || t.note?.tutorDescription ? 'live' : 'self';
 }
 
+/** 카드의 학습장 버튼이 여는 study_note 시트 props. 주제 카드는 주제 제목을 추천 문구로 넘긴다 */
+export function noteSheetProps(t: TimelineTask): { taskId: number; mode: 'self' | 'live'; title: string; topicHints?: string[] } {
+  return {
+    taskId: Number(t.id),
+    mode: noteModeOf(t),
+    title: describeTask(t).title.replace(/^📝\s*/, ''),
+    ...(t.taskType === 'topic' && t.topicTitle ? { topicHints: [t.topicTitle] } : {}),
+  };
+}
+
 export function TimelinePanel({
   fetchers,
   onSelectTask,
