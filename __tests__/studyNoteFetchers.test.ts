@@ -136,4 +136,15 @@ describe('createStudyNoteFetchers', () => {
       variables: { taskId: 7, ...input },
     });
   });
+
+  it('register / update throw when the server returns a negative result (unauthenticated)', async () => {
+    const client = makeClient();
+    const f = createStudyNoteFetchers(client as never);
+    client.mutate.mockResolvedValueOnce({ data: { registerTaskNote: -1 } });
+    await expect(f.register(7, input)).rejects.toThrow('저장하지 못했어요');
+    client.mutate.mockResolvedValueOnce({ data: { updateTaskNote: -1 } });
+    await expect(f.update(7, input)).rejects.toThrow('저장하지 못했어요');
+    client.mutate.mockResolvedValueOnce({ data: { updateTaskNote: 1 } });
+    await expect(f.update(7, input)).resolves.toBeUndefined();
+  });
 });
