@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import type { AgentSession } from '../agent/session';
 import { createProblemListFetchers } from '../adapters/problemListFetchers';
 import { ensureTaskId, type TaskSpec } from '../adapters/ensureTask';
+import { getAgentSession } from '../agent/useAgentSession';
 import { createTopicFetchers } from '../adapters/topicFetchers';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { ExamSearchPanel, type ExamSearchMode } from '../kit/exam-search/ExamSearchPanel';
@@ -25,29 +26,60 @@ const studyNoteFetchers = createStudyNoteFetchers(apolloClient);
 
 export type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
 
-/** 캔버스를 열기 전 taskId를 확보한다(없고 spec이 있을 때만 task를 만든다). 실패해도 undefined로 캔버스는 연다 */
-const resolveTaskId = (taskId: number | undefined, spec: TaskSpec | undefined) => (spec ? ensureTaskId(taskId, spec) : Promise.resolve(taskId));
+/** task 생성이 이보다 오래 걸리면 taskId 없이 캔버스를 연다(늦게 온 성공은 ensureTask 캐시에 남는다) */
+export const ENSURE_TASK_TIMEOUT_MS = 2500;
+
+/** 캔버스를 열기 전 taskId를 확보한다(없고 spec이 있을 때만 task를 만든다). 실패·시간 초과여도 undefined로 캔버스는 연다 */
+function resolveTaskId(taskId: number | undefined, spec: TaskSpec | undefined): Promise<number | undefined> {
+  if (taskId || !spec) return Promise.resolve(taskId);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<undefined>((resolve) => {
+    timer = setTimeout(() => {
+      getAgentSession().emit('client_error', {
+        where: 'study_note.ensure_task_timeout',
+        message: `createTask did not finish within ${ENSURE_TASK_TIMEOUT_MS}ms`,
+      });
+      resolve(undefined);
+    }, ENSURE_TASK_TIMEOUT_MS);
+  });
+  return Promise.race([ensureTaskId(taskId, spec), timeout]).finally(() => clearTimeout(timer));
+}
+
+/** open* 하나가 taskId를 기다리는 동안 들어온 다른 open*은 무시한다(연타로 캔버스가 두 번 열리지 않게) */
+let opening = false;
+async function openWithTask(taskId: number | undefined, spec: TaskSpec | undefined, navigate: (id: number | undefined) => void) {
+  if (opening) return;
+  opening = true;
+  try {
+    navigate(await resolveTaskId(taskId, spec));
+  } finally {
+    opening = false;
+  }
+}
 
 /** 문제 묶음 → 책갈피/목록 task에 넣는 문제 식별자 목록 */
 const unitsOf = (problems: { sourceType: string; sourceId: number }[]) => problems.map(({ sourceType, sourceId }) => ({ sourceType, sourceId }));
 
 /** 문제 목록의 연필 버튼: 문제 묶음을 넘기고 풀이 화면(/notebook)으로 */
-export async function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number, spec?: TaskSpec) {
-  const id = await resolveTaskId(taskId, spec);
-  solveStore.dispatch({ title, problems, index, taskId: id, topicId });
-  router.push('/notebook');
+export function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number, spec?: TaskSpec) {
+  return openWithTask(taskId, spec, (id) => {
+    solveStore.dispatch({ title, problems, index, taskId: id, topicId });
+    router.push('/notebook');
+  });
 }
 
 /** 실황 수업 dock의 주제 실황 수업: 주제 실황 캔버스 화면(/topic-live-class)으로 */
-export async function openTopicLiveClass(topicId: number, taskId?: number, spec?: TaskSpec) {
-  const id = await resolveTaskId(taskId, spec);
-  router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(id ? { taskId: String(id) } : {}) } });
+export function openTopicLiveClass(topicId: number, taskId?: number, spec?: TaskSpec) {
+  return openWithTask(taskId, spec, (id) =>
+    router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(id ? { taskId: String(id) } : {}) } }),
+  );
 }
 
 /** 실황 수업 dock의 선생님 수업: 선생님 수업 캔버스 화면(/hotline-class)으로 */
-export async function openHotlineClass(tutorId: string, taskId?: number, spec?: TaskSpec) {
-  const id = await resolveTaskId(taskId, spec);
-  router.push({ pathname: '/hotline-class', params: { tutorId, ...(id ? { taskId: String(id) } : {}) } });
+export function openHotlineClass(tutorId: string, taskId?: number, spec?: TaskSpec) {
+  return openWithTask(taskId, spec, (id) =>
+    router.push({ pathname: '/hotline-class', params: { tutorId, ...(id ? { taskId: String(id) } : {}) } }),
+  );
 }
 
 /** 실황 수업 dock·문제 목록이 공유하는 실황 수업 spec */
