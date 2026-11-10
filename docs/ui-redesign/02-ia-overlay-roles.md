@@ -6,7 +6,7 @@ Method: impeccable shape(설계 브리프) + adapt(native 참고). 소스 미수
 
 | 항목 | 값 |
 |---|---|
-| 단계 / 상태 | 단계 2 / **진행** |
+| 단계 / 상태 | 단계 2 / **승인대기** — Gate B 검토 중. 질문은 §7 |
 | 기준 | `76b99e3` (블록도 `docs/ui-structure/ui-structure.json`, 진단 `docs/ui-redesign/01-diagnosis.md`) |
 | 설계·계획 | `docs/superpowers/specs/2026-11-10-ui-redesign-stage2-design.md`, `docs/superpowers/plans/2026-11-10-ui-redesign-stage2.md` |
 | 사용한 스킬 | `impeccable` — `shape`(발견 질문은 단계 2 브레인스토밍 Q1~Q5로 대신하고 브리프 구조를 §2에 적용), `adapt` + native 참고(§6) |
