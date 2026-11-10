@@ -818,5 +818,65 @@
       "stage": 3
     }
   ],
-  "names": []
+  "names": [
+    {
+      "surface": "Phone 탭",
+      "file": "app/(main)/_layout.tsx:22",
+      "old": "History",
+      "new": "타임라인"
+    },
+    {
+      "surface": "dock 제목",
+      "file": "src/agent/tablet/TabletAgentLayer.tsx:39",
+      "old": "Study",
+      "new": "타임라인"
+    },
+    {
+      "surface": "rail 채팅 버튼 접근성 라벨",
+      "file": "src/agent/tablet/ChatRail.tsx:135",
+      "old": "채팅",
+      "new": "Study Log"
+    },
+    {
+      "surface": "하단 6칸 정의",
+      "file": "src/agent/tablet/DrawerFooter.tsx:12",
+      "old": "공지",
+      "new": "Diary"
+    },
+    {
+      "surface": "펜 색 표시 라벨",
+      "file": "src/kit/canvas/note-canvas/canvas-utils.ts:17",
+      "old": "orange",
+      "new": "주황",
+      "storedValue": "orange"
+    },
+    {
+      "surface": "펜 색 표시 라벨",
+      "file": "src/kit/canvas/note-canvas/canvas-utils.ts:17",
+      "old": "blue",
+      "new": "파랑",
+      "storedValue": "blue"
+    },
+    {
+      "surface": "펜 색 표시 라벨",
+      "file": "src/kit/canvas/note-canvas/canvas-utils.ts:17",
+      "old": "black",
+      "new": "검정",
+      "storedValue": "black"
+    },
+    {
+      "surface": "펜 색 표시 라벨",
+      "file": "src/kit/canvas/note-canvas/canvas-utils.ts:17",
+      "old": "red",
+      "new": "빨강",
+      "storedValue": "red"
+    },
+    {
+      "surface": "펜 색 표시 라벨",
+      "file": "src/kit/canvas/note-canvas/canvas-utils.ts:17",
+      "old": "green",
+      "new": "초록",
+      "storedValue": "green"
+    }
+  ]
 }
