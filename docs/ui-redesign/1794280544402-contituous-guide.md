@@ -54,7 +54,7 @@ docs/ui-redesign/1794280544402-contituous-guide.md 를 읽고 그 지점부터 �
 |---|---|---|
 | 0 환경·스킬·baseline | 완료 | `docs/ui-redesign/00-baseline.md` |
 | 1 현황 진단 | **완료** (2026-11-10 Gate A 조건부 승인, 조건 3건 유지) | `docs/ui-structure/ui-structure.{md,json,html}`, `docs/ui-redesign/captures/01/`, `docs/ui-redesign/01-buttons-chips-survey.md`, `docs/ui-redesign/01-diagnosis.md` |
-| 2 역할·정보구조 | **승인대기** (Gate B 검토 중) | `docs/ui-redesign/02-ia-overlay-roles.md`, `docs/ui-redesign/02-roles.json`, `docs/ui-redesign/tools/check-roles.mjs` |
+| 2 역할·정보구조 | **완료** (2026-11-10 Gate B 승인, 결정은 `02-ia-overlay-roles.md` §9) | `docs/ui-redesign/02-ia-overlay-roles.md`, `docs/ui-redesign/02-roles.json`, `docs/ui-redesign/tools/check-roles.mjs` |
 | 3~6 | 미착수 | — |
 
 읽는 순서:
@@ -69,7 +69,7 @@ docs/ui-redesign/1794280544402-contituous-guide.md 를 읽고 그 지점부터 �
 
 ## 3. 지금 멈춘 지점
 
-> **2026-11-10 갱신**: Gate A는 조건부로 승인됐고(`01-diagnosis.md` §12), 단계 2를 마쳐 **Gate B 검토 중**이다. 질문은 `02-ia-overlay-roles.md` §7에 있다. **Gate B 승인 전에는 단계 3을 시작하지 않는다.** 단계 2의 설계·계획: `docs/superpowers/specs/2026-11-10-ui-redesign-stage2-design.md`, `docs/superpowers/plans/2026-11-10-ui-redesign-stage2.md`. 검증: `node docs/ui-redesign/tools/check-roles.mjs docs/ui-redesign/02-roles.json docs/ui-redesign/02-ia-overlay-roles.md docs/ui-structure/ui-structure.json docs/ui-redesign/01-diagnosis.md` → `OK rows=66 deviations=8`. 아래는 Gate A 때의 기록이다.
+> **2026-11-10 갱신**: Gate A는 조건부로 승인됐고(`01-diagnosis.md` §12), 단계 2는 **Gate B 승인으로 완료**됐다(`02-ia-overlay-roles.md` §9, Q1·Q3은 1안이 아닌 대안을 골랐다). 다음은 단계 3(토큰·공통 컴포넌트·상태 규칙)을 새 사이클(brainstorming → 설계 → 계획 → 실행)로 시작하는 것이다. 단계 2의 설계·계획: `docs/superpowers/specs/2026-11-10-ui-redesign-stage2-design.md`, `docs/superpowers/plans/2026-11-10-ui-redesign-stage2.md`. 검증: `node docs/ui-redesign/tools/check-roles.mjs docs/ui-redesign/02-roles.json docs/ui-redesign/02-ia-overlay-roles.md docs/ui-structure/ui-structure.json docs/ui-redesign/01-diagnosis.md` → `OK rows=66 deviations=8`. 아래는 Gate A 때의 기록이다.
 
 사용자가 "이대로 Gate A 검토"를 골랐고, Gate A 요약을 받은 상태에서 PC를 옮긴다. **승인 여부는 아직 답하지 않았다.**
 
