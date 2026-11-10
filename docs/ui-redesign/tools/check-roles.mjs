@@ -30,14 +30,21 @@ export function checkRoles({ roles, md, structure, diagnosis }) {
     if (!STAGES.includes(d.stage)) errs.push(`bad stage ${d.id}`);
   }
 
-  const section = (md.split('## 3. 역할 표')[1] ?? '').split('\n## ')[0];
+  // Windows 체크아웃(core.autocrlf)에서는 줄 끝이 \r\n이다
+  const section = (md.replace(/\r\n/g, '\n').split('## 3. 역할 표')[1] ?? '').split('\n## ')[0];
   const mdRows = section.split('\n').filter((l) => l.startsWith('|') && !l.includes('node id') && !/^\|[\s|:-]+\|$/.test(l));
+  const cell = (v) => (v === null ? '—' : String(v)); const mdIds = new Set();
   for (const l of mdRows) {
     const cells = l.split('|').slice(1, -1).map((s) => s.trim()); const id = cells[0].replace(/`/g, '');
+    if (mdIds.has(id)) errs.push(`md duplicate id ${id}`); mdIds.add(id);
     if (cells.length !== 7) { errs.push(`md columns ${id}`); continue; }
     const r = rows.find((x) => x.id === id);
-    if (r && cells[1] !== r.role) errs.push(`md role ${id}`);
+    if (!r) { errs.push(`md unknown id ${id}`); continue; }
+    if (cells[1] !== r.role) errs.push(`md role ${id}`);
+    const devs = (r.deviations ?? []).join(', ') || '—';
+    if (cells[2] !== cell(r.expectedBlocking) || cells[3] !== cell(r.recordedBlocking) || cells[6] !== devs) errs.push(`md cell ${id}`);
   }
+  for (const r of rows) if (!mdIds.has(r.id)) errs.push(`md missing id ${r.id}`);
   if (mdRows.length !== rows.length) errs.push(`md rows ${mdRows.length} != json ${rows.length}`);
   return errs;
 }

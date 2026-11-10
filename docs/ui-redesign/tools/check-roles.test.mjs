@@ -141,3 +141,33 @@ test('md role', () => {
   f.md = f.md.replace('| `home` | screen |', '| `home` | modal |');
   hasError(checkRoles(f), 'md role home');
 });
+
+test('crlf line endings', () => {
+  const f = fixture();
+  f.md = f.md.replace(/\n/g, '\r\n');
+  f.diagnosis = f.diagnosis.replace(/\n/g, '\r\n');
+  assert.deepEqual(checkRoles(f), []);
+});
+
+test('md unknown id', () => {
+  const f = fixture();
+  f.md = f.md.replace('| `home` |', '| `ghost` |');
+  hasError(checkRoles(f), 'md unknown id ghost');
+});
+
+test('md duplicate id', () => {
+  const f = fixture();
+  f.md = f.md.replace('| `nav_root` |', '| `home` |').replace('| home | outside |', '| home | screen |');
+  const errs = checkRoles(f);
+  hasError(errs, 'md duplicate id home');
+  hasError(errs, 'md missing id nav_root');
+});
+
+test('md cell mismatch', () => {
+  const f = fixture();
+  f.md = f.md.replace('| `confirm` | modal | true | true |', '| `confirm` | modal | true | false |');
+  hasError(checkRoles(f), 'md cell confirm');
+  const g = fixture();
+  g.md = g.md.replace('| D-13 |\n', '| — |\n');
+  hasError(checkRoles(g), 'md cell confirm');
+});

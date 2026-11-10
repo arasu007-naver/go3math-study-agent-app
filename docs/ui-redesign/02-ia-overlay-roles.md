@@ -36,7 +36,7 @@ Method: impeccable shape(설계 브리프) + adapt(native 참고). 소스 미수
 |---|---|---|---|---|
 | **Screen** | 24 | 영역 전체를 차지한다 | 라우트로 연다. 뒤로가기는 지금처럼 `back_requested`로 에이전트에 넘긴다 | 같은 라우트. 늘리지 않고 재구성한다 |
 | **Dock** | 6 | **막지 않는다.** scrim 없음, 보이는 Stage는 조작된다 | rail 항목으로 연다. 같은 항목·닫기 손잡이·기존 규칙(Stage에 문제 목록이 뜨면 닫힘, Diary의 `list` 출처는 예외)으로 닫는다. 한 번에 하나 | 태블릿 전용. Phone에서는 각 dock이 탭 화면이다 |
-| **Modeless** | 10 | 자기 영역 밖의 입력을 막지 않는다. 경쟁하는 Stage 콘텐츠를 가리지 않는다 | 부모 화면이 소유한다 | rail·캔버스 툴바는 태블릿 전용, toast는 둘 다 |
+| **Modeless** | 10 | 자기 영역 밖의 입력을 막지 않는다. 경쟁하는 Stage 콘텐츠를 가리지 않는다 | 부모 화면이 소유한다 | rail·캔버스 툴바·toast는 태블릿 전용(Phone의 instruction은 하단 모달, PRODUCT.md:31) |
 | **Bottom Sheet** | 6 | 자기 영역만 덮는다. 캔버스에서는 툴바 위에서 멈춘다 | 보이는 닫기 컨트롤 + 끌어 닫기. 높이는 공용 단계에서 고른다 | 같은 역할 |
 | **Modal** | 13 | **막는다.** scrim 있음 | 명시적 선택이나 닫기가 있어야 닫힌다 | Phone에서는 전체 높이로 보일 수 있다 |
 | (역할 밖) | 7 | — | — | 내비게이터 6, 앱 밖 시스템 1 |
@@ -98,9 +98,9 @@ Method: impeccable shape(설계 브리프) + adapt(native 참고). 소스 미수
 | `dock_live` | dock | false | false | rail 실황 수업(`src/agent/tablet/ChatRail.tsx:123`). 같은 항목·닫기 손잡이·문제 목록 표시로 닫힘(`src/agent/tablet/TabletAgentLayer.tsx:90`) | Tablet: Stage 위 dock. Phone 진입 없음(§6) | D-10 |
 | `dock_profile` | dock | false | false | rail 내 정보(`src/agent/tablet/ChatRail.tsx:123`). 같은 항목·닫기 손잡이로 닫힘 | Tablet: Stage 위 dock. Phone은 profile | D-10, D-11 |
 | `dock_chat` | dock | false | false | rail Study Log 또는 instruction 도착(`src/agent/tablet/ChatRail.tsx:137`, `src/agent/tablet/TabletAgentLayer.tsx:74`). 같은 버튼·닫기 손잡이로 닫힘 | Tablet: Stage 위 dock. Phone은 chat_index | D-10 |
-| `agent_toast` | modeless | false | false | instruction 도착(`src/agent/tablet/TabletAgentLayer.tsx:71`). 시간이 지나면 사라짐(`src/ui/toast/Toast.tsx:44`), 탭하면 채팅 dock | Tablet: 우상단 toast. Phone은 하단 모달(PRODUCT.md) | — |
+| `agent_toast` | modeless | false | false | instruction 도착(`src/agent/tablet/TabletAgentLayer.tsx:71`). 시간이 지나면 사라짐(`src/ui/toast/Toast.tsx:44`), 탭하면 채팅 dock | Tablet: 우상단 toast. Phone 없음(Phone instruction은 별도 하단 모달, PRODUCT.md:31) | — |
 | `canvas_toolbar` | modeless | false | false | 캔버스 화면에 항상(`src/kit/canvas/CanvasChrome.tsx:95`). 닫지 않음 | Tablet: 캔버스 하단 툴바. Phone 없음 | D-04 |
-| `concept_sheet` | bottomsheet | false | false | 툴바 개념(`src/kit/canvas/CanvasChrome.tsx:77`). 손잡이 끌기 | Tablet: snap 70% 시트, 툴바를 덮음 | D-04 |
+| `concept_sheet` | bottomsheet | false | false | 툴바 개념(`src/kit/canvas/CanvasChrome.tsx:77`). 손잡이 끌기 | Tablet: snap 70%(`src/kit/canvas/CanvasChrome.tsx:53`, `:135`) 시트, 툴바를 덮음 | D-04 |
 | `clear_confirm` | modal | true | true | 툴바 전체 지우기(`src/kit/canvas/CanvasChrome.tsx:81`). 확인·취소 | Tablet: 확인 대화상자 | D-13 |
 | `landscape_notice` | modeless | false | false | 가로 회전·제한 버튼(`src/kit/canvas/CanvasChrome.tsx:94`). 자동 사라짐, pointerEvents none | Tablet: 캔버스 안내. 제한 목록이 비어 표시되지 않음 | D-06 |
 | `pencil_popover` | modal | true | true | 툴바 Options(`src/kit/canvas/note-canvas/notebook.tsx:167`). 바깥 탭(light-dismiss) | Tablet: 툴바에 붙은 팝오버 | — |
@@ -147,7 +147,7 @@ Method: impeccable shape(설계 브리프) + adapt(native 참고). 소스 미수
 
 ## 5. 기능 이름
 
-최종 한 벌(설계 Q3): **타임라인 · Diary · 검색 · 실황 수업 · 내 정보 · Study Log**. Diary와 Study Log는 제품 이름이라 영어로 두고, 나머지는 한국어다. 원천은 `02-roles.json`의 `names`다. 코드 속 라벨 교체는 단계 3 이후다.
+최종 한 벌(설계 Q3): **타임라인 · Diary · 검색 · 실황 수업 · 내 정보 · Study Log**. Diary와 Study Log는 제품 이름이라 영어로 두고, 나머지는 한국어다. 바뀌는 이름과 펜 색 라벨의 원천은 `02-roles.json`의 `names`이고, 바뀌지 않는 이름은 이 표에만 있다. 코드 속 라벨 교체는 단계 3 이후다.
 
 | 표면 | 근거 파일:라인 | 옛 이름 | 새 이름 |
 |---|---|---|---|
@@ -196,7 +196,7 @@ impeccable adapt(native): Phone ↔ Tablet은 늘리기가 아니라 재구성�
 | 대안 A: rail을 콘텐츠 밖 고정 위치(왼쪽 변)로 제한 | 완전 | 없음 | rail 끌기 범위 축소 | 단순하지만 사용자가 옮긴 위치를 잃는다(2026-11 rail 결정과 충돌) |
 | 대안 B: rail을 반투명으로 | 부분(글자는 여전히 겹친다) | 없음 | 스타일만 | 읽기 문제가 남는다 |
 
-- **캔버스 시트**: 툴바 위에서 멈춘다(설계 Q2). 높이 단계는 **2개 안**: "보기"(해답·내 풀이·학습장처럼 한 화면 분량)와 "넓게"(개념 검색처럼 긴 목록). 근거: 지금 높이가 화면 절반(해답·내 풀이)과 snap 70%(개념, `src/kit/canvas/CanvasChrome.tsx:77`) 두 무리로 이미 갈려 있다. 수치는 단계 3. 닫기는 보이는 닫기 버튼 + 끌어 닫기 둘 다.
+- **캔버스 시트**: 툴바 위에서 멈춘다(설계 Q2). 높이 단계는 **2개 안**: "보기"(해답·내 풀이·학습장처럼 한 화면 분량)와 "넓게"(개념 검색처럼 긴 목록). 근거: 지금 높이가 화면 절반(해답·내 풀이)과 snap 70%(개념, `src/kit/canvas/CanvasChrome.tsx:53`, `:135`) 두 무리로 이미 갈려 있다. 수치는 단계 3. 닫기는 보이는 닫기 버튼 + 끌어 닫기 둘 다.
 - **학습장 시트(NEW-01)**: Bottom Sheet 규칙대로 자기 영역만 덮게 한다. 지금은 RN Modal + scrim이라 뒤 전체를 막는다(`src/host/SheetHost.tsx:31`, `:33`).
 - **가로 회전(D-06)**: 빈 띠 처리와 제한 목록은 사용자 결정 대기다. 안을 내지 않는다.
 

@@ -462,7 +462,7 @@
       "expectedBlocking": false,
       "recordedBlocking": false,
       "openClose": "instruction 도착(`src/agent/tablet/TabletAgentLayer.tsx:71`). 시간이 지나면 사라짐(`src/ui/toast/Toast.tsx:44`), 탭하면 채팅 dock",
-      "forms": "Tablet: 우상단 toast. Phone은 하단 모달(PRODUCT.md)",
+      "forms": "Tablet: 우상단 toast. Phone 없음(Phone instruction은 별도 하단 모달, PRODUCT.md:31)",
       "deviations": [],
       "reason": null
     },
@@ -484,7 +484,7 @@
       "expectedBlocking": false,
       "recordedBlocking": false,
       "openClose": "툴바 개념(`src/kit/canvas/CanvasChrome.tsx:77`). 손잡이 끌기",
-      "forms": "Tablet: snap 70% 시트, 툴바를 덮음",
+      "forms": "Tablet: snap 70%(`src/kit/canvas/CanvasChrome.tsx:53`, `:135`) 시트, 툴바를 덮음",
       "deviations": [
         "D-04"
       ],
