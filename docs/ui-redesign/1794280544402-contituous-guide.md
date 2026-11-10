@@ -53,8 +53,9 @@ docs/ui-redesign/1794280544402-contituous-guide.md 를 읽고 그 지점부터 �
 | 단계 | 상태 | 산출물 |
 |---|---|---|
 | 0 환경·스킬·baseline | 완료 | `docs/ui-redesign/00-baseline.md` |
-| 1 현황 진단 | **승인대기 (조건부)** | `docs/ui-structure/ui-structure.{md,json,html}`, `docs/ui-redesign/captures/01/`, `docs/ui-redesign/01-buttons-chips-survey.md`, `docs/ui-redesign/01-diagnosis.md` |
-| 2~6 | 미착수 | — |
+| 1 현황 진단 | **완료** (2026-11-10 Gate A 조건부 승인, 조건 3건 유지) | `docs/ui-structure/ui-structure.{md,json,html}`, `docs/ui-redesign/captures/01/`, `docs/ui-redesign/01-buttons-chips-survey.md`, `docs/ui-redesign/01-diagnosis.md` |
+| 2 역할·정보구조 | 진행 | — |
+| 3~6 | 미착수 | — |
 
 읽는 순서:
 
