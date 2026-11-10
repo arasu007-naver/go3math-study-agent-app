@@ -1,0 +1,75 @@
+# 단계 0 — Baseline
+
+## 1. 기준
+
+| 항목 | 값 |
+|---|---|
+| 프로젝트 루트 | `go3math-study-agent-app` |
+| 기준 브랜치/커밋 | `feat/study-note` @ `76b99e3` |
+| 작업 브랜치 | `design/ui-redesign` (push·PR 없음) |
+| 작성일 | 2026-11-10 (KST) |
+| 스택 | Expo SDK `~54.0.36`, React Native `0.81.5`, expo-router `~6.0.24` |
+
+## 2. 스킬
+
+| 스킬 | 설치 | 이번 세션 노출 | 경로 |
+|---|---|---|---|
+| `impeccable` | 설치됨(사용자 전역) | 노출됨 | `~/.claude/skills/impeccable` |
+| `expo-design-system` | 설치됨(2026-11-10, 커밋 `5badaa6`) | **미노출** — 세션 시작 뒤에 설치함. 다음 세션부터 노출 예상(미확인) | `.claude/skills/expo-design-system` |
+| `vercel-react-native-skills` | 설치됨(2026-11-10, 커밋 `5badaa6`) | **미노출** — 위와 같음 | `.claude/skills/vercel-react-native-skills` |
+| `expo-native-ui`, `expo-router`, `expo-overview` (조건부) | 미설치 | — | 필요해질 때 설치 |
+| `ui-ux-pro-max` (선택) | 설치됨(플러그인) | 노출됨 | 이번 사이클에서는 쓰지 않음 |
+
+- 설치 명령: `npx skills@latest add expo/skills --skill expo-design-system -a claude-code -y`, `npx skills@latest add vercel-labs/agent-skills --skill vercel-react-native-skills -a claude-code -y`. 설치로 `skills-lock.json`이 생겼다.
+- 단계 0→1이 실제로 쓰는 스킬은 `impeccable`뿐이다. 나머지 둘은 단계 3 진입 전에 노출을 다시 확인한다.
+- `impeccable init`은 실행하지 않았다. `PRODUCT.md`와 `DESIGN.md`가 이미 있다(커밋 `4bc70e7`).
+
+## 3. 명령
+
+`package.json`에 실제로 있는 스크립트와 기준 커밋에서의 결과다.
+
+| 스크립트 | 명령 | 기준 결과 |
+|---|---|---|
+| `lint` | `expo lint` | **실패(exit 1)** — 153건(오류 2, 경고 151). 오류 2건은 `src/kit/canvas/CanvasChrome.tsx:116`의 `react/no-unescaped-entities` |
+| `typecheck` | `tsc --noEmit` | 통과(exit 0) |
+| `test` | `jest` | 이번 단계에서 실행하지 않음 |
+| `test:e2e` | `maestro test .maestro` | 이번 단계에서 실행하지 않음 |
+| `doctor` | `expo-doctor` | 이번 단계에서 실행하지 않음 |
+| build | 없음 | 빌드는 EAS 또는 `expo run:ios|android` |
+
+lint 오류는 이번 작업 이전부터 있던 것이며 고치지 않았다(소스 미변경).
+
+## 4. 보존 제약
+
+| 제약 | 현재 코드 상태 | 근거 |
+|---|---|---|
+| Pretendard 유지 | 400/600/700 세 굵기를 `useFonts`로 불러오고 `theme.fontFamily`가 같은 키를 쓴다 | `app/_layout.tsx:23-25`, `src/ui/theme.ts:74-79` |
+| `react-native-paper` 재도입 금지 | 의존성과 import에 없다. 주석에서만 언급된다 | `package.json`(검색 결과 없음), `src/ui/Sheet.tsx:6` |
+| Tablet 판정 `min(w,h) ≥ 600` | 진입 600, 이탈 560, 디바운스 200ms. 560~599는 직전 모드를 유지한다 | `src/layout/deviceMode.ts:8-10`, `:13`, `:18` |
+| 하단 6칸 | 공지·검색·타임라인·실황 수업·주간 공부·내 정보 순서. 실황 수업과 주간 공부는 `disabled: true` | `src/agent/tablet/DrawerFooter.tsx:12-17` |
+| Dark mode 제외 | `userInterfaceStyle: 'light'` | `app.config.ts:32` |
+| Landscape 제한 목록 미정 | `LANDSCAPE_RESTRICTED`가 빈 Set이고 "사용자 결정 대기" 주석이 있다. 앱 전역 방향 고정은 없다 | `src/kit/canvas/landscapeRestrictions.ts:3-4`, `app.config.ts:34` |
+| RN StyleSheet + 토큰 | `src/ui/theme.ts` 토큰. NativeWind/Tamagui 없음 | `package.json`(검색 결과 없음) |
+
+참고: 폰의 하단 탭은 태블릿 6칸과 구성이 다르다(History·검색·Diary·내 정보·Study Log, `app/(main)/_layout.tsx:12`). 이 차이는 단계 1 진단에서 다룬다.
+
+## 5. 참조 문서
+
+| 문서 | 스펙에 적힌 경로 | 실제 경로 |
+|---|---|---|
+| 개선 스펙 | `specs/qoolla-ui-design-improvement-spec.md` | `docs/design/qoolla-ui-design-improvement-spec.md` |
+| 블록도 스펙 | `specs/expo-ui-block-diagram-spec.md` | `docs/expo-ui-block-diagram-spec.md` |
+| 기존 디자인 명세 | `specs/design-spec.md` | `specs/design-spec.md` (일치) |
+| 제품·디자인 맥락 | — | `PRODUCT.md`, `DESIGN.md` |
+
+## 6. 과거 개선 패스
+
+`docs/design/`에 이전 패스의 iPad 11 세로 캡처가 있다: `before/`(3장), `after-P1/`, `after-P2/`, `after-P3/`, `after-rail/`. `specs/design-spec.md`의 P1~P3 구현 흔적이며, 이번 진단은 그 결과가 반영된 현재 코드를 대상으로 한다.
+
+## 7. 단계 상태
+
+| 단계 | 상태 |
+|---|---|
+| 0 환경·스킬·baseline | 완료 |
+| 1 현황 진단 | 진행 |
+| 2~6 | 미착수 |
