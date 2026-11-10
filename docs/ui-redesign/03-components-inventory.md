@@ -242,6 +242,6 @@
 | 아이콘 전용 버튼 | §1: `ChatRail:120`, `:133`, `Stage:25`, `DiaryPanel:138`, `RecordsCalendar:85`, `:98`, `QuizResponseModal:235`, `ProblemActionRow:12`, `:15`, 선생님 메모 닫기 2곳. §1.1: `PlaybackToolbar:68`, `:75` | 공용 `Button`은 제목이 필수라 담지 못한다. `IconButton`을 단계 4에서 더할지 Gate C Q5에서 묻는다. role 없는 3곳(퀴즈 닫기, 메모 닫기 2)은 어느 쪽이든 단계 4에서 role을 단다 |
 | 이미 공용이고 모양이 같다 | §1: `PencilFab:8`, `EdgeHandle:15`, `SheetHandle:16` | 그대로 |
 | 전용 컨트롤 | §1: `FloatingToolbar:59`, `:84`(캔버스 툴바), `DiaryPanel:129`(탭 헤더), `welcome:139`(소셜 로그인 제공사 아이콘) | 그대로 |
-| 잉크 색·굵기 견본 | §1.1: 펜 색·굵기 `GoButton` 6곳(데드 코드 2곳 별도) | 저장값 `orange, blue, black, red, green`은 사용자 데이터라 바꾸지 않는다. 표시 라벨만 한국어로(Gate B Q6, 단계 4) |
+| 잉크 색·굵기 견본 | §1.1: 펜 색·굵기 `GoButton` 6곳(데드 코드 파일의 2곳은 아래 데드 코드 행) | 저장값 `orange, blue, black, red, green`은 사용자 데이터라 바꾸지 않는다. 표시 라벨만 한국어로(Gate B Q6, 단계 4) |
 | 데드 코드 | §1: `DrawerFooter:54`, `topic-notebook:417`, `kit/ui/toast:69`. §1.1: `topic-notebook:296`, `:307` | 정리는 별도 결정(진단 §5) |
 | 공용 컴포넌트 자신 | §1: `go-button:103`(단계 5 뒤 삭제), `ui/Button:99`, `ui/Chip:19`, `ui/Dialog:32`, `:33`, `ui/StateView:25` | 그대로 |
