@@ -6,7 +6,7 @@ Method: design review only (detector not applicable, native platform)
 
 | 항목 | 값 |
 |---|---|
-| 단계 / 상태 | 단계 1 / **승인대기 (조건부)** — 실기기 캡처가 없다. 아래 §9 참고 |
+| 단계 / 상태 | 단계 1 / **승인대기 (조건부)** — 실기기 캡처가 없고, 캡처에 쓴 번들이 기준 커밋과 다를 수 있다. 아래 §9 참고 |
 | 기준 | `feat/study-note` @ `76b99e3`, 작업 브랜치 `design/ui-redesign` |
 | 사용한 스킬 | `impeccable` — 로드함. `critique`(native 경로: 설계 리뷰만)와 `audit.native`의 5개 차원을 적용했다 |
 | 쓰지 않은 스킬 | `expo-design-system`, `vercel-react-native-skills`(설치·노출됨, 단계 3부터 사용), `ui-ux-pro-max` |
@@ -15,14 +15,14 @@ Method: design review only (detector not applicable, native platform)
 
 가장 큰 문제 세 가지:
 
-1. **같은 동작이 화면마다 다르게 그려진다.** "가자!!!" 하나가 네 가지 모양이고, 주요 버튼 채움색이 네 가지, 칩 선택색이 세 가지다.
+1. **같은 동작이 화면마다 다르게 그려진다.** "가자!!!" 하나가 네 가지 모양이고, 주요 버튼 채움색이 세 가지, 칩 선택색이 네 가지다.
 2. **떠 있는 UI끼리 서로를 가린다.** 세로 pill 툴바가 Stage 문제 카드를 덮고, 해답 시트가 캔버스 툴바를 덮는다.
 3. **빈 상태와 오류 상태가 설계돼 있지 않다.** 회색 문장 한 줄이거나 아무것도 없다.
 
 ## 2. 증거
 
 - **블록도**: 노드 66개(screen 24, modeless 16, modal 13, bottomsheet 6, navigator 6, external 1), 엣지 115개. 검증 스크립트 통과, Mermaid 4개 뷰 렌더링 확인.
-- **캡처**: 26장, **전부 시뮬레이터**(iOS 26.4). iPad Air 13-inch (M4) 20장, iPhone 17 6장. 실기기 0장. 목록·조건·미촬영 사유는 `docs/ui-redesign/captures/01/manifest.md`.
+- **캡처**: 26장(같은 화면을 두 노드에 쓴 2쌍이 있어 서로 다른 이미지는 24장), **전부 시뮬레이터**(iOS 26.4). iPad Air 13-inch (M4) 20장, iPhone 17 6장. 실기기 0장. 번들 출처 미확인(§9). 목록·조건·미촬영 사유는 `docs/ui-redesign/captures/01/manifest.md`.
 - **버튼·칩 조사**: `docs/ui-redesign/01-buttons-chips-survey.md` (후보 71 = 버튼 42 + 칩 8 + 제외 21, `GoButton` 호출 28곳).
 - 아래 표의 캡처 경로는 모두 `docs/ui-redesign/captures/01/` 기준이다.
 
@@ -34,7 +34,7 @@ Method: design review only (detector not applicable, native platform)
 |---|---|---|---|
 | 1 | 시스템 상태 표시 | 2 | 불러오기 실패가 본문 한 줄로만 나온다. "내 풀이" 시트는 비어 있을 때 아무 표시가 없다 |
 | 2 | 현실 세계와의 일치 | 3 | 수학 표기와 기출 분류는 학생 언어다. 다만 History·Diary·Study Log·Options처럼 영어 라벨이 한국어 라벨과 섞인다 |
-| 3 | 사용자 통제 | 3 | dock·시트·모달 모두 닫을 수 있다. 해답 시트가 열리면 툴바가 가려져 닫는 길이 손잡이 하나뿐이다 |
+| 3 | 사용자 통제 | 3 | dock·시트·모달 모두 닫을 수 있다. 해답 시트가 열리면 툴바가 가려지고, 보이는 닫기 수단은 손잡이 하나다 |
 | 4 | 일관성 | 1 | 버튼·칩·시트 높이·닫기 방식이 화면마다 다르다(§4 D-01, D-05) |
 | 5 | 오류 예방 | 3 | 전체 지우기에 확인 대화상자가 있다 |
 | 6 | 기억보다 인식 | 2 | 세로 pill 툴바는 라벨 없는 아이콘 6개다. 타임라인 카드는 번호 1~30을 글자로 나열한다 |
@@ -68,17 +68,17 @@ Method: design review only (detector not applicable, native platform)
 
 | ID | 심각도 | 관점 | 화면(node id) | 위치 | 증거 | 관찰 | 개선 방향 |
 |---|---|---|---|---|---|---|---|
-| D-01 | P1 | 버튼 우선순위·일관성 | 전체 | `01-buttons-chips-survey.md` 요약 | `ipad-sim-dock_timeline-before.png`, `ipad-sim-dock_search-before.png`, `ipad-sim-concept_detail-before.png` | 같은 "가자!!!"가 채움 `#FF8800`(`TimelinePanel.tsx:205`), outline `GoButton`(`ExamSearchPanel.tsx:93`), `#FFC256` 테두리(`TopicUnitList.tsx:74`), accent FAB(`DiaryPanel.tsx:99`)로 그려진다. 주요 버튼 채움색 4가지, 텍스트 버튼 높이 8가지 이상 | 주요·보조·위험·텍스트의 위계를 하나로 정하고 공용 `Button`으로 모은다(단계 3) |
-| D-02 | P1 | 시트 겹침·가림 | `agent_home`, `chat_rail` | `src/agent/tablet/ChatRail.tsx:149-150` | `ipad-sim-agent_home-problems-before.png` | 세로 pill 툴바가 Stage 문제 카드 위에 떠서 3번·5번 문제의 왼쪽 글자를 가린다. 5번은 "함수 f(x)…"의 앞부분이 보이지 않는다 | Stage 콘텐츠가 툴바 영역을 피하도록 할지, 툴바 위치를 옮길지 단계 2에서 정한다 |
-| D-03 | P1 | 로딩·빈·오류 상태 | `dock_timeline`, `dock_notice`, `dock_profile`, `timeline_index`, `profile`, `nb_workout_sheet`, `agent_home` | `src/kit/timeline/TimelinePanel.tsx`, `src/kit/canvas/note-canvas/notebook.tsx` 등(공통 컴포넌트 없음) | `phone-sim-timeline_index-before.png`, `ipad-sim-dock_notice-before.png`, `ipad-sim-nb_workout_sheet-before.png`, `ipad-sim-agent_home-closed-before.png` | 실패 시 "…불러오지 못했어요. (로그인이 필요해요)" 한 줄만 나오고 다시 시도·로그인 동작이 없다. "내 풀이" 시트는 비었을 때 완전히 빈 흰 면이다. Stage의 빈 상태는 로고뿐이다 | 빈·오류·로딩 상태의 공통 표현과 다음 행동을 정한다(단계 3) |
-| D-04 | P1 | 시트 겹침·중복 조작 | `nb_answer_sheet`, `nb_workout_sheet`, `concept_sheet`, `canvas_toolbar` | `src/kit/canvas/note-canvas/notebook.tsx:248-249`, `src/kit/canvas/CanvasChrome.tsx:77` | `ipad-sim-nb_answer_sheet-before.png`, `ipad-sim-concept_sheet-before.png` | 시트가 열리면 하단 툴바를 덮는다. 시트를 닫아야 다른 도구를 쓸 수 있고, 닫는 길은 가운데 주황 손잡이뿐이다. 시트 높이도 해답·내 풀이는 화면의 절반, 개념 검색은 약 2/3로 다르다 | 시트와 툴바의 층 관계, 시트 높이 단계, 닫기 방식을 한 규칙으로 정한다(단계 2) |
-| D-05 | P1 | 칩·선택 상태 | `dock_search`, `search_index`, `welcome`, `concept_sheet` | `src/kit/exam-search/ExamSearchPanel.tsx:111`, `src/kit/research/ResearchPanel.tsx:62`, `src/kit/concepts/ConceptLookupPanel.tsx:88,113,144`, `src/kit/study-note/StudyNoteForm.tsx:42` | `ipad-sim-dock_search-before.png`, `ipad-sim-concept_sheet-before.png` | 칩 선택색이 `'orange'`, `#ea580c`, `accentSoft` 세 가지이고 높이가 36·32·padding만으로 갈린다. 초록 "계열 선택 →" 라벨은 버튼처럼 보이지만 눌리지 않는 제목이다 | 필터·선택·동작 칩을 구분해 공용 `Chip`으로 모으고, 눌리지 않는 라벨은 칩 모양에서 뺀다(단계 3) |
+| D-01 | P1 | 버튼 우선순위·일관성 | 전체 | `01-buttons-chips-survey.md` 요약 | `ipad-sim-dock_timeline-before.png`(번들 출처 미확인, §9), `ipad-sim-dock_search-before.png`, `ipad-sim-concept_detail-before.png` | 같은 "가자!!!"가 채움 `#FF8800`(`TimelinePanel.tsx:205`), outline `GoButton`(`ExamSearchPanel.tsx:93`), `#FFC256` 테두리(`TopicUnitList.tsx:74`), accent FAB(`DiaryPanel.tsx:99`)로 그려진다. 주요 버튼 채움색 3가지(`colors.accent`, `#FF8800`, `#ea580c`), 텍스트 버튼 높이 값 5가지(26·32·38·44·48)와 높이 없이 padding만 준 것 | 주요·보조·위험·텍스트의 위계를 하나로 정하고 공용 `Button`으로 모은다(단계 3) |
+| D-02 | P1 | 시트 겹침·가림 | `agent_home`, `chat_rail` | `src/agent/tablet/ChatRail.tsx:149-150` | `ipad-sim-agent_home-problems-before.png` | 세로 pill 툴바가 Stage 문제 카드 위에 떠서 5번 문제의 왼쪽 글자를 가린다. 3번 카드는 글자 아래 빈 부분만 덮인다. 5번은 "함수 f(x)…"의 앞부분이 보이지 않는다 | Stage 콘텐츠가 툴바 영역을 피하도록 할지, 툴바 위치를 옮길지 단계 2에서 정한다 |
+| D-03 | P1 | 로딩·빈·오류 상태 | `dock_timeline`, `dock_notice`, `dock_profile`, `timeline_index`, `profile`, `nb_workout_sheet`, `agent_home` | `src/kit/timeline/TimelinePanel.tsx:155`(오류 문구), `app/notebook.tsx:272-293`(내 풀이 시트). 공통 컴포넌트 없음 | `phone-sim-timeline_index-before.png`, `ipad-sim-dock_notice-before.png`, `ipad-sim-nb_workout_sheet-before.png`, `ipad-sim-agent_home-closed-before.png` | 실패 시 "…불러오지 못했어요. (로그인이 필요해요)" 한 줄만 나오고 다시 시도·로그인 동작이 없다. "내 풀이" 시트는 비었을 때 완전히 빈 흰 면이다. Stage의 빈 상태는 로고뿐이다 | 빈·오류·로딩 상태의 공통 표현과 다음 행동을 정한다(단계 3) |
+| D-04 | P1 | 시트 겹침·중복 조작 | `nb_answer_sheet`, `nb_workout_sheet`, `concept_sheet`, `canvas_toolbar` | `app/notebook.tsx:248-249`(툴바 동작), `app/notebook.tsx:252`, `:272`(시트 두 개), `src/kit/canvas/CanvasChrome.tsx:77` | `ipad-sim-nb_answer_sheet-before.png`, `ipad-sim-concept_sheet-before.png` | 시트가 열리면 하단 툴바를 덮는다. 시트를 닫아야 다른 도구를 쓸 수 있고, 화면에 보이는 닫기 수단은 가운데 주황 손잡이 하나다(아래로 끌어 닫기가 되는지는 확인하지 않았다). 시트 높이도 해답·내 풀이는 화면의 절반, 개념 검색은 약 2/3로 다르다 | 시트와 툴바의 층 관계, 시트 높이 단계, 닫기 방식을 한 규칙으로 정한다(단계 2) |
+| D-05 | P1 | 칩·선택 상태 | `dock_search`, `search_index`, `welcome`, `concept_sheet` | `src/kit/exam-search/ExamSearchPanel.tsx:111`, `src/kit/research/ResearchPanel.tsx:62`, `src/kit/concepts/ConceptLookupPanel.tsx:88,113,144`, `src/kit/study-note/StudyNoteForm.tsx:42` | `ipad-sim-dock_search-before.png`, `ipad-sim-concept_sheet-before.png` | 칩 선택색이 `'orange'`, `#ea580c`, `accentSoft`, `colors.accent`(`app/welcome.tsx:119`) 네 가지이고 높이가 36·32·padding만으로 갈린다. 초록 "계열 선택 →" 라벨은 `onPress` 없는 `GoButton`(`ExamSearchPanel.tsx:103`, `#30B650`)이라 버튼처럼 보이지만 눌리지 않는 제목이다 | 필터·선택·동작 칩을 구분해 공용 `Chip`으로 모으고, 눌리지 않는 라벨은 칩 모양에서 뺀다(단계 3) |
 | D-06 | P2 | 회전·adaptivity | `notebook`, `landscape_notice` | `src/kit/canvas/useCanvasLandscape.ts:7-8`, `src/kit/canvas/landscapeRestrictions.ts:3-4` | `ipad-sim-notebook-landscape-before.png` | 가로로 돌리면 캔버스가 세로 폭을 유지해 오른쪽 약 1/4이 빈 회색 띠로 남는다. 제한 목록이 비어 있어 안내도 뜨지 않는다 | 제한 목록은 사용자 결정 대기 사항이라 그대로 둔다. 빈 띠를 어떻게 쓸지만 단계 2에서 논의한다 |
-| D-07 | P2 | 모달 레이아웃·터치 영역 | `nb_list_modal` | `app/notebook.tsx:160-236`, `src/kit/ui/go-button.tsx:35-37` | `ipad-sim-nb_list_modal-before.png` | 문제 목록 모달은 카드가 가로로 잘려 보이고 가운데가 큰 빈 면이다. 아래 버튼 5개는 `GoButton`의 26·32pt 크기라 44pt 터치 기준에 못 미친다 | 모달 안 목록의 방향과 버튼 크기를 공용 기준에 맞춘다(단계 3~4) |
-| D-08 | P2 | 과도한 구획·아이콘 | `dock_timeline` | `src/kit/timeline/TimelinePanel.tsx:186-210` | `ipad-sim-dock_timeline-before.png` | 카드마다 번호 1~30을 글자로 모두 나열하고, 이모지(📝 🗓 🔢 🕑)와 Ionicons가 섞이며, 카드 사이에 굵은 주황 띠가 있다. 주황은 행동에만 쓴다는 원칙(`DESIGN.md`)과 어긋난다 | 카드 정보의 우선순위를 줄이고 구분선·아이콘을 한 체계로 맞춘다(단계 4) |
+| D-07 | P2 | 모달 레이아웃·터치 영역 | `nb_list_modal` | `app/notebook.tsx:160-236`, `src/kit/ui/go-button.tsx:35-37` | `ipad-sim-nb_list_modal-before.png` | 문제 목록 모달은 카드가 가로로 잘려 보이고 가운데가 큰 빈 면이다. 아래 버튼 5개는 `GoButton`의 `small`(32pt)이라 44pt 터치 기준에 못 미친다 | 모달 안 목록의 방향과 버튼 크기를 공용 기준에 맞춘다(단계 3~4) |
+| D-08 | P2 | 과도한 구획·아이콘 | `dock_timeline` | `src/kit/timeline/TimelinePanel.tsx:186-210` | `ipad-sim-dock_timeline-before.png`(번들 출처 미확인, §9) | 카드마다 번호 1~30을 글자로 모두 나열하고, 이모지(📝 🗓 🔢 🕑)와 Ionicons가 섞이며, 카드 사이에 굵은 주황 띠가 있다. 주황은 행동에만 쓴다는 원칙(`DESIGN.md`)과 어긋난다 | 카드 정보의 우선순위를 줄이고 구분선·아이콘을 한 체계로 맞춘다(단계 4) |
 | D-09 | P2 | 텍스트 위계·용어 | `nav_main`(Phone 탭), `chat_rail`, `canvas_toolbar`, `pencil_popover` | `app/(main)/_layout.tsx:12-25`, `src/agent/tablet/DrawerFooter.tsx:12-17` | `phone-sim-chat_index-before.png`, `ipad-sim-pencil_popover-before.png` | Phone 탭은 History·검색·Diary·내 정보·Study Log, 태블릿 dock 제목은 Study·Diary·검색·내 정보·Study Log, 하단 6칸 정의는 공지·검색·타임라인·실황 수업·주간 공부·내 정보다. 같은 기능의 이름이 세 벌이고 영어와 한국어가 섞인다. 펜 색 라벨도 orange·blue처럼 영어다 | 기능 이름을 한 벌로 정한다(단계 2). 펜 색 **저장값**은 사용자 데이터라 바꾸지 않고 표시 라벨만 다룬다 |
-| D-10 | P2 | 오버레이 역할 | `dock_timeline` 등 dock 5종 | `src/agent/DockWrapper.tsx`, `src/agent/tablet/TabletAgentLayer.tsx:109-136` | `ipad-sim-dock_timeline-before.png` | dock은 scrim 없이 Stage 문제 목록 위 왼쪽 약 60%를 덮는다. 뒤 내용이 그대로 보이지만 가려진 부분은 조작할 수 없다. 블록도에서는 Modeless로 분류돼 있다 | dock이 열렸을 때 Stage를 계속 쓸 수 있어야 하는지 정하고 폭·층을 맞춘다(단계 2) |
-| D-11 | P2 | Phone↔Tablet 배치 | `profile`, `dock_profile` | `src/kit/profile/ProfileActions.tsx:53-74` | `phone-sim-profile-before.png`, `ipad-sim-dock_profile-before.png` | 이름 변경·프로필 이미지 변경·로그아웃이 Phone에서는 프로필 카드 바로 아래에, 태블릿 dock에서는 맨 아래에 떨어져 있다. 세 버튼이 같은 무게의 밑줄 텍스트라 로그아웃이 구분되지 않는다 | 동작의 위치와 위험 동작의 표현을 정한다(단계 2~3) |
+| D-10 | P2 | 오버레이 역할 | `dock_timeline` 등 dock 5종 | `src/agent/DockWrapper.tsx:43`, `src/agent/tablet/TabletAgentLayer.tsx:109-136` | `ipad-sim-dock_timeline-before.png` | dock은 scrim 없이 Stage 문제 목록 위 왼쪽 약 60%를 덮는다. 뒤 내용이 그대로 보이지만 가려진 부분은 조작할 수 없다. 블록도에서는 Modeless로 분류돼 있다 | dock이 열렸을 때 Stage를 계속 쓸 수 있어야 하는지 정하고 폭·층을 맞춘다(단계 2) |
+| D-11 | P2 | Phone↔Tablet 배치 | `profile`, `dock_profile` | `src/kit/profile/ProfileActions.tsx:53-74` | `phone-sim-profile-before.png`, `ipad-sim-dock_profile-before.png` | 이름 변경·프로필 이미지 변경·로그아웃이 Phone에서는 프로필 카드 바로 아래에, 태블릿 dock에서는 맨 아래에 떨어져 있다. 세 버튼이 같은 크기의 밑줄 텍스트이고 로그아웃은 색(`colors.danger`, `ProfileActions.tsx:76`)으로만 구분된다 | 동작의 위치와 위험 동작의 표현을 정한다(단계 2~3) |
 | D-12 | P2 | 접근성 | 전체 | `src/kit/ui/go-button.tsx:103`, `src/kit/live-class/QuizResponseModal.tsx:235,273,280` | 코드 근거만 | `accessibilityRole` 없는 버튼 6종(`GoButton` 포함 시 호출 28곳에 영향). 눌림 표현이 없는 `Pressable` 버튼 14건. `allowFontScaling`·`maxFontSizeMultiplier` 언급은 코드 전체에 1곳뿐이고 버튼 높이는 고정 수치다 | 공용 `Button`·`Chip`이 role·state·눌림 표현·최소 터치 영역을 기본으로 갖게 한다(단계 3). 글자 확대 동작은 단계 6에서 기기로 확인한다 |
 | D-13 | P3 | 모달 표현 | `concept_detail`, `clear_confirm`, `name_edit_modal` | `src/kit/concepts/ConceptLookupPanel.tsx:172-190`, `src/kit/canvas/CanvasChrome.tsx:113-124`, `src/kit/profile/ProfileActions.tsx:83-100` | `ipad-sim-concept_detail-before.png`, `ipad-sim-clear_confirm-before.png` | 대화상자 세 개가 각각 따로 구현돼 있다. 닫기 버튼이 전폭 채움(`#ea580c`), outline+채움 `GoButton` 쌍, 텍스트 버튼 쌍으로 다르다 | 확인 대화상자의 공통 틀을 정한다(단계 3) |
 
@@ -128,7 +128,7 @@ Method: design review only (detector not applicable, native platform)
 
 - **실기기 캡처 0장.** 사용자 지시로 시뮬레이터를 썼다. 개선 스펙 Gate A는 실제 iPad 증거를 요구하므로 이 진단은 시뮬레이터 증거만으로 쓴 것이다. 펜 입력, 실제 터치 크기 체감, 성능은 실기기에서만 확인할 수 있다.
 - **미촬영 47행**(`manifest.md`): 학습장 시트, 주제 실황 수업·선생님 수업 화면과 그 시트·모달(수업이 열려 있어야 함), Phone의 결과 화면(문제 목록·주제·해답), 토스트, 이름 변경·PDF 모달, orphan 노드.
-- **학습장 버튼 불일치**: 코드는 Study dock 카드에 "학습장" 버튼을 넘기지만(`TabletAgentLayer.tsx:125`, `TimelinePanel.tsx:195-202`) 로그인 상태 캡처에는 "가자!!!"만 보인다. 원인은 확인하지 못했다.
+- **번들 출처 미확인 (중요)**: 캡처에 쓴 개발 서버(Metro)가 `76b99e3`의 코드를 내보내지 않았다. 코드는 Study dock 카드에 "학습장" 줄과 버튼을 항상 그리는데(`TabletAgentLayer.tsx:125`, `TimelinePanel.tsx:186-203`) 로그인 상태 캡처에는 없다. 캡처 뒤 개발 서버에서 `TimelinePanel` 모듈을 받아 보니 디스크 파일에는 있는 `noteBtn`이 한 건도 없었다. 서버가 study-note 이전 모듈을 내보낸 것이다. 따라서 **캡처 26장은 study-note 변경이 빠진 번들일 수 있고**, 학습장 줄·버튼·시트는 캡처로 확인되지 않았다. 이 문서의 `파일:라인` 근거는 모두 `76b99e3` 코드에서 읽은 것이라 영향이 없다. 개발 서버를 다시 띄운 뒤 재촬영이 필요하다.
 - **iOS 27.2에서 앱이 실행 직후 종료된다**(`UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`). UI 문제가 아니라 네이티브 수명주기 문제이고 이번 작업 범위 밖이다. 캡처는 iOS 26.4로 했다.
 - **기준 lint 실패**: 오류 2건(`src/kit/canvas/CanvasChrome.tsx:116`), 경고 151건. 이번 작업 이전부터 있던 것이다.
 - 스크린리더 동작, 글자 확대, 명암 대비 수치, 스크롤 프레임은 재지 않았다.

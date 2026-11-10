@@ -13,7 +13,8 @@
 
 ## 조건
 
-- 빌드: `feat/study-note` @ `76b99e3`의 Debug 빌드(`xcodebuild`, `IPHONEOS_DEPLOYMENT_TARGET=15.1` 덮어쓰기), Metro 개발 서버 연결.
+- 빌드: `feat/study-note` @ `76b99e3`에서 만든 Debug 네이티브 빌드(`xcodebuild`, `IPHONEOS_DEPLOYMENT_TARGET=15.1` 덮어쓰기). JS는 이미 떠 있던 Metro 개발 서버에서 받았다.
+- **번들 출처 미확인**: 그 개발 서버가 `76b99e3`의 JS를 내보내지 않았다. 로그인 상태 Study dock 캡처에 study-note UI(학습장 줄·버튼)가 없고, 캡처 뒤 서버에서 받은 `TimelinePanel` 모듈에도 `noteBtn`이 없었다. 캡처 전체가 study-note 이전 번들일 수 있다. 개발 서버를 다시 띄운 뒤 재촬영해야 한다.
 - 로그인: 1차는 개발 빌드 전용 "로그인 없이 둘러보기"(Phone 6장, iPad의 로그인·홈·Diary·검색·내 정보·Study Log dock). 계정 데이터가 없어 빈 상태·오류 문구가 찍혔다. 2차는 사용자가 시뮬레이터에 직접 로그인한 뒤 iPad에서 Study dock, 문제 목록, 캔버스와 그 오버레이를 찍었다. 하단의 광고 띠는 테스트 광고다.
 - 캔버스에서는 필기·저장·전체 지우기 확인을 하지 않았다. 문제 목록을 연 것 외에 계정 데이터를 바꾸는 동작은 없다.
 - iOS 27.2 시뮬레이터에서는 앱이 실행 직후 종료된다(`UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`). 그래서 iOS 26.4 시뮬레이터를 썼다.
@@ -54,7 +55,7 @@
 | diary_index | Diary | phone-sim | 세로 | `phone-sim-diary_index-before.png` | 시뮬레이터 | 완료 | — |
 | diary_day | 그날 풀이 기록 | phone-sim | 세로 | `phone-sim-diary_day-before.png` | 시뮬레이터 | blocked | 미촬영: 이번 회차에서 진입하지 않았다 |
 | diary_solution | 답안 예시 | phone-sim | 세로 | `phone-sim-diary_solution-before.png` | 시뮬레이터 | blocked | 미촬영: 이번 회차에서 진입하지 않았다 |
-| study_note_sheet | 학습장 시트 | ipad-sim | 세로 | `ipad-sim-study_note_sheet-before.png` | 시뮬레이터 | blocked | 로그인 상태의 Study dock 카드에 "학습장" 버튼이 보이지 않았고, 캔버스를 나간 뒤에도 시트가 뜨지 않았다 |
+| study_note_sheet | 학습장 시트 | ipad-sim | 세로 | `ipad-sim-study_note_sheet-before.png` | 시뮬레이터 | blocked | 번들 출처 미확인: 캡처에 쓴 번들에 study-note UI가 없었다(위 "조건" 참고) |
 | study_note_sheet | 학습장 시트 | phone-sim | 세로 | `phone-sim-study_note_sheet-before.png` | 시뮬레이터 | blocked | 미촬영: 이번 회차에서 진입하지 않았다 |
 | global_loading | 앱 차단 로딩 | ipad-sim | 세로 | `ipad-sim-global_loading-before.png` | 시뮬레이터 | blocked | 진입 경로 없음(orphan) |
 | global_loading | 앱 차단 로딩 | phone-sim | 세로 | `phone-sim-global_loading-before.png` | 시뮬레이터 | blocked | 진입 경로 없음(orphan) |

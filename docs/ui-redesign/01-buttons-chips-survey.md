@@ -33,10 +33,10 @@
 
 **표현 변형**
 
-- 텍스트 버튼 높이: 26, 32, 38(`GoButton`), 32(`TimelinePanel`), 38(`TopicUnitList`), 44(`StudyNoteForm`, `PdfViewerModal`), 48(`DiaryPanel` FAB), `layout.hit`(`InstructionCard`, `ProfileActions`), 높이 지정 없이 padding만(`QuizResponseModal`, `ConceptLookupPanel`). 최소 8가지다.
-- 주요 동작의 채움색: `colors.accent`(`InstructionCard`, `StudyNoteForm`, `DiaryPanel`), `#FF8800`(`TimelinePanel`), `#ea580c`(`QuizResponseModal`, `ConceptLookupPanel`), `#30B650`(`ExamSearchPanel:103`의 `GoButton`). 4가지다.
+- 텍스트 버튼 높이: 26, 32, 38(`GoButton`), 32(`TimelinePanel`), 38(`TopicUnitList`), 44(`StudyNoteForm`, `PdfViewerModal`), 48(`DiaryPanel` FAB), `layout.hit`=44(`InstructionCard`, `ProfileActions`), 높이 지정 없이 padding만(`QuizResponseModal`, `ConceptLookupPanel`). 값으로는 26·32·38·44·48 다섯 가지와 padding만 준 것이고, 구현은 여덟 군데에 따로 있다.
+- 주요 동작의 채움색: `colors.accent`(`InstructionCard`, `StudyNoteForm`, `DiaryPanel`), `#FF8800`(`TimelinePanel`), `#ea580c`(`QuizResponseModal`, `ConceptLookupPanel`). 3가지다. `#30B650`(`ExamSearchPanel.tsx:103`)은 `onPress` 없는 `GoButton`으로 그린 눌리지 않는 라벨이라 여기서 뺐다.
 - "가자!!!" 동작 하나가 네 가지로 그려진다: `GoButton` outline(`ExamSearchPanel:93`), 채움 `#FF8800`(`TimelinePanel:205`), 흰 바탕 + `#FFC256` 2px 테두리(`TopicUnitList:74`), accent FAB(`DiaryPanel:99`).
-- 칩 선택색: `'orange'`(CSS 이름, 3곳), `#ea580c`(`ConceptLookupPanel`), `colors.accentSoft`(`StudyNoteForm`). 3가지다.
+- 칩 선택색: `'orange'`(CSS 이름, 3곳), `#ea580c`(`ConceptLookupPanel`), `colors.accentSoft`(`StudyNoteForm`), `colors.accent`(`app/welcome.tsx:119`). 4가지다.
 - 칩 높이: 36(3곳), 32(2곳), padding만(3곳).
 - pressed 표현: `opacity 0.6`, `opacity 0.7`, 배경색 교체(`accentPress`, `accentSoftPress`, `cardMuted`, `accentSoft`), scale 0.92, 표현 없음. `TouchableOpacity`의 기본 투명도 반응 5건을 빼면, 버튼 42건 중 눌림 표현이 없는 `Pressable`이 14건이다.
 

@@ -46,7 +46,7 @@ lint 오류는 이번 작업 이전부터 있던 것이며 고치지 않았다(�
 | Pretendard 유지 | 400/600/700 세 굵기를 `useFonts`로 불러오고 `theme.fontFamily`가 같은 키를 쓴다 | `app/_layout.tsx:23-25`, `src/ui/theme.ts:74-79` |
 | `react-native-paper` 재도입 금지 | 의존성과 import에 없다. 주석에서만 언급된다 | `package.json`(검색 결과 없음), `src/ui/Sheet.tsx:6` |
 | Tablet 판정 `min(w,h) ≥ 600` | 진입 600, 이탈 560, 디바운스 200ms. 560~599는 직전 모드를 유지한다 | `src/layout/deviceMode.ts:8-10`, `:13`, `:18` |
-| 하단 6칸 | 공지·검색·타임라인·실황 수업·주간 공부·내 정보 순서. 실황 수업과 주간 공부는 `disabled: true` | `src/agent/tablet/DrawerFooter.tsx:12-17` |
+| 하단 6칸 | 6칸 정의(공지·검색·타임라인·실황 수업·주간 공부·내 정보, 실황 수업과 주간 공부는 `disabled: true`)는 `DrawerFooter.tsx`에 있지만 **그 컴포넌트는 화면에 렌더되지 않는다**(타입만 쓰임). 실제 태블릿 내비는 세로 pill 툴바로, 타임라인·Diary·검색·실황 수업·내 정보 5개와 채팅 버튼이다. 주간 공부는 없고 실황 수업은 켜져 있다 | `src/agent/tablet/DrawerFooter.tsx:12-17`(정의), `src/agent/tablet/ChatRail.tsx:11-17`(실제 내비) |
 | Dark mode 제외 | `userInterfaceStyle: 'light'` | `app.config.ts:32` |
 | Landscape 제한 목록 미정 | `LANDSCAPE_RESTRICTED`가 빈 Set이고 "사용자 결정 대기" 주석이 있다. 앱 전역 방향 고정은 없다 | `src/kit/canvas/landscapeRestrictions.ts:3-4`, `app.config.ts:34` |
 | RN StyleSheet + 토큰 | `src/ui/theme.ts` 토큰. NativeWind/Tamagui 없음 | `package.json`(검색 결과 없음) |
@@ -72,10 +72,14 @@ lint 오류는 이번 작업 이전부터 있던 것이며 고치지 않았다(�
 - 설치된 Xcode의 시뮬레이터 SDK는 최소 iOS 15.0 미만 Pod를 거부한다. 빌드 명령에서만 `IPHONEOS_DEPLOYMENT_TARGET=15.1`로 덮어썼고 파일은 바꾸지 않았다.
 - iOS 27.2 런타임에서는 앱이 실행 직후 종료된다(UIScene 수명주기 미채택). 캡처는 iOS 26.4 시뮬레이터로 했다.
 
-## 8. 단계 상태
+## 8. 이 브랜치의 문서 외 커밋
+
+`d0a5d1c fix(ios): adopt the UIScene lifecycle so the app launches on iOS 27`가 이 브랜치에 올라와 있다. `app.config.ts`, `plugins/`, `__tests__/withIosSceneLifecycle.test.ts`를 바꾸는 커밋이며 UI 개선 작업의 산출물이 아니다(다른 작업에서 커밋됨). `app/`, `src/`, `package.json`은 바뀌지 않았다.
+
+## 9. 단계 상태
 
 | 단계 | 상태 |
 |---|---|
 | 0 환경·스킬·baseline | 완료 |
-| 1 현황 진단 | 승인대기 (조건부: 실기기 캡처 없음, 시뮬레이터 26장) |
+| 1 현황 진단 | 승인대기 (조건부: 실기기 캡처 없음, 시뮬레이터 26장, 번들 출처 미확인) |
 | 2~6 | 미착수 |
