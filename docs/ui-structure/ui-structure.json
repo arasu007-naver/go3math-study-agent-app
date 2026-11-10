@@ -1,0 +1,1951 @@
+{
+  "meta": {
+    "commit": "76b99e3",
+    "branch": "feat/study-note",
+    "router": "expo-router",
+    "generatedAt": "2026-11-10"
+  },
+  "nodes": [
+    {
+      "id": "nav_root",
+      "kind": "navigator",
+      "name": "Root",
+      "component": "RootLayout",
+      "file": "app/_layout.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": null,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "headerShown:false. BottomSheetModalProvider·AdSlotFrame·전역 오버레이를 감싼다"
+    },
+    {
+      "id": "nav_main",
+      "kind": "navigator",
+      "name": "Main (인증 게이트)",
+      "component": "MainLayout",
+      "file": "app/(main)/_layout.tsx",
+      "route": "/(main)",
+      "parent": "nav_root",
+      "blocking": null,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "useAuthGate: loading→null, signedOut→Redirect /welcome. Phone만 탭 바 표시, Tablet은 탭 바 숨김(index만 href)"
+    },
+    {
+      "id": "nav_timeline",
+      "kind": "navigator",
+      "name": "History 탭",
+      "component": "TimelineTabLayout",
+      "file": "app/(main)/timeline/_layout.tsx",
+      "route": "/timeline",
+      "parent": "nav_main",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "initialRouteName: index"
+    },
+    {
+      "id": "nav_search",
+      "kind": "navigator",
+      "name": "검색 탭",
+      "component": "SearchTabLayout",
+      "file": "app/(main)/search/_layout.tsx",
+      "route": "/search",
+      "parent": "nav_main",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "initialRouteName: index"
+    },
+    {
+      "id": "nav_diary",
+      "kind": "navigator",
+      "name": "Diary 탭",
+      "component": "DiaryTabLayout",
+      "file": "app/(main)/diary/_layout.tsx",
+      "route": "/diary",
+      "parent": "nav_main",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "initialRouteName: index"
+    },
+    {
+      "id": "nav_chat",
+      "kind": "navigator",
+      "name": "Study Log 탭",
+      "component": "ChatTabLayout",
+      "file": "app/(main)/chat/_layout.tsx",
+      "route": "/chat",
+      "parent": "nav_main",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "initialRouteName: index"
+    },
+    {
+      "id": "ext",
+      "kind": "external",
+      "name": "External",
+      "component": "—",
+      "file": "app.config.ts",
+      "route": null,
+      "parent": null,
+      "blocking": null,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "scheme com.qoolla.student. 스펙 kind 목록 밖의 의사 노드"
+    },
+    {
+      "id": "welcome",
+      "kind": "screen",
+      "name": "Welcome (로그인)",
+      "component": "WelcomeScreen",
+      "file": "app/welcome.tsx",
+      "route": "/welcome",
+      "parent": "nav_root",
+      "blocking": null,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "소셜 로그인 + 공개 콘텐츠 패널(ExamSearchPanel / TopicTabsPanel)"
+    },
+    {
+      "id": "auth_callback",
+      "kind": "screen",
+      "name": "OAuth 콜백",
+      "component": "AuthCallback",
+      "file": "app/auth/callback.tsx",
+      "route": "/auth/callback",
+      "parent": "nav_root",
+      "blocking": null,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "화면 없이 Redirect만 한다"
+    },
+    {
+      "id": "public_questions",
+      "kind": "screen",
+      "name": "공개 문제 목록",
+      "component": "PublicQuestionsViewScreen",
+      "file": "app/public-questions.tsx",
+      "route": "/public-questions",
+      "parent": "nav_root",
+      "blocking": null,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "headerShown:true (뒤로)"
+    },
+    {
+      "id": "public_solution",
+      "kind": "screen",
+      "name": "공개 해답",
+      "component": "PublicSolutionViewScreen",
+      "file": "app/public-solution.tsx",
+      "route": "/public-solution",
+      "parent": "nav_root",
+      "blocking": null,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "headerShown:true. WebView"
+    },
+    {
+      "id": "notebook",
+      "kind": "screen",
+      "name": "문제 풀이 캔버스",
+      "component": "NotebookScreen",
+      "file": "app/notebook.tsx",
+      "route": "/notebook",
+      "parent": "nav_root",
+      "blocking": null,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "패널 NotebookCanvasPanel(src/kit/canvas/note-canvas/notebook.tsx). 폰에서 여는 코드 없음"
+    },
+    {
+      "id": "topic_live",
+      "kind": "screen",
+      "name": "주제 실황 수업",
+      "component": "TopicLiveClassScreen",
+      "file": "app/topic-live-class.tsx",
+      "route": "/topic-live-class",
+      "parent": "nav_root",
+      "blocking": null,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "패널 TopicLiveClassCanvasPanel(src/kit/canvas/note-canvas/topic-live-canvas.tsx). 폰에서 여는 코드 없음"
+    },
+    {
+      "id": "hotline",
+      "kind": "screen",
+      "name": "선생님 수업",
+      "component": "HotlineClassScreen",
+      "file": "app/hotline-class.tsx",
+      "route": "/hotline-class",
+      "parent": "nav_root",
+      "blocking": null,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "패널 HotlineClassCanvasPanel(src/kit/canvas/note-canvas/hotline-class-canvas.tsx). 폰에서 여는 코드 없음"
+    },
+    {
+      "id": "agent_home",
+      "kind": "screen",
+      "name": "에이전트 홈 (Stage)",
+      "component": "AgentHome",
+      "file": "app/(main)/index.tsx",
+      "route": "/",
+      "parent": "nav_main",
+      "blocking": null,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "Stage(src/host/Stage.tsx) + TabletAgentLayer. Phone이면 즉시 Redirect /timeline"
+    },
+    {
+      "id": "profile",
+      "kind": "screen",
+      "name": "내 정보 탭",
+      "component": "ProfileTabScreen",
+      "file": "app/(main)/profile.tsx",
+      "route": "/profile",
+      "parent": "nav_main",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "구현 src/phone/PhoneScreens.tsx"
+    },
+    {
+      "id": "timeline_index",
+      "kind": "screen",
+      "name": "History",
+      "component": "TimelineTabScreen",
+      "file": "app/(main)/timeline/index.tsx",
+      "route": "/timeline",
+      "parent": "nav_timeline",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "구현 src/phone/PhoneScreens.tsx. Phone 첫 화면"
+    },
+    {
+      "id": "timeline_problems",
+      "kind": "screen",
+      "name": "문제 목록",
+      "component": "TimelineProblemsScreen",
+      "file": "app/(main)/timeline/problems.tsx",
+      "route": "/timeline/problems",
+      "parent": "nav_timeline",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "ProblemsResultScreen tab=timeline"
+    },
+    {
+      "id": "timeline_topic",
+      "kind": "screen",
+      "name": "주제 문제",
+      "component": "TimelineTopicScreen",
+      "file": "app/(main)/timeline/topic.tsx",
+      "route": "/timeline/topic",
+      "parent": "nav_timeline",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": true,
+      "note": "TopicResultScreen tab=timeline. 이 탭에서 여는 코드 없음(이슈 참고)"
+    },
+    {
+      "id": "timeline_solution",
+      "kind": "screen",
+      "name": "해답",
+      "component": "SolutionResultScreen",
+      "file": "app/(main)/timeline/solution.tsx",
+      "route": "/timeline/solution",
+      "parent": "nav_timeline",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "WebView"
+    },
+    {
+      "id": "search_index",
+      "kind": "screen",
+      "name": "검색",
+      "component": "SearchTabScreen",
+      "file": "app/(main)/search/index.tsx",
+      "route": "/search",
+      "parent": "nav_search",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "구현 src/phone/PhoneScreens.tsx. ResearchPanel"
+    },
+    {
+      "id": "search_problems",
+      "kind": "screen",
+      "name": "문제 목록",
+      "component": "SearchProblemsScreen",
+      "file": "app/(main)/search/problems.tsx",
+      "route": "/search/problems",
+      "parent": "nav_search",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "ProblemsResultScreen tab=search"
+    },
+    {
+      "id": "search_topic",
+      "kind": "screen",
+      "name": "주제 문제",
+      "component": "SearchTopicScreen",
+      "file": "app/(main)/search/topic.tsx",
+      "route": "/search/topic",
+      "parent": "nav_search",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "TopicResultScreen tab=search"
+    },
+    {
+      "id": "search_solution",
+      "kind": "screen",
+      "name": "해답",
+      "component": "SolutionResultScreen",
+      "file": "app/(main)/search/solution.tsx",
+      "route": "/search/solution",
+      "parent": "nav_search",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "WebView"
+    },
+    {
+      "id": "chat_index",
+      "kind": "screen",
+      "name": "Study Log",
+      "component": "ChatTabScreen",
+      "file": "app/(main)/chat/index.tsx",
+      "route": "/chat",
+      "parent": "nav_chat",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "구현 src/phone/PhoneScreens.tsx. ChatTimeline"
+    },
+    {
+      "id": "chat_problems",
+      "kind": "screen",
+      "name": "문제 목록",
+      "component": "ChatProblemsScreen",
+      "file": "app/(main)/chat/problems.tsx",
+      "route": "/chat/problems",
+      "parent": "nav_chat",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "ProblemsResultScreen tab=chat"
+    },
+    {
+      "id": "chat_topic",
+      "kind": "screen",
+      "name": "주제 문제",
+      "component": "ChatTopicScreen",
+      "file": "app/(main)/chat/topic.tsx",
+      "route": "/chat/topic",
+      "parent": "nav_chat",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "TopicResultScreen tab=chat"
+    },
+    {
+      "id": "chat_solution",
+      "kind": "screen",
+      "name": "해답",
+      "component": "SolutionResultScreen",
+      "file": "app/(main)/chat/solution.tsx",
+      "route": "/chat/solution",
+      "parent": "nav_chat",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "WebView"
+    },
+    {
+      "id": "diary_index",
+      "kind": "screen",
+      "name": "Diary",
+      "component": "DiaryTabScreen",
+      "file": "app/(main)/diary/index.tsx",
+      "route": "/diary",
+      "parent": "nav_diary",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "구현 src/phone/PhoneScreens.tsx. 달력 + 공지"
+    },
+    {
+      "id": "diary_day",
+      "kind": "screen",
+      "name": "그날 풀이 기록",
+      "component": "DiaryDayScreen",
+      "file": "app/(main)/diary/day.tsx",
+      "route": "/diary/day",
+      "parent": "nav_diary",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "DailyRecordsList"
+    },
+    {
+      "id": "diary_solution",
+      "kind": "screen",
+      "name": "답안 예시",
+      "component": "SolutionResultScreen",
+      "file": "app/(main)/diary/solution.tsx",
+      "route": "/diary/solution",
+      "parent": "nav_diary",
+      "blocking": null,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "WebView"
+    },
+    {
+      "id": "study_note_sheet",
+      "kind": "bottomsheet",
+      "name": "학습장 시트",
+      "component": "SheetHost",
+      "file": "src/host/SheetHost.tsx",
+      "route": null,
+      "parent": "nav_main",
+      "blocking": true,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "자체 구현: RN Modal + scrim + 아래 붙은 카드. 내용 StudyNoteWidget→StudyNoteForm(src/host/widgets.tsx). Tablet은 카드 폭 560 제한"
+    },
+    {
+      "id": "global_loading",
+      "kind": "modeless",
+      "name": "앱 차단 로딩",
+      "component": "GlobalLoadingOverlay",
+      "file": "src/kit/ui/loading-view/global-overlay.tsx",
+      "route": null,
+      "parent": "nav_root",
+      "blocking": false,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": true,
+      "note": "pointerEvents none. beginBlocking() 호출부가 없어 표시되지 않는다"
+    },
+    {
+      "id": "tablet_launch",
+      "kind": "modeless",
+      "name": "태블릿 런치 로고",
+      "component": "TabletLaunchOverlay",
+      "file": "src/ui/TabletLaunchOverlay.tsx",
+      "route": null,
+      "parent": "nav_root",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "Android 태블릿만, 1초 후 페이드아웃. pointerEvents none"
+    },
+    {
+      "id": "chat_rail",
+      "kind": "modeless",
+      "name": "세로 pill 툴바",
+      "component": "ChatRail",
+      "file": "src/agent/tablet/ChatRail.tsx",
+      "route": null,
+      "parent": "agent_home",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "끌어서 옮기는 플로팅 툴바. 항목 5개 + 채팅 버튼"
+    },
+    {
+      "id": "dock_timeline",
+      "kind": "modeless",
+      "name": "Study dock",
+      "component": "DockWrapper · TimelinePanel",
+      "file": "src/agent/tablet/TabletAgentLayer.tsx",
+      "route": null,
+      "parent": "agent_home",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "box-none: Stage 조작 가능. 홈 진입 시 기본으로 열림"
+    },
+    {
+      "id": "dock_notice",
+      "kind": "modeless",
+      "name": "Diary dock",
+      "component": "DockWrapper · DiaryPanel",
+      "file": "src/agent/tablet/TabletAgentLayer.tsx",
+      "route": null,
+      "parent": "agent_home",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "dock_search",
+      "kind": "modeless",
+      "name": "검색 dock",
+      "component": "DockWrapper · ResearchPanel",
+      "file": "src/agent/tablet/TabletAgentLayer.tsx",
+      "route": null,
+      "parent": "agent_home",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "dock_live",
+      "kind": "modeless",
+      "name": "실황 수업 dock",
+      "component": "DockWrapper · LiveClassListPanel",
+      "file": "src/agent/tablet/TabletAgentLayer.tsx",
+      "route": null,
+      "parent": "agent_home",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "dock_profile",
+      "kind": "modeless",
+      "name": "내 정보 dock",
+      "component": "DockWrapper · ProfileActions",
+      "file": "src/agent/tablet/TabletAgentLayer.tsx",
+      "route": null,
+      "parent": "agent_home",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "MyInfoPanel + MessageBoxPanel + ProfileActions"
+    },
+    {
+      "id": "dock_chat",
+      "kind": "modeless",
+      "name": "Study Log dock",
+      "component": "DockWrapper · ChatTimeline",
+      "file": "src/agent/tablet/TabletAgentLayer.tsx",
+      "route": null,
+      "parent": "agent_home",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "InstructionCard 선택지 포함"
+    },
+    {
+      "id": "agent_toast",
+      "kind": "modeless",
+      "name": "튜터·에이전트 토스트",
+      "component": "Toast",
+      "file": "src/ui/toast/Toast.tsx",
+      "route": null,
+      "parent": "agent_home",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "우상단, motion.toastMs 후 사라짐"
+    },
+    {
+      "id": "canvas_toolbar",
+      "kind": "modeless",
+      "name": "캔버스 하단 툴바",
+      "component": "FloatingToolbar",
+      "file": "src/kit/canvas/FloatingToolbar.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "CanvasChrome가 3개 캔버스 패널 위에 띄운다. 화면별 버튼(나가기·목록·해답…) + 도구"
+    },
+    {
+      "id": "concept_sheet",
+      "kind": "bottomsheet",
+      "name": "개념 검색 시트",
+      "component": "CanvasChrome · ConceptLookupPanel",
+      "file": "src/kit/canvas/CanvasChrome.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "@gorhom BottomSheetModal, snap 70%, backdropComponent 없음"
+    },
+    {
+      "id": "clear_confirm",
+      "kind": "modal",
+      "name": "전체 지우기 확인",
+      "component": "CanvasChrome (inline Modal)",
+      "file": "src/kit/canvas/CanvasChrome.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": true,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "landscape_notice",
+      "kind": "modeless",
+      "name": "가로 모드 안내",
+      "component": "LandscapeNotice",
+      "file": "src/kit/canvas/LandscapeNotice.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "pointerEvents none, 자동 사라짐"
+    },
+    {
+      "id": "pencil_popover",
+      "kind": "modal",
+      "name": "펜 설정 팝오버",
+      "component": "PencilPropsModal",
+      "file": "src/kit/canvas/note-canvas/pencil-props-modal.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": true,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "ToolPopover: 캔버스 전체를 덮는 투명 Pressable이 바깥 탭을 받아 닫는다(light-dismiss) → Modal로 분류"
+    },
+    {
+      "id": "concept_detail",
+      "kind": "modal",
+      "name": "개념 설명 모달",
+      "component": "ConceptLookupPanel (inline Modal)",
+      "file": "src/kit/concepts/ConceptLookupPanel.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": true,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "ResearchPanel 개념 탭과 개념 검색 시트 안에서 열린다"
+    },
+    {
+      "id": "name_edit_modal",
+      "kind": "modal",
+      "name": "이름 변경",
+      "component": "ProfileActions (inline Modal)",
+      "file": "src/kit/profile/ProfileActions.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": true,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "pdf_viewer",
+      "kind": "modal",
+      "name": "사서함 PDF",
+      "component": "PdfViewerModal",
+      "file": "src/kit/ui/PdfViewerModal.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": true,
+      "modes": [
+        "phone",
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "Phone: presentationStyle fullScreen / Tablet: 투명 카드 Modal"
+    },
+    {
+      "id": "upload_alert",
+      "kind": "modal",
+      "name": "풀이 업로드 결과",
+      "component": "Alert.alert (SolutionRow)",
+      "file": "src/phone/PhoneScreens.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": true,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "시스템 Alert(확인)"
+    },
+    {
+      "id": "bookmark_alert",
+      "kind": "modal",
+      "name": "책갈피 결과",
+      "component": "Alert.alert (DailyRecordsList)",
+      "file": "src/kit/diary/DailyRecordsList.tsx",
+      "route": null,
+      "parent": "diary_day",
+      "blocking": true,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "시스템 Alert"
+    },
+    {
+      "id": "quiz_modal",
+      "kind": "modal",
+      "name": "실황 퀴즈",
+      "component": "QuizResponseModal",
+      "file": "src/kit/live-class/QuizResponseModal.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": true,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "topic_live·hotline이 각각 하나씩 렌더"
+    },
+    {
+      "id": "nb_list_modal",
+      "kind": "modal",
+      "name": "문제 목록 모달",
+      "component": "NotebookScreen (inline Modal)",
+      "file": "app/notebook.tsx",
+      "route": null,
+      "parent": "notebook",
+      "blocking": true,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "카드별 교체·책갈피·해답 토글"
+    },
+    {
+      "id": "nb_answer_sheet",
+      "kind": "bottomsheet",
+      "name": "해답 시트",
+      "component": "NotebookScreen (BottomSheetModal)",
+      "file": "app/notebook.tsx",
+      "route": null,
+      "parent": "notebook",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "backdropComponent 없음"
+    },
+    {
+      "id": "nb_workout_sheet",
+      "kind": "bottomsheet",
+      "name": "내 풀이 시트",
+      "component": "NotebookScreen (BottomSheetModal)",
+      "file": "app/notebook.tsx",
+      "route": null,
+      "parent": "notebook",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "backdropComponent 없음"
+    },
+    {
+      "id": "tl_list_modal",
+      "kind": "modal",
+      "name": "수업 문제 목록",
+      "component": "TopicLiveClassScreen (inline Modal)",
+      "file": "app/topic-live-class.tsx",
+      "route": null,
+      "parent": "topic_live",
+      "blocking": true,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "tl_answer_sheet",
+      "kind": "bottomsheet",
+      "name": "답안 예시 시트",
+      "component": "TopicLiveClassScreen (BottomSheetModal)",
+      "file": "app/topic-live-class.tsx",
+      "route": null,
+      "parent": "topic_live",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "tl_toast",
+      "kind": "modeless",
+      "name": "상단 토스트",
+      "component": "TopicLiveClassScreen (inline View)",
+      "file": "app/topic-live-class.tsx",
+      "route": null,
+      "parent": "topic_live",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "2.5초 후 사라짐"
+    },
+    {
+      "id": "tl_memo",
+      "kind": "modeless",
+      "name": "선생님 메모",
+      "component": "TopicLiveClassCanvasPanel",
+      "file": "src/kit/canvas/note-canvas/topic-live-canvas.tsx",
+      "route": null,
+      "parent": "topic_live",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "✕로 닫음"
+    },
+    {
+      "id": "tl_popup",
+      "kind": "modal",
+      "name": "해설 팝업",
+      "component": "Sheet",
+      "file": "src/kit/canvas/note-canvas/topic-live-canvas.tsx",
+      "route": null,
+      "parent": "topic_live",
+      "blocking": true,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": true,
+      "note": "src/ui/Sheet.tsx 카드 모달. 여는 호출 없음"
+    },
+    {
+      "id": "hl_list_modal",
+      "kind": "modal",
+      "name": "수업 문제 목록",
+      "component": "HotlineClassScreen (inline Modal)",
+      "file": "app/hotline-class.tsx",
+      "route": null,
+      "parent": "hotline",
+      "blocking": true,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "hl_answer_sheet",
+      "kind": "bottomsheet",
+      "name": "답안 예시 시트",
+      "component": "HotlineClassScreen (BottomSheetModal)",
+      "file": "app/hotline-class.tsx",
+      "route": null,
+      "parent": "hotline",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "hl_toast",
+      "kind": "modeless",
+      "name": "상단 토스트",
+      "component": "HotlineClassScreen (inline View)",
+      "file": "app/hotline-class.tsx",
+      "route": null,
+      "parent": "hotline",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": null
+    },
+    {
+      "id": "hl_memo",
+      "kind": "modeless",
+      "name": "선생님 메모",
+      "component": "HotlineClassCanvasPanel",
+      "file": "src/kit/canvas/note-canvas/hotline-class-canvas.tsx",
+      "route": null,
+      "parent": "hotline",
+      "blocking": false,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": false,
+      "note": "✕로 닫음"
+    },
+    {
+      "id": "hl_popup",
+      "kind": "modal",
+      "name": "해설 팝업",
+      "component": "Sheet",
+      "file": "src/kit/canvas/note-canvas/hotline-class-canvas.tsx",
+      "route": null,
+      "parent": "hotline",
+      "blocking": true,
+      "modes": [
+        "tablet"
+      ],
+      "orphan": true,
+      "note": "src/ui/Sheet.tsx 카드 모달. 여는 호출 없음"
+    }
+  ],
+  "edges": [
+    {
+      "from": "nav_root",
+      "to": "nav_main",
+      "rel": "contains",
+      "trigger": "그룹 (main)",
+      "condition": null,
+      "source": "app/_layout.tsx:43"
+    },
+    {
+      "from": "nav_root",
+      "to": "welcome",
+      "rel": "contains",
+      "trigger": "파일 기반 라우트",
+      "condition": null,
+      "source": "app/_layout.tsx:43"
+    },
+    {
+      "from": "nav_root",
+      "to": "auth_callback",
+      "rel": "contains",
+      "trigger": "파일 기반 라우트",
+      "condition": null,
+      "source": "app/_layout.tsx:43"
+    },
+    {
+      "from": "nav_root",
+      "to": "public_questions",
+      "rel": "contains",
+      "trigger": "파일 기반 라우트",
+      "condition": null,
+      "source": "app/_layout.tsx:43"
+    },
+    {
+      "from": "nav_root",
+      "to": "public_solution",
+      "rel": "contains",
+      "trigger": "파일 기반 라우트",
+      "condition": null,
+      "source": "app/_layout.tsx:43"
+    },
+    {
+      "from": "nav_root",
+      "to": "notebook",
+      "rel": "contains",
+      "trigger": "파일 기반 라우트",
+      "condition": null,
+      "source": "app/_layout.tsx:43"
+    },
+    {
+      "from": "nav_root",
+      "to": "topic_live",
+      "rel": "contains",
+      "trigger": "파일 기반 라우트",
+      "condition": null,
+      "source": "app/_layout.tsx:43"
+    },
+    {
+      "from": "nav_root",
+      "to": "hotline",
+      "rel": "contains",
+      "trigger": "파일 기반 라우트",
+      "condition": null,
+      "source": "app/_layout.tsx:43"
+    },
+    {
+      "from": "nav_main",
+      "to": "agent_home",
+      "rel": "contains",
+      "trigger": "Tabs.Screen index",
+      "condition": "Tablet만 href",
+      "source": "app/(main)/_layout.tsx:75"
+    },
+    {
+      "from": "nav_main",
+      "to": "nav_timeline",
+      "rel": "contains",
+      "trigger": "Tabs.Screen (PHONE_TABS)",
+      "condition": "Phone만 href",
+      "source": "app/(main)/_layout.tsx:77"
+    },
+    {
+      "from": "nav_main",
+      "to": "nav_search",
+      "rel": "contains",
+      "trigger": "Tabs.Screen (PHONE_TABS)",
+      "condition": "Phone만 href",
+      "source": "app/(main)/_layout.tsx:77"
+    },
+    {
+      "from": "nav_main",
+      "to": "nav_diary",
+      "rel": "contains",
+      "trigger": "Tabs.Screen (PHONE_TABS)",
+      "condition": "Phone만 href",
+      "source": "app/(main)/_layout.tsx:77"
+    },
+    {
+      "from": "nav_main",
+      "to": "profile",
+      "rel": "contains",
+      "trigger": "Tabs.Screen (PHONE_TABS)",
+      "condition": "Phone만 href",
+      "source": "app/(main)/_layout.tsx:77"
+    },
+    {
+      "from": "nav_main",
+      "to": "nav_chat",
+      "rel": "contains",
+      "trigger": "Tabs.Screen (PHONE_TABS)",
+      "condition": "Phone만 href",
+      "source": "app/(main)/_layout.tsx:77"
+    },
+    {
+      "from": "nav_timeline",
+      "to": "timeline_index",
+      "rel": "contains",
+      "trigger": "Stack.Screen index",
+      "condition": null,
+      "source": "app/(main)/timeline/_layout.tsx:11"
+    },
+    {
+      "from": "nav_timeline",
+      "to": "timeline_problems",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/timeline/_layout.tsx:9"
+    },
+    {
+      "from": "nav_timeline",
+      "to": "timeline_topic",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/timeline/_layout.tsx:9"
+    },
+    {
+      "from": "nav_timeline",
+      "to": "timeline_solution",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/timeline/_layout.tsx:9"
+    },
+    {
+      "from": "nav_search",
+      "to": "search_index",
+      "rel": "contains",
+      "trigger": "Stack.Screen index",
+      "condition": null,
+      "source": "app/(main)/search/_layout.tsx:11"
+    },
+    {
+      "from": "nav_search",
+      "to": "search_problems",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/search/_layout.tsx:9"
+    },
+    {
+      "from": "nav_search",
+      "to": "search_topic",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/search/_layout.tsx:9"
+    },
+    {
+      "from": "nav_search",
+      "to": "search_solution",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/search/_layout.tsx:9"
+    },
+    {
+      "from": "nav_chat",
+      "to": "chat_index",
+      "rel": "contains",
+      "trigger": "Stack.Screen index",
+      "condition": null,
+      "source": "app/(main)/chat/_layout.tsx:11"
+    },
+    {
+      "from": "nav_chat",
+      "to": "chat_problems",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/chat/_layout.tsx:9"
+    },
+    {
+      "from": "nav_chat",
+      "to": "chat_topic",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/chat/_layout.tsx:9"
+    },
+    {
+      "from": "nav_chat",
+      "to": "chat_solution",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/chat/_layout.tsx:9"
+    },
+    {
+      "from": "nav_diary",
+      "to": "diary_index",
+      "rel": "contains",
+      "trigger": "Stack.Screen index",
+      "condition": null,
+      "source": "app/(main)/diary/_layout.tsx:10"
+    },
+    {
+      "from": "nav_diary",
+      "to": "diary_day",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/diary/_layout.tsx:9"
+    },
+    {
+      "from": "nav_diary",
+      "to": "diary_solution",
+      "rel": "contains",
+      "trigger": "파일 기반 child",
+      "condition": null,
+      "source": "app/(main)/diary/_layout.tsx:9"
+    },
+    {
+      "from": "ext",
+      "to": "auth_callback",
+      "rel": "deeplink",
+      "trigger": "OAuth 리디렉트 com.qoolla.student://auth/callback",
+      "condition": null,
+      "source": "app.config.ts:30"
+    },
+    {
+      "from": "auth_callback",
+      "to": "welcome",
+      "rel": "navigate",
+      "trigger": "Redirect /welcome",
+      "condition": "콜백 화면에 직접 도착",
+      "source": "app/auth/callback.tsx:6"
+    },
+    {
+      "from": "nav_main",
+      "to": "welcome",
+      "rel": "navigate",
+      "trigger": "Redirect /welcome",
+      "condition": "비로그인·로그아웃 (gate signedOut)",
+      "source": "app/(main)/_layout.tsx:57"
+    },
+    {
+      "from": "welcome",
+      "to": "agent_home",
+      "rel": "navigate",
+      "trigger": "Redirect / (로그인 성공·개발용 둘러보기)",
+      "condition": "gate signedIn",
+      "source": "app/welcome.tsx:51"
+    },
+    {
+      "from": "agent_home",
+      "to": "timeline_index",
+      "rel": "navigate",
+      "trigger": "Redirect /timeline",
+      "condition": "Phone만",
+      "source": "app/(main)/index.tsx:14"
+    },
+    {
+      "from": "welcome",
+      "to": "public_questions",
+      "rel": "navigate",
+      "trigger": "탭: 가자 (2026·모의 기출)",
+      "condition": null,
+      "source": "app/welcome.tsx:70"
+    },
+    {
+      "from": "welcome",
+      "to": "public_questions",
+      "rel": "navigate",
+      "trigger": "탭: 토픽 (과목별)",
+      "condition": null,
+      "source": "app/welcome.tsx:88"
+    },
+    {
+      "from": "public_questions",
+      "to": "public_solution",
+      "rel": "navigate",
+      "trigger": "탭: 해답",
+      "condition": null,
+      "source": "app/public-questions.tsx:96"
+    },
+    {
+      "from": "agent_home",
+      "to": "notebook",
+      "rel": "navigate",
+      "trigger": "탭: 연필 FAB (Stage 문제 목록·주제 문제·책갈피)",
+      "condition": "Tablet만",
+      "source": "src/host/widgets.tsx:67 (호출 :111, :159, :178)"
+    },
+    {
+      "from": "agent_home",
+      "to": "topic_live",
+      "rel": "navigate",
+      "trigger": "탭: 연필 FAB (실황 주제 수업 문제 목록)",
+      "condition": "source.kind 'topic_live'",
+      "source": "src/host/widgets.tsx:155 → :74"
+    },
+    {
+      "from": "agent_home",
+      "to": "hotline",
+      "rel": "navigate",
+      "trigger": "탭: 연필 FAB (선생님 수업 문제 목록)",
+      "condition": "source.kind 'hotline'",
+      "source": "src/host/widgets.tsx:157 → :81"
+    },
+    {
+      "from": "dock_notice",
+      "to": "notebook",
+      "rel": "navigate",
+      "trigger": "탭: 가자!!! (그날 문제)",
+      "condition": null,
+      "source": "src/agent/tablet/TabletAgentLayer.tsx:136"
+    },
+    {
+      "from": "dock_live",
+      "to": "topic_live",
+      "rel": "navigate",
+      "trigger": "탭: 주제 실황 수업",
+      "condition": null,
+      "source": "src/agent/tablet/TabletAgentLayer.tsx:147"
+    },
+    {
+      "from": "dock_live",
+      "to": "hotline",
+      "rel": "navigate",
+      "trigger": "탭: 선생님 수업",
+      "condition": null,
+      "source": "src/agent/tablet/TabletAgentLayer.tsx:148"
+    },
+    {
+      "from": "notebook",
+      "to": "agent_home",
+      "rel": "navigate",
+      "trigger": "툴바: 나가기 (back, 없으면 replace /) · Redirect /",
+      "condition": "Redirect는 solveStore 비었을 때",
+      "source": "app/notebook.tsx:246, :113"
+    },
+    {
+      "from": "topic_live",
+      "to": "agent_home",
+      "rel": "navigate",
+      "trigger": "툴바: 나가기 · 강의 미준비 토스트 후 자동 · Redirect /",
+      "condition": "Redirect는 topicId 없을 때",
+      "source": "app/topic-live-class.tsx:178, :102, :163"
+    },
+    {
+      "from": "hotline",
+      "to": "agent_home",
+      "rel": "navigate",
+      "trigger": "툴바: 나가기 · Redirect /",
+      "condition": "Redirect는 tutorId 없을 때",
+      "source": "app/hotline-class.tsx:171, :156"
+    },
+    {
+      "from": "timeline_index",
+      "to": "timeline_problems",
+      "rel": "navigate",
+      "trigger": "탭: 타임라인 task",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:95 → :65"
+    },
+    {
+      "from": "search_index",
+      "to": "search_problems",
+      "rel": "navigate",
+      "trigger": "기출 검색 제출",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:113 → :65"
+    },
+    {
+      "from": "search_index",
+      "to": "search_topic",
+      "rel": "navigate",
+      "trigger": "탭: 토픽",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:117 → :69"
+    },
+    {
+      "from": "chat_index",
+      "to": "chat_problems",
+      "rel": "navigate",
+      "trigger": "에이전트 show_component problem_list",
+      "condition": "채팅 탭 포커스 중",
+      "source": "src/phone/PhoneScreens.tsx:175"
+    },
+    {
+      "from": "chat_index",
+      "to": "chat_topic",
+      "rel": "navigate",
+      "trigger": "에이전트 show_component problem_preview",
+      "condition": "채팅 탭 포커스 중",
+      "source": "src/phone/PhoneScreens.tsx:176"
+    },
+    {
+      "from": "timeline_problems",
+      "to": "timeline_solution",
+      "rel": "navigate",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:216"
+    },
+    {
+      "from": "timeline_topic",
+      "to": "timeline_solution",
+      "rel": "navigate",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:216 (:253)"
+    },
+    {
+      "from": "timeline_problems",
+      "to": "timeline_index",
+      "rel": "navigate",
+      "trigger": "헤더 뒤로 (dismissTo)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:194"
+    },
+    {
+      "from": "timeline_topic",
+      "to": "timeline_index",
+      "rel": "navigate",
+      "trigger": "헤더 뒤로 (dismissTo)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:194"
+    },
+    {
+      "from": "search_problems",
+      "to": "search_solution",
+      "rel": "navigate",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:216"
+    },
+    {
+      "from": "search_topic",
+      "to": "search_solution",
+      "rel": "navigate",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:216 (:253)"
+    },
+    {
+      "from": "search_problems",
+      "to": "search_index",
+      "rel": "navigate",
+      "trigger": "헤더 뒤로 (dismissTo)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:194"
+    },
+    {
+      "from": "search_topic",
+      "to": "search_index",
+      "rel": "navigate",
+      "trigger": "헤더 뒤로 (dismissTo)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:194"
+    },
+    {
+      "from": "chat_problems",
+      "to": "chat_solution",
+      "rel": "navigate",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:216"
+    },
+    {
+      "from": "chat_topic",
+      "to": "chat_solution",
+      "rel": "navigate",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:216 (:253)"
+    },
+    {
+      "from": "chat_problems",
+      "to": "chat_index",
+      "rel": "navigate",
+      "trigger": "헤더 뒤로 (dismissTo)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:194"
+    },
+    {
+      "from": "chat_topic",
+      "to": "chat_index",
+      "rel": "navigate",
+      "trigger": "헤더 뒤로 (dismissTo)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:194"
+    },
+    {
+      "from": "diary_index",
+      "to": "diary_day",
+      "rel": "navigate",
+      "trigger": "탭: 달력 날짜",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:139"
+    },
+    {
+      "from": "diary_day",
+      "to": "diary_solution",
+      "rel": "navigate",
+      "trigger": "탭: 답안 예시",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:278"
+    },
+    {
+      "from": "nav_root",
+      "to": "tablet_launch",
+      "rel": "present",
+      "trigger": "앱 시작",
+      "condition": "Android 태블릿만",
+      "source": "src/ui/TabletLaunchOverlay.tsx:18 (app/_layout.tsx:47)"
+    },
+    {
+      "from": "timeline_index",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "탭: 학습장",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:97 → src/agent/session.ts:119"
+    },
+    {
+      "from": "dock_timeline",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "탭: 학습장",
+      "condition": null,
+      "source": "src/agent/tablet/TabletAgentLayer.tsx:125 → src/agent/session.ts:119"
+    },
+    {
+      "from": "notebook",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감 → solve_finished → 에이전트 show_component(study_note)",
+      "condition": "푼 문제 ≥1·에이전트가 응답할 때 (mockAgent로만 확인)",
+      "source": "src/host/useSolveFinished.ts:12 → src/agent/commandRouter.ts:92"
+    },
+    {
+      "from": "topic_live",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감 → solve_finished → 에이전트 show_component(study_note)",
+      "condition": "푼 문제 ≥1·에이전트가 응답할 때 (mockAgent로만 확인)",
+      "source": "src/host/useSolveFinished.ts:12 → src/agent/commandRouter.ts:92"
+    },
+    {
+      "from": "hotline",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감 → solve_finished → 에이전트 show_component(study_note)",
+      "condition": "푼 문제 ≥1·에이전트가 응답할 때 (mockAgent로만 확인)",
+      "source": "src/host/useSolveFinished.ts:12 → src/agent/commandRouter.ts:92"
+    },
+    {
+      "from": "agent_home",
+      "to": "chat_rail",
+      "rel": "present",
+      "trigger": "항상 표시",
+      "condition": null,
+      "source": "src/agent/tablet/TabletAgentLayer.tsx:109 (app/(main)/index.tsx:20)"
+    },
+    {
+      "from": "chat_rail",
+      "to": "dock_timeline",
+      "rel": "present",
+      "trigger": "탭: 타임라인 / 홈 진입 시 기본",
+      "condition": null,
+      "source": "src/agent/tablet/ChatRail.tsx:123, src/agent/tablet/TabletAgentLayer.tsx:54"
+    },
+    {
+      "from": "chat_rail",
+      "to": "dock_notice",
+      "rel": "present",
+      "trigger": "탭: Diary",
+      "condition": null,
+      "source": "src/agent/tablet/ChatRail.tsx:123"
+    },
+    {
+      "from": "chat_rail",
+      "to": "dock_search",
+      "rel": "present",
+      "trigger": "탭: 검색",
+      "condition": null,
+      "source": "src/agent/tablet/ChatRail.tsx:123"
+    },
+    {
+      "from": "chat_rail",
+      "to": "dock_live",
+      "rel": "present",
+      "trigger": "탭: 실황 수업",
+      "condition": null,
+      "source": "src/agent/tablet/ChatRail.tsx:123"
+    },
+    {
+      "from": "chat_rail",
+      "to": "dock_profile",
+      "rel": "present",
+      "trigger": "탭: 내 정보",
+      "condition": null,
+      "source": "src/agent/tablet/ChatRail.tsx:123"
+    },
+    {
+      "from": "chat_rail",
+      "to": "dock_chat",
+      "rel": "present",
+      "trigger": "탭: 채팅",
+      "condition": null,
+      "source": "src/agent/tablet/ChatRail.tsx:137"
+    },
+    {
+      "from": "agent_home",
+      "to": "dock_chat",
+      "rel": "present",
+      "trigger": "에이전트 instruction 도착",
+      "condition": "dock 닫힘·응답 필요",
+      "source": "src/agent/tablet/TabletAgentLayer.tsx:74"
+    },
+    {
+      "from": "agent_home",
+      "to": "agent_toast",
+      "rel": "present",
+      "trigger": "에이전트 instruction 도착",
+      "condition": "다른 dock 열림, 또는 응답 불필요한 튜터 메시지·문제 목록 중",
+      "source": "src/agent/tablet/TabletAgentLayer.tsx:71"
+    },
+    {
+      "from": "agent_toast",
+      "to": "dock_chat",
+      "rel": "present",
+      "trigger": "탭: 토스트",
+      "condition": null,
+      "source": "src/agent/tablet/TabletAgentLayer.tsx:182"
+    },
+    {
+      "from": "search_index",
+      "to": "concept_detail",
+      "rel": "present",
+      "trigger": "탭: 개념 칩 (개념 카테고리)",
+      "condition": null,
+      "source": "src/kit/concepts/ConceptLookupPanel.tsx:147 (src/kit/research/ResearchPanel.tsx:75)"
+    },
+    {
+      "from": "dock_search",
+      "to": "concept_detail",
+      "rel": "present",
+      "trigger": "탭: 개념 칩 (개념 카테고리)",
+      "condition": null,
+      "source": "src/kit/concepts/ConceptLookupPanel.tsx:147 (src/kit/research/ResearchPanel.tsx:75)"
+    },
+    {
+      "from": "concept_sheet",
+      "to": "concept_detail",
+      "rel": "present",
+      "trigger": "탭: 개념 칩",
+      "condition": "Bottom Sheet 위 Modal",
+      "source": "src/kit/concepts/ConceptLookupPanel.tsx:147 (src/kit/canvas/CanvasChrome.tsx:137)"
+    },
+    {
+      "from": "profile",
+      "to": "name_edit_modal",
+      "rel": "present",
+      "trigger": "탭: 이름 변경",
+      "condition": null,
+      "source": "src/kit/profile/ProfileActions.tsx:58"
+    },
+    {
+      "from": "dock_profile",
+      "to": "name_edit_modal",
+      "rel": "present",
+      "trigger": "탭: 이름 변경",
+      "condition": null,
+      "source": "src/kit/profile/ProfileActions.tsx:58"
+    },
+    {
+      "from": "profile",
+      "to": "pdf_viewer",
+      "rel": "present",
+      "trigger": "탭: 사서함 답변",
+      "condition": "Phone: fullScreen",
+      "source": "src/kit/profile/MessageBoxPanel.tsx:148 (src/kit/ui/PdfViewerModal.tsx:41)"
+    },
+    {
+      "from": "dock_profile",
+      "to": "pdf_viewer",
+      "rel": "present",
+      "trigger": "탭: 사서함 답변",
+      "condition": "Tablet: 투명 카드",
+      "source": "src/kit/profile/MessageBoxPanel.tsx:148 (src/kit/ui/PdfViewerModal.tsx:62)"
+    },
+    {
+      "from": "timeline_problems",
+      "to": "upload_alert",
+      "rel": "present",
+      "trigger": "탭: 카메라 → 업로드 끝",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:204, :207"
+    },
+    {
+      "from": "timeline_topic",
+      "to": "upload_alert",
+      "rel": "present",
+      "trigger": "탭: 카메라 → 업로드 끝",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:204, :207"
+    },
+    {
+      "from": "search_problems",
+      "to": "upload_alert",
+      "rel": "present",
+      "trigger": "탭: 카메라 → 업로드 끝",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:204, :207"
+    },
+    {
+      "from": "search_topic",
+      "to": "upload_alert",
+      "rel": "present",
+      "trigger": "탭: 카메라 → 업로드 끝",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:204, :207"
+    },
+    {
+      "from": "chat_problems",
+      "to": "upload_alert",
+      "rel": "present",
+      "trigger": "탭: 카메라 → 업로드 끝",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:204, :207"
+    },
+    {
+      "from": "chat_topic",
+      "to": "upload_alert",
+      "rel": "present",
+      "trigger": "탭: 카메라 → 업로드 끝",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:204, :207"
+    },
+    {
+      "from": "diary_day",
+      "to": "bookmark_alert",
+      "rel": "present",
+      "trigger": "탭: 책갈피",
+      "condition": null,
+      "source": "src/kit/diary/DailyRecordsList.tsx:100, :103"
+    },
+    {
+      "from": "notebook",
+      "to": "canvas_toolbar",
+      "rel": "present",
+      "trigger": "항상 표시",
+      "condition": null,
+      "source": "src/kit/canvas/CanvasChrome.tsx:95 (src/kit/canvas/note-canvas/notebook.tsx:162)"
+    },
+    {
+      "from": "topic_live",
+      "to": "canvas_toolbar",
+      "rel": "present",
+      "trigger": "항상 표시",
+      "condition": null,
+      "source": "src/kit/canvas/CanvasChrome.tsx:95 (src/kit/canvas/note-canvas/topic-live-canvas.tsx:694)"
+    },
+    {
+      "from": "hotline",
+      "to": "canvas_toolbar",
+      "rel": "present",
+      "trigger": "항상 표시",
+      "condition": null,
+      "source": "src/kit/canvas/CanvasChrome.tsx:95 (src/kit/canvas/note-canvas/hotline-class-canvas.tsx:715)"
+    },
+    {
+      "from": "canvas_toolbar",
+      "to": "concept_sheet",
+      "rel": "present",
+      "trigger": "툴바: 개념",
+      "condition": null,
+      "source": "src/kit/canvas/CanvasChrome.tsx:77"
+    },
+    {
+      "from": "canvas_toolbar",
+      "to": "clear_confirm",
+      "rel": "present",
+      "trigger": "툴바: 전체 지우기",
+      "condition": null,
+      "source": "src/kit/canvas/CanvasChrome.tsx:81"
+    },
+    {
+      "from": "canvas_toolbar",
+      "to": "pencil_popover",
+      "rel": "present",
+      "trigger": "툴바: Options(color)",
+      "condition": null,
+      "source": "src/kit/canvas/note-canvas/notebook.tsx:167, src/kit/canvas/note-canvas/topic-live-canvas.tsx:699, src/kit/canvas/note-canvas/hotline-class-canvas.tsx:720"
+    },
+    {
+      "from": "canvas_toolbar",
+      "to": "landscape_notice",
+      "rel": "present",
+      "trigger": "가로 회전 / 제한 버튼 탭",
+      "condition": "가로 + 제한 도구 있음",
+      "source": "src/kit/canvas/CanvasChrome.tsx:94"
+    },
+    {
+      "from": "notebook",
+      "to": "nb_list_modal",
+      "rel": "present",
+      "trigger": "툴바: 목록",
+      "condition": null,
+      "source": "app/notebook.tsx:247"
+    },
+    {
+      "from": "notebook",
+      "to": "nb_answer_sheet",
+      "rel": "present",
+      "trigger": "툴바: 해답",
+      "condition": null,
+      "source": "app/notebook.tsx:248"
+    },
+    {
+      "from": "notebook",
+      "to": "nb_workout_sheet",
+      "rel": "present",
+      "trigger": "툴바: 내 풀이 · 저장 후 · 이전 풀이 있으면 자동",
+      "condition": null,
+      "source": "app/notebook.tsx:249, :132, :105"
+    },
+    {
+      "from": "topic_live",
+      "to": "tl_list_modal",
+      "rel": "present",
+      "trigger": "툴바: 목록",
+      "condition": "수업 문제 2개 이상",
+      "source": "app/topic-live-class.tsx:181"
+    },
+    {
+      "from": "topic_live",
+      "to": "tl_answer_sheet",
+      "rel": "present",
+      "trigger": "툴바: 답안 예시",
+      "condition": null,
+      "source": "app/topic-live-class.tsx:182"
+    },
+    {
+      "from": "topic_live",
+      "to": "quiz_modal",
+      "rel": "present",
+      "trigger": "실황 메시지 action 'quiz'",
+      "condition": null,
+      "source": "app/topic-live-class.tsx:82, :220"
+    },
+    {
+      "from": "topic_live",
+      "to": "tl_toast",
+      "rel": "present",
+      "trigger": "답안 전송·오류·강의 미준비",
+      "condition": null,
+      "source": "app/topic-live-class.tsx:66"
+    },
+    {
+      "from": "topic_live",
+      "to": "tl_memo",
+      "rel": "present",
+      "trigger": "스크립트 MEMO 컷",
+      "condition": null,
+      "source": "src/kit/canvas/note-canvas/topic-live-canvas.tsx:283"
+    },
+    {
+      "from": "hotline",
+      "to": "hl_list_modal",
+      "rel": "present",
+      "trigger": "툴바: 목록",
+      "condition": "수업 문제 2개 이상",
+      "source": "app/hotline-class.tsx:174"
+    },
+    {
+      "from": "hotline",
+      "to": "hl_answer_sheet",
+      "rel": "present",
+      "trigger": "툴바: 답안 예시",
+      "condition": null,
+      "source": "app/hotline-class.tsx:175"
+    },
+    {
+      "from": "hotline",
+      "to": "quiz_modal",
+      "rel": "present",
+      "trigger": "실황 메시지 action 'quiz'",
+      "condition": null,
+      "source": "app/hotline-class.tsx:110, :212"
+    },
+    {
+      "from": "hotline",
+      "to": "hl_toast",
+      "rel": "present",
+      "trigger": "Notes 준비·답안 전송·오류",
+      "condition": null,
+      "source": "app/hotline-class.tsx:65 (:210, :222)"
+    },
+    {
+      "from": "hotline",
+      "to": "hl_memo",
+      "rel": "present",
+      "trigger": "스크립트 MEMO 컷",
+      "condition": null,
+      "source": "src/kit/canvas/note-canvas/hotline-class-canvas.tsx:291"
+    }
+  ],
+  "unresolved": [
+    "[orphan] GlobalLoadingOverlay — app/_layout.tsx:45에 마운트돼 있지만 표시 조건인 beginBlocking()(src/state/blocking.ts:24)을 부르는 곳이 없다. 표시되지 않는 오버레이.",
+    "[orphan] 해설 팝업 Sheet ×2 — topic-live-canvas.tsx:651, hotline-class-canvas.tsx:672. 여는 콜백 setShowPopupModal(:161, :169)을 부르는 곳이 없고, topic-live-canvas.tsx:278은 POPUP 컷을 건너뛴다.",
+    "[중첩] Bottom Sheet 위 Modal — 캔버스의 개념 검색 시트(@gorhom BottomSheetModal) 안 ConceptLookupPanel이 개념 칩을 누르면 RN Modal을 띄운다(ConceptLookupPanel.tsx:172). 시트 → 모달 2단 중첩.",
+    "[모드] 캔버스 3화면은 Tablet에서만 진입 — /notebook, /topic-live-class, /hotline-class를 여는 코드는 Stage 위젯·태블릿 dock뿐이다(src/phone/PhoneScreens.tsx:6 주석: 폰에는 풀이 캔버스가 없다). 라우트 자체는 폰에서도 존재하므로 딥 링크로 들어오면 열릴 수 있다(미확인).",
+    "[orphan] /timeline/topic — History 탭에서 openTopic('timeline', …)을 부르는 곳이 없다(TimelineTabScreen은 openProblems만 부른다, src/phone/PhoneScreens.tsx:95). 라우트 파일은 있지만 앱 안 진입 경로가 없는 데드 라우트. 나가는 엣지(해답·뒤로)는 TopicResultScreen 공용 코드라 남겼다.",
+    "[미확인] 캔버스 나감 → 학습장 시트 — 앱은 solve_finished만 보낸다(useSolveFinished.ts:12). 시트를 띄우는 show_component(study_note)는 에이전트 응답이고, 코드에서 확인한 것은 src/agent/mockAgent.ts:93뿐이다. 실서버 동작은 미확인.",
+    "[복귀] 주제 실황 강의 미준비 — 토스트를 2.5초 띄운 뒤 자동으로 goBack한다(topic-live-class.tsx:102). 사용자 조작 없이 화면이 닫힌다.",
+    "[복귀] 캔버스 나가기 — router.canGoBack() ? back() : replace('/'). 진입점이 모두 태블릿 홈이라 돌아가는 곳은 홈(Stage 문제 목록 유지)이다.",
+    "[분류] 펜 설정 팝오버(ToolPopover) — 투명 전면 Pressable이 바깥 탭을 받아 닫히므로 뒤 캔버스 필기가 막힌다. \"비차단 팝오버\"가 아니어서 Modal(blocking)로 분류.",
+    "[분류] @gorhom BottomSheetModal 4개(해답·내 풀이·답안 예시 ×2, 개념 검색)은 backdropComponent를 주지 않아 backdrop이 없다 → blocking: false로 판정. 실제 기기에서 뒤 캔버스 터치가 통과하는지는 확인하지 않았다.",
+    "[분류] 학습장 시트는 @gorhom이 아니라 RN Modal + scrim + 아래 카드로 만든 자체 시트(SheetHost.tsx:31) → Bottom Sheet, blocking: true.",
+    "[데드 코드] 어디서도 import하지 않는 UI: AgentDrawer(src/agent/tablet/AgentDrawer.tsx), DrawerFooter 컴포넌트(타입만 사용), ScriptMessageToast(src/kit/ui/toast.tsx), QFlatlist(내부 토스트 포함), src/kit/canvas/note-canvas/topic-notebook.tsx(Sheet 팝업 2개 포함). 노드로 넣지 않았다.",
+    "[공유] SolutionResultScreen 한 컴포넌트가 4개 스택(timeline·search·chat·diary)의 해답 라우트로 재사용된다. 블록은 라우트마다 따로 그렸다.",
+    "[참고] 탭 바 전환(History·검색·Diary·내 정보·Study Log)은 Tabs Navigator의 기본 동작이라 navigate 엣지로 그리지 않았다. Phone 탭 바는 결과 child 화면에서 숨는다(src/layout/fullScreenRoutes.ts).",
+    "[익명] default export가 익명인 라우트·컴포넌트는 없다."
+  ]
+}
