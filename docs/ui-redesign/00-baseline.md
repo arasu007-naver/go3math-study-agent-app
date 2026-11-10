@@ -15,8 +15,8 @@
 | 스킬 | 설치 | 이번 세션 노출 | 경로 |
 |---|---|---|---|
 | `impeccable` | 설치됨(사용자 전역) | 노출됨 | `~/.claude/skills/impeccable` |
-| `expo-design-system` | 설치됨(2026-11-10, 커밋 `5badaa6`) | **미노출** — 세션 시작 뒤에 설치함. 다음 세션부터 노출 예상(미확인) | `.claude/skills/expo-design-system` |
-| `vercel-react-native-skills` | 설치됨(2026-11-10, 커밋 `5badaa6`) | **미노출** — 위와 같음 | `.claude/skills/vercel-react-native-skills` |
+| `expo-design-system` | 설치됨(2026-11-10, 커밋 `5badaa6`) | 노출됨(설치 직후 같은 세션에서 확인) | `.claude/skills/expo-design-system` |
+| `vercel-react-native-skills` | 설치됨(2026-11-10, 커밋 `5badaa6`) | 노출됨(위와 같음) | `.claude/skills/vercel-react-native-skills` |
 | `expo-native-ui`, `expo-router`, `expo-overview` (조건부) | 미설치 | — | 필요해질 때 설치 |
 | `ui-ux-pro-max` (선택) | 설치됨(플러그인) | 노출됨 | 이번 사이클에서는 쓰지 않음 |
 
@@ -66,10 +66,16 @@ lint 오류는 이번 작업 이전부터 있던 것이며 고치지 않았다(�
 
 `docs/design/`에 이전 패스의 iPad 11 세로 캡처가 있다: `before/`(3장), `after-P1/`, `after-P2/`, `after-P3/`, `after-rail/`. `specs/design-spec.md`의 P1~P3 구현 흔적이며, 이번 진단은 그 결과가 반영된 현재 코드를 대상으로 한다.
 
-## 7. 단계 상태
+## 7. 빌드 환경 메모
+
+- `expo run:ios`는 이 Mac에서 Simulator 앱을 찾지 못해 실패한다. 캡처용 빌드는 `xcodebuild`를 직접 썼다.
+- 설치된 Xcode의 시뮬레이터 SDK는 최소 iOS 15.0 미만 Pod를 거부한다. 빌드 명령에서만 `IPHONEOS_DEPLOYMENT_TARGET=15.1`로 덮어썼고 파일은 바꾸지 않았다.
+- iOS 27.2 런타임에서는 앱이 실행 직후 종료된다(UIScene 수명주기 미채택). 캡처는 iOS 26.4 시뮬레이터로 했다.
+
+## 8. 단계 상태
 
 | 단계 | 상태 |
 |---|---|
 | 0 환경·스킬·baseline | 완료 |
-| 1 현황 진단 | 진행 |
+| 1 현황 진단 | 승인대기 (조건부: 실기기 캡처 없음, 시뮬레이터 26장) |
 | 2~6 | 미착수 |
