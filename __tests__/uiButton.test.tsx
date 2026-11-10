@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Button } from '../src/ui/Button';
+import { Button, buttonLook } from '../src/ui/Button';
 import { colors } from '../src/ui/theme';
 
 const sheet = StyleSheet.create({ smuggle: { marginTop: 8, backgroundColor: 'red' } });
@@ -96,6 +96,39 @@ describe('Button', () => {
   });
 });
 
+describe('Button danger tone', () => {
+  // RNTL v14에는 UNSAFE_getByType이 없어 누름 색은 buttonLook으로 확인한다
+  const pressedBg = (variant: 'secondary' | 'text') => buttonLook(variant, 'danger', false).pressedBg;
+  const labelColor = (title: string) => StyleSheet.flatten(screen.getByText(title).props.style).color;
+
+  it('text + danger uses the danger label and dangerSoft press', async () => {
+    await render(<Button variant="text" tone="danger" title="로그아웃" onPress={() => {}} />);
+    expect(labelColor('로그아웃')).toBe(colors.danger);
+    expect(flat()).toMatchObject({ backgroundColor: 'transparent' });
+    expect(pressedBg('text')).toBe(colors.dangerSoft);
+  });
+
+  it('secondary + danger uses card bg with danger border and label', async () => {
+    await render(<Button variant="secondary" tone="danger" title="해제" onPress={() => {}} />);
+    expect(flat()).toMatchObject({ backgroundColor: colors.card, borderColor: colors.danger });
+    expect(labelColor('해제')).toBe(colors.danger);
+    expect(pressedBg('secondary')).toBe(colors.dangerSoft);
+  });
+
+  it('disabled ignores the tone', async () => {
+    await render(<Button variant="secondary" tone="danger" title="해제" onPress={() => {}} disabled />);
+    expect(flat()).toMatchObject({ backgroundColor: colors.card, borderColor: colors.disabled });
+    expect(labelColor('해제')).toBe(colors.disabled);
+  });
+
+  it('tone default equals no tone', async () => {
+    const { rerender } = await render(<Button variant="secondary" tone="default" title="a" onPress={() => {}} />);
+    const withTone = flat();
+    await rerender(<Button variant="secondary" title="a" onPress={() => {}} />);
+    expect(flat()).toEqual(withTone);
+  });
+});
+
 // 타입 가드: npm run typecheck가 확인한다(쓰이지 않는 @ts-expect-error는 오류).
 export const typeGuards = () => (
   <>
@@ -107,5 +140,9 @@ export const typeGuards = () => (
     <Button variant="primary" title="x" onPress={() => {}} style={sheet.smuggle} />
     {/* @ts-expect-error no color override */}
     <Button variant="primary" title="x" onPress={() => {}} color="red" />
+    {/* @ts-expect-error tone is only for secondary and text */}
+    <Button variant="primary" tone="danger" title="x" onPress={() => {}} />
+    {/* @ts-expect-error tone is only for secondary and text */}
+    <Button variant="danger" tone="danger" title="x" onPress={() => {}} />
   </>
 );

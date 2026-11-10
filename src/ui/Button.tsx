@@ -38,8 +38,7 @@ export function pickLayout(style: LayoutStyle): ViewStyle {
 export type IoniconName = ComponentProps<typeof Ionicons>['name'];
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'text';
 
-export type ButtonProps = {
-  variant: ButtonVariant;
+type ButtonBase = {
   size?: 'md' | 'sm';
   title: string;
   icon?: IoniconName;
@@ -51,6 +50,11 @@ export type ButtonProps = {
   accessibilityHint?: string;
   style?: LayoutStyle;
 };
+
+/** 위험 톤(tone="danger")은 보조·텍스트 버튼에만. 주요 위험 행동은 variant="danger"(Gate C §8). */
+export type ButtonProps =
+  | (ButtonBase & { variant: 'primary' | 'danger'; tone?: never })
+  | (ButtonBase & { variant: 'secondary' | 'text'; tone?: 'default' | 'danger' });
 
 type Look = { bg: string; pressedBg: string; border: string; label: string };
 
@@ -68,11 +72,24 @@ const DISABLED: Record<ButtonVariant, Look> = {
   text: { bg: 'transparent', pressedBg: 'transparent', border: 'transparent', label: colors.disabled },
 };
 
+const DANGER_TONE: Record<'secondary' | 'text', Look> = {
+  secondary: { bg: colors.card, pressedBg: colors.dangerSoft, border: colors.danger, label: colors.danger },
+  text: { bg: 'transparent', pressedBg: colors.dangerSoft, border: 'transparent', label: colors.danger },
+};
+
+/** variant·tone·비활성에 맞는 색 묶음. 비활성은 톤과 무관하다. */
+export function buttonLook(variant: ButtonVariant, tone: 'default' | 'danger' | undefined, disabled: boolean): Look {
+  if (disabled) return DISABLED[variant];
+  if (tone === 'danger' && (variant === 'secondary' || variant === 'text')) return DANGER_TONE[variant];
+  return LOOK[variant];
+}
+
 const SLOP = (layout.hit - layout.controlSm) / 2;
 
 /** 공용 버튼(단계 3). 주요·보조·위험·텍스트 위계를 variant로 고른다. 돌려받은 promise가 끝날 때까지 loading이고, 중복 누름을 막는다. */
 export function Button({
   variant,
+  tone,
   size = 'md',
   title,
   icon,
@@ -88,7 +105,7 @@ export function Button({
   const lastPress = useRef(0);
   const busy = loading || pending;
   const inactive = disabled || busy;
-  const look = disabled ? DISABLED[variant] : LOOK[variant];
+  const look = buttonLook(variant, tone, disabled);
   const sm = size === 'sm';
 
   const handlePress = async () => {

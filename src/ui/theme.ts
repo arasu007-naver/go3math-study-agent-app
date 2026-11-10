@@ -56,6 +56,7 @@ export const colors = {
   offline: palette.gray[400],
   success: palette.success[600],
   danger: palette.danger[600],
+  dangerSoft: palette.danger[50], // 위험 톤 버튼의 누름 바탕(accentSoft와 같은 짝, 단계 4a)
   warnSoft: palette.warn[100],
   // 하위호환 (기존 import 유지용 — 신규 코드에서 사용 금지)
   surface: palette.gray[0],

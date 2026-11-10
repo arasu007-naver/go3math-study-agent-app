@@ -1,4 +1,8 @@
-import { layout, colors } from '../src/ui/theme';
+import { layout, colors, palette } from '../src/ui/theme';
+
+test('stage 4a token', () => {
+  expect(colors.dangerSoft).toBe(palette.danger[50]);
+});
 
 test('stage 3 tokens', () => {
   expect(layout.controlSm).toBe(32);
