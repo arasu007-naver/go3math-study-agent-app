@@ -65,3 +65,8 @@ test('findPressables walks app and src only, posix paths', () => {
   fs.writeFileSync(path.join(root, 'src', 'x', 'd.md'), '<Pressable />\n');
   assert.deepEqual(findPressables(root), ['app/a.tsx:2', 'src/x/b.ts:1']);
 });
+
+test('a subsection heading ends the table', () => {
+  const md = mdOf(valid()).replace('\n\n## 2. 배지', '\n\n### 1.1 다른 표\n\n| a | b | c |\n|---|---|---|\n| `x.tsx:1` | y | z |\n\n## 2. 배지');
+  assert.deepEqual(checkInventory({ md, hits: HITS }), []);
+});

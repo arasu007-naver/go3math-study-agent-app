@@ -23,7 +23,7 @@ export function findPressables(root) {
 export function checkInventory({ md, hits }) {
   const errs = [];
   // Windows 체크아웃(core.autocrlf)에서는 줄 끝이 \r\n이다
-  const section = (md.replace(/\r\n/g, '\n').split('## 1. 눌리는 요소')[1] ?? '').split('\n## ')[0];
+  const section = (md.replace(/\r\n/g, '\n').split('## 1. 눌리는 요소')[1] ?? '').split(/\n#{2,6} /)[0]; // 하위 절(### 1.1)에서도 끝난다
   const lines = section.split('\n').filter((l) => l.startsWith('|') && !l.includes('파일:라인') && !/^\|[\s|:-]+\|$/.test(l));
   const ids = new Set(); const hitSet = new Set(hits);
   for (const l of lines) {
