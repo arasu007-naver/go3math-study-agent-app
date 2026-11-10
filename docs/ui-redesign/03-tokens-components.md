@@ -119,7 +119,7 @@ cancel?: { title?: string /* 기본 '취소' */; onPress?(): void /* 없으면 o
 
 - 기존 `src/ui/Sheet.tsx`(scrim + 가운데 카드) 위에 만들었다. scrim·Android 뒤로 가기는 `onDismiss`.
 - `confirm.onPress`가 promise를 돌려주면 끝날 때까지 확인 버튼은 loading, 취소는 disabled이고 scrim·뒤로 가기도 닫지 않는다. 저장 중에 닫혀 취소된 것처럼 보이지 않게 한다.
-- 키보드는 아직 피하지 않는다. 입력이 있는 대화상자를 처음 쓰는 단계 4에서 `Sheet`에 `KeyboardAvoidingView`를 더한다(지금 `Dialog`를 쓰는 화면은 없다).
+- 카드는 `KeyboardAvoidingView`(iOS `padding`, Android `height`) 안에 있다(단계 4a). scrim은 그 밖에 있어 화면 전체를 덮는다.
 - 제목 `type.title`, 설명 `type.body` + `subtle`, 버튼은 오른쪽 `[secondary 취소] [confirm]`, 둘 다 `md`. 폭 `min(화면 폭 - 24, layout.dialogMax)`.
 
 ```tsx

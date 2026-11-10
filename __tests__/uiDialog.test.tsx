@@ -1,5 +1,5 @@
 import { StyleSheet, TextInput } from 'react-native';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { Dialog } from '../src/ui/Dialog';
 import { colors } from '../src/ui/theme';
 
@@ -12,6 +12,17 @@ describe('Dialog', () => {
     await render(<Dialog visible title="지울까요?" message="되돌릴 수 없어요." onDismiss={() => {}} confirm={{ title: '지우기', onPress: () => {} }} />);
     expect(screen.getByText('지울까요?')).toBeTruthy();
     expect(screen.getByText('되돌릴 수 없어요.')).toBeTruthy();
+  });
+
+  it('keeps the card, not the scrim, inside the keyboard avoider', async () => {
+    await render(<Dialog visible title="이름 바꾸기" onDismiss={() => {}} confirm={{ title: '저장', onPress: () => {} }} />);
+    const avoider = screen.getByTestId('sheet-keyboard-avoider');
+    expect(within(avoider).getByText('이름 바꾸기')).toBeTruthy();
+    expect(within(avoider).queryByLabelText('닫기')).toBeNull();
+    expect(screen.getByLabelText('닫기')).toBeTruthy();
+    // absolute 카드의 기준이 바뀌지 않게 화면 전체를 채우고, 바깥 터치는 scrim으로 보낸다
+    expect(StyleSheet.flatten(avoider.props.style)).toMatchObject({ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 });
+    expect(avoider.props.pointerEvents).toBe('box-none');
   });
 
   it('confirm calls confirm.onPress', async () => {
