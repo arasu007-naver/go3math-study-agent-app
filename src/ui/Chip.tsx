@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import type { LayoutStyle } from './Button';
+import { pickLayout, type LayoutStyle } from './Button';
 import { colors, layout, radius, space, type } from './theme';
 
 export type ChipProps = {
@@ -21,12 +21,13 @@ export function Chip({ label, selected, onPress, disabled = false, accessibility
       disabled={disabled}
       hitSlop={{ top: SLOP, bottom: SLOP }}
       accessibilityRole={accessibilityRole}
-      accessibilityState={{ selected, disabled }}
+      // checkbox·radio는 스크린 리더가 checked를 읽는다
+      accessibilityState={accessibilityRole === 'checkbox' || accessibilityRole === 'radio' ? { checked: selected, disabled } : { selected, disabled }}
       style={({ pressed }) => [
         styles.base,
         selected && styles.selected,
         pressed && !disabled && styles.pressed,
-        style,
+        pickLayout(style),
       ]}
     >
       <Text style={[type.bodyStrong, { color: disabled ? colors.disabled : selected ? colors.accentText : colors.subtle }]}>

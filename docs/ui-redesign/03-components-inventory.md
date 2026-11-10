@@ -79,10 +79,10 @@
 | `src/kit/ui/PencilFab.tsx:8` | 풀이 시작 FAB | 64×64, `radius.pill`, `colors.accent`, `shadow.float` (H: 64) | pressed(`accentPress`) | 예외 | 이미 공용 FAB(64×64), 모양 일치 | — |
 | `src/kit/ui/go-button.tsx:103` | 공용 `GoButton` 본체 | 높이 26/32/38, 반경 13/16/19, outline 또는 filled, 기본색 `colors.accent` (H: 크기 수치) | disabled, loading(스피너), pressed(scale), 400ms 디바운스. role 없음 | 예외 | GoButton 본체. 사용처를 옮긴 뒤(단계 5) 삭제 | — |
 | `src/kit/ui/toast.tsx:69` | 토스트 본문 전체(데드 코드) | — | — | 예외 | 데드 코드, 정리는 별도 결정 | — |
-| `src/ui/Button.tsx:99` | 공용 Button 본체 | theme 토큰만 (T) | disabled, busy, pressed, 400ms 디바운스 | 예외 | 공용 Button 본체 | — |
+| `src/ui/Button.tsx:112` | 공용 Button 본체 | theme 토큰만 (T) | disabled, busy, pressed, 400ms 디바운스 | 예외 | 공용 Button 본체 | — |
 | `src/ui/Chip.tsx:19` | 공용 Chip 본체 | theme 토큰만 (T) | selected, disabled, pressed | 예외 | 공용 Chip 본체 | — |
-| `src/ui/Dialog.tsx:32` | Dialog 취소 | Button secondary md (T) | Button과 같음 | 예외 | 공용 Dialog 안의 공용 Button(이미 공용) | — |
-| `src/ui/Dialog.tsx:33` | Dialog 확인 | Button primary·danger md (T) | Button과 같음 | 예외 | 공용 Dialog 안의 공용 Button(이미 공용) | — |
+| `src/ui/Dialog.tsx:48` | Dialog 취소 | Button secondary md (T) | Button과 같음, 확인 중 disabled | 예외 | 공용 Dialog 안의 공용 Button(이미 공용) | — |
+| `src/ui/Dialog.tsx:50` | Dialog 확인 | Button primary·danger md (T) | Button과 같음 | 예외 | 공용 Dialog 안의 공용 Button(이미 공용) | — |
 | `src/ui/Sheet.tsx:24` | 시트 scrim | — | — | 예외 | Sheet scrim(Dialog가 그대로 쓴다) | — |
 | `src/ui/SheetHandle.tsx:16` | 시트 닫기 손잡이 | `EdgeHandle`과 같은 정의 (T) | pressed(`accentPress`) | 예외 | 이미 공용, EdgeHandle과 같은 정의 | — |
 | `src/ui/StateView.tsx:25` | StateView 동작 | Button primary·secondary md (T) | Button과 같음 | 예외 | 공용 StateView 안의 공용 Button(이미 공용) | — |
@@ -216,20 +216,67 @@
 
 ## 4. 팔레트 밖 UI 색
 
-새 토큰을 만들지 않고 기존 토큰으로 바꾼다. 교체 단계는 그 파일이 §1에서 받은 단계를 따른다.
+`app/`·`src/`의 `.ts`·`.tsx`에서 `#` 16진 색과 이름 색(`'orange'` 등)을 모두 찾아 나눈 것이다(`src/ui/theme.ts` 자신은 뺀다). 새 토큰을 만들지 않고 기존 토큰으로 바꾼다. 교체 단계는 그 파일이 §1에서 받은 단계를 따른다. 다시 만드는 명령:
 
-| 값 | 쓰는 파일 | 대체 토큰 |
+```bash
+grep -rnoE "#[0-9a-fA-F]{3,8}\b|'(tomato|red|blue|gray|grey|orange|white|black|green|yellow|purple|pink)'" app src --include=*.tsx --include=*.ts | grep -v src/ui/theme.ts
+```
+
+### 4.1 팔레트와 같은 값을 글자로 쓴 곳
+
+값은 이미 맞다. 이름(토큰)으로만 바꾼다.
+
+| 값 | 쓰는 곳 | 토큰 |
 |---|---|---|
-| `#FF8800` | `src/kit/timeline/TimelinePanel.tsx` | `colors.accent` (주요 버튼 채움) |
-| `#FFC256` | `src/kit/topic-panel/TopicUnitList.tsx` | `Button primary`로 바뀌며 사라진다 |
-| `#30B650` | `src/kit/exam-search/ExamSearchPanel.tsx` | 없앤다(라벨이 글자가 된다, §1.1) |
-| `#ea580c` | `QuizResponseModal.tsx`, `ConceptLookupPanel.tsx`, `MathJaxWrapper.tsx`, `hotline-class-canvas.tsx`, `topic-live-canvas.tsx` | 채움·선택 → `colors.accentPress`가 아니라 `colors.accent`(주요 채움), 글자 → `colors.accentText` |
-| `#fed7aa` | `ConceptLookupPanel.tsx`, `MathJaxWrapper.tsx` | `palette.brand[200]`에 같은 값이 있다. 테두리 → `colors.line`, 칩 → `Chip` |
-| `#E5E5E5` | `app/welcome.tsx`, `ResearchPanel.tsx` | `colors.cardMuted` (칩 비선택 바탕) |
-| `#f1f5f9`, `#cbd5e1`, `#f8fafc` (slate) | `QuizResponseModal.tsx` | `colors.cardMuted`, `colors.lineStrong`, `colors.bg` |
-| `'orange'` (UI 스타일 11줄) | `RecordsCalendar.tsx`, `ResearchPanel.tsx`, `NoticesPanel.tsx`, `ProblemListPanel.tsx`, `ExamSearchPanel.tsx`, `MessageBoxPanel.tsx`, `QFlatlist.tsx`, `TopicTabsPanel.tsx`, `TimelinePanel.tsx` | `colors.accent`(채움·테두리) 또는 `colors.accentText`(글자). **잉크 색 `'orange'`과 다르다**: 아래 §5 |
+| `#FFFFFF`·`#FFF`·`#fff`·`#ffffff` (UI 바탕) | `public-questions`, `public-solution`, `welcome`, `hotline-class:269`, `notebook:302`, `DailyRecordsList`, `RecordsCalendar:153`, `ExamSearchPanel`, `NoticesPanel`, `ProblemListPanel`, `MessageBoxPanel`, `MyInfoPanel`, `ResearchPanel`, `TimelinePanel`, `TopicTabsPanel`, `TopicUnitList`, `PdfViewerModal`(+`.web`), `QFlatlist`, `loading-view/index`, `ConceptLookupPanel`, `QuizResponseModal`, `TabletLaunchOverlay` | 바탕 → `colors.card`, 채운 버튼·배지 위 글자 → `colors.onAccent` |
+| `#18181B` (gray 900) | `ExamSearchPanel`, `NoticesPanel`, `ProblemListPanel`, `MessageBoxPanel`, `MyInfoPanel`, `ResearchPanel`, `TimelinePanel` ×2, `TopicTabsPanel` ×2, `TopicUnitList` | `colors.text` |
+| `#52525B` (gray 600, 이 단계 토큰 없음) | `NoticesPanel` ×2, `ProblemListPanel` ×2, `MessageBoxPanel`, `MyInfoPanel`, `TimelinePanel`, `TopicTabsPanel` ×3, `TopicUnitList` ×2 | `colors.subtle`(gray 700, 한 단계 진하다) |
+| `#E4E4E7` (gray 200) | `ProblemListPanel`, `MyInfoPanel`, `TopicTabsPanel`, `SkeletonCards` ×2 | `colors.line` |
+| `#D4D4D8` (gray 300) | `ExamSearchPanel`, `TopicTabsPanel`, `TopicUnitList` | `colors.lineStrong` |
+| `#ea580c` (brand 600) | `QuizResponseModal` ×2, `ConceptLookupPanel` ×9, `hotline-class-canvas:708`, `topic-live-canvas:687` | 채움·선택 → `colors.accentPress`가 아니라 `colors.accent`(주요 채움), 글자 → `colors.accentText` |
+| `#fed7aa` (brand 200) | `ConceptLookupPanel` ×4 | 테두리 → `colors.line`, 칩 → `Chip` |
+| `#fff7ed` (brand 50) | `ConceptLookupPanel` ×3 | `colors.accentSoft` |
+| `'#000'`·`'#000000'` 그림자 | `app/notebook:306`, `CanvasChrome`, `QFlatlist`, `global-overlay`, `QuizResponseModal:319` (`toast:99`는 데드 코드) | `shadow.sm`·`shadow.md` 통째로(그림자 값 묶음이 이미 토큰이다) |
 
-`MathJaxWrapper.tsx`의 색은 WebView 안 HTML 문자열이라 RN 토큰을 바로 쓸 수 없다. 값을 토큰에서 문자열로 넣는 방식은 단계 5에서 정한다.
+### 4.2 팔레트 밖 값
+
+| 값 | 쓰는 곳 | 대체 토큰 |
+|---|---|---|
+| `#FF8800` | `TimelinePanel:239` | `colors.accent` (주요 버튼 채움) |
+| `#FFC256` | `TopicUnitList:97` | `Button primary`로 바뀌며 사라진다 |
+| `#30B650` | `ExamSearchPanel:103` | 없앤다(라벨이 글자가 된다, §1.1) |
+| `#D35400`, `#B45309`, `#9a3412` (진한 주황 글자) | `TimelinePanel:210`, `ExamSearchPanel:127`, `ConceptLookupPanel:215` | `colors.accentText` |
+| `#FFE5CC` | `NoticesPanel:148`, `MessageBoxPanel:181`, `TimelinePanel:242` | `colors.accentSoftPress` |
+| `#FFF3E6`, `#FFFDF9` (옅은 주황 바탕) | `SkeletonCards:71`, `ProblemListPanel:290` | `colors.accentSoft` |
+| `#000000` (글자·밑줄) | `RecordsCalendar:167`, `:170`, `:176`, `MessageBoxPanel:173`, `:177`, `ProfileActions:123`, `TimelinePanel:223` | `colors.text` |
+| `#212121`, `#111827`, `#1f2937`, `#1e293b` | `NoticesPanel:145`, `QuizResponseModal:64`, `ConceptLookupPanel:185`, `QuizResponseModal:249` | `colors.text` |
+| `#475569`, `#4b5563` | `QuizResponseModal:394`, `ConceptLookupPanel:213` | `colors.subtle` |
+| `#64748b`, `#6b7280` | `QuizResponseModal:343`, `ConceptLookupPanel:235` | `colors.muted` |
+| `#9ca3af` | `ConceptLookupPanel:236` | `colors.disabled` |
+| `#607D8B` (구분선) | `DailyRecordsList:200` | `colors.line` |
+| `#E5E5E5`, `#E5E7EB` | `welcome:119`, `ResearchPanel:93`, `:95`, `skeleton-placeholder:56` | 칩 비선택 바탕 → `colors.cardMuted`, 스켈레톤 → `colors.line`(`SkeletonCards`와 같게) |
+| `#f1f5f9`, `#cbd5e1`, `#f8fafc` (slate) | `QuizResponseModal` ×2, ×2, ×1 | `colors.cardMuted`, `colors.lineStrong`, `colors.bg` |
+| `#f3f4f6`, `#F4F4F5` | `ConceptLookupPanel:241`, `PdfViewerModal:85` | `colors.cardMuted`, `colors.bg` |
+| `#F5F5F5` (카드 테두리) | `public-questions:110` | `colors.line` |
+
+### 4.3 이름 색(UI 스타일)
+
+| 값 | 쓰는 곳 | 대체 토큰 |
+|---|---|---|
+| `'orange'` (13줄) | `RecordsCalendar:164`, `:178`, `ExamSearchPanel:124`, `NoticesPanel:142`, `ProblemListPanel:277`, `MessageBoxPanel:172`, `ResearchPanel:93`, `:96`, `TimelinePanel:224`, `TopicTabsPanel:172`, `:182`, `QFlatlist:104`, `loading-view/index:11`(`LOGO_COLOR`) | `colors.accent`(채움·테두리·로고) 또는 `colors.accentText`(글자). **잉크 색 `'orange'`과 다르다**: §4.4 |
+| `'tomato'` (개수 배지) | `RecordsCalendar:186` | `colors.unread` |
+| `'red'` (답장 글자) | `MessageBoxPanel:174` | `colors.danger` |
+| `'blue'` (기록 있는 날 테두리) | `RecordsCalendar:173` | `colors.accent` |
+| `'gray'` | `RecordsCalendar:177`(다른 달 날짜), `math-web-view:87`(WebView 바탕) | `colors.muted`, `colors.cardMuted` |
+| `'white'` | `hotline-class:267`, `topic-live-class:275`(토스트 글자), `QuizResponseModal:351`, `screen-wrapper:60`, `:70`, `:74` | 글자 → `colors.onAccent`, 바탕 → `colors.card` |
+
+### 4.4 바꾸지 않는 값
+
+| 값 | 쓰는 곳 | 이유 |
+|---|---|---|
+| 잉크 색 `'orange'`, `'blue'`, `'black'`, `'red'`, `'green'`과 견본 글자 `'white'`·`'black'` | `canvas-utils:17`, `hotline-class-canvas`, `topic-live-canvas`, `note-canvas/notebook`, `FloatingToolbar:21` | MMKV·서버에 저장되는 사용자 데이터다(§5) |
+| WebView·HTML 문자열 안의 색 | `MathJaxWrapper.tsx`(`#ea580c` ×4, `#fed7aa`, `#fff7ed`, `#ffffff` ×4, `#1f2937` ×3, `#f9fafb`, `#9ca3af`), `math/templates/*.ts`(`#333`, `#fff`), `canvas/templates/topic-canvas-template.ts`(`#0000FF`, `#FFA500`, `#FFFFFF` ×2, `'white'`) | RN 토큰을 바로 쓸 수 없다. 토큰 값을 문자열로 넣는 방식은 단계 5에서 정한다. `#0000FF`·`#FFA500`·`'white'`는 캔버스 애니메이션 데이터 색일 수 있어 그때 확인한다 |
+| 데드 코드 | `topic-notebook.tsx`(`'white'` ×6, `#f5f5f5`, 잉크 색), `kit/ui/toast.tsx`(`#000`, `'white'`) | 정리는 별도 결정(진단 §5) |
 
 ## 5. 예외 대장
 
@@ -244,4 +291,4 @@
 | 전용 컨트롤 | §1: `FloatingToolbar:59`, `:84`(캔버스 툴바), `DiaryPanel:129`(탭 헤더), `welcome:139`(소셜 로그인 제공사 아이콘) | 그대로 |
 | 잉크 색·굵기 견본 | §1.1: 펜 색·굵기 `GoButton` 6곳(데드 코드 파일의 2곳은 아래 데드 코드 행) | 저장값 `orange, blue, black, red, green`은 사용자 데이터라 바꾸지 않는다. 표시 라벨만 한국어로(Gate B Q6, 단계 4) |
 | 데드 코드 | §1: `DrawerFooter:54`, `topic-notebook:417`, `kit/ui/toast:69`. §1.1: `topic-notebook:296`, `:307` | 정리는 별도 결정(진단 §5) |
-| 공용 컴포넌트 자신 | §1: `go-button:103`(단계 5 뒤 삭제), `ui/Button:99`, `ui/Chip:19`, `ui/Dialog:32`, `:33`, `ui/StateView:25` | 그대로 |
+| 공용 컴포넌트 자신 | §1: `go-button:103`(단계 5 뒤 삭제), `ui/Button:112`, `ui/Chip:19`, `ui/Dialog:48`, `:50`, `ui/StateView:25` | 그대로 |

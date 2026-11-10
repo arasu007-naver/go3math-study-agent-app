@@ -191,7 +191,7 @@ Go3 Math는 학생의 책상이다. 주인공은 학생의 필기와 문제이�
 ### Neutral
 - **Desk Surface** (`bg`): 앱 바닥. 카드가 놓이는 면이다.
 - **Paper White** (`card`): 카드, 패널, drawer, dock, 툴바, toast, 캔버스.
-- **Pencil Tray** (`card-muted`): 카드 안 보조 면. 보조 버튼, 세그먼트 바 바탕, 튜터 말풍선 상자.
+- **Pencil Tray** (`card-muted`): 카드 안 보조 면. 세그먼트 바 바탕, 튜터 말풍선 상자, 칩 비선택 바탕, 보조 버튼을 누른 상태.
 - **Ink** (`text`) / **Graphite** (`subtle`) / **Lead Gray** (`muted`) / **Eraser Gray** (`disabled`): 본문, 보조 글, 라벨·안내, 비활성.
 - **Hairline** (`line`) / **Hairline Strong** (`line-strong`): 꼭 필요할 때만 1px로 쓴다.
 - **Scrim** (`scrim`): Phone 하단 모달 뒤 딤.
@@ -313,7 +313,7 @@ Go3 Math는 학생의 책상이다. 주인공은 학생의 필기와 문제이�
 
 ### Do:
 - **Do** 모든 스타일을 `StyleSheet.create`와 `src/ui/theme.ts` 토큰으로 쓴다.
-- **Do** 화면마다 주 행동은 주황 버튼 하나로 두고, 나머지는 Pencil Tray 보조 버튼으로 둔다.
+- **Do** 화면마다 주 행동은 주황 버튼 하나로 두고, 나머지는 보조 버튼(Paper White 면 + Hairline Strong 테두리)이나 텍스트 버튼으로 둔다.
 - **Do** 영역은 면(Desk Surface와 Paper White)과 12 간격으로 나눈다.
 - **Do** 모든 터치 대상을 최소 44로 만든다.
 - **Do** 오버레이에 `pointerEvents="box-none"` 구조를 유지해, 자기 영역 밖의 필기 입력을 통과시킨다.

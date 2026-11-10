@@ -1,6 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Button } from '../src/ui/Button';
+import { colors } from '../src/ui/theme';
+
+const sheet = StyleSheet.create({ smuggle: { marginTop: 8, backgroundColor: 'red' } });
 
 const button = () => screen.getByRole('button');
 const flat = () => StyleSheet.flatten(button().props.style);
@@ -81,6 +84,12 @@ describe('Button', () => {
     expect(flat().height).toBeUndefined();
   });
 
+  it('drops non-layout style keys at runtime', async () => {
+    const smuggled = { marginTop: 4, backgroundColor: 'red' } as unknown as { marginTop: number };
+    await render(<Button variant="primary" title="x" onPress={() => {}} style={smuggled} />);
+    expect(flat()).toMatchObject({ marginTop: 4, backgroundColor: colors.accent });
+  });
+
   it('renders the icon', async () => {
     await render(<Button variant="primary" icon="add" title="추가" onPress={() => {}} />);
     expect(screen.getByTestId('button-icon')).toBeTruthy();
@@ -94,6 +103,8 @@ export const typeGuards = () => (
     <Button title="x" onPress={() => {}} />
     {/* @ts-expect-error style is layout-only */}
     <Button variant="primary" title="x" onPress={() => {}} style={{ backgroundColor: 'red' }} />
+    {/* @ts-expect-error a StyleSheet entry with a color key is not layout-only */}
+    <Button variant="primary" title="x" onPress={() => {}} style={sheet.smuggle} />
     {/* @ts-expect-error no color override */}
     <Button variant="primary" title="x" onPress={() => {}} color="red" />
   </>

@@ -113,11 +113,13 @@ action?: { title: string; onPress(): void | Promise<unknown> }   // error → pr
 
 ```ts
 visible: boolean; title: string; message?: string; children?: ReactNode; onDismiss(): void
-confirm: { title: string; onPress(): void | Promise<unknown>; variant?: 'primary' | 'danger' }
+confirm: { title: string; onPress(): void | Promise<unknown>; variant?: 'primary' | 'danger'; disabled?: boolean /* 입력이 비었을 때 */ }
 cancel?: { title?: string /* 기본 '취소' */; onPress?(): void /* 없으면 onDismiss */ }
 ```
 
 - 기존 `src/ui/Sheet.tsx`(scrim + 가운데 카드) 위에 만들었다. scrim·Android 뒤로 가기는 `onDismiss`.
+- `confirm.onPress`가 promise를 돌려주면 끝날 때까지 확인 버튼은 loading, 취소는 disabled이고 scrim·뒤로 가기도 닫지 않는다. 저장 중에 닫혀 취소된 것처럼 보이지 않게 한다.
+- 키보드는 아직 피하지 않는다. 입력이 있는 대화상자를 처음 쓰는 단계 4에서 `Sheet`에 `KeyboardAvoidingView`를 더한다(지금 `Dialog`를 쓰는 화면은 없다).
 - 제목 `type.title`, 설명 `type.body` + `subtle`, 버튼은 오른쪽 `[secondary 취소] [confirm]`, 둘 다 `md`. 폭 `min(화면 폭 - 24, layout.dialogMax)`.
 
 ```tsx
@@ -180,7 +182,7 @@ cancel?: { title?: string /* 기본 '취소' */; onPress?(): void /* 없으면 o
 
 | 명령 | 결과 |
 |---|---|
-| `npx jest __tests__/uiTokens.test.ts __tests__/uiButton.test.tsx __tests__/uiChip.test.tsx __tests__/uiStateView.test.tsx __tests__/uiDialog.test.tsx __tests__/uiDrift.test.ts` | 6 suites, 31 tests 통과 |
+| `npx jest __tests__/uiTokens.test.ts __tests__/uiButton.test.tsx __tests__/uiChip.test.tsx __tests__/uiStateView.test.tsx __tests__/uiDialog.test.tsx __tests__/uiDrift.test.ts` | 6 suites, 35 tests 통과 |
 | `npx jest` | 실패 suite는 기존과 같은 무관한 것들뿐이다(§7.1) |
 | `npm run typecheck` | 오류 0 (`@ts-expect-error` 타입 가드 포함) |
 | `node --test docs/ui-redesign/tools/check-inventory.test.mjs` | 11/11 |
@@ -189,4 +191,4 @@ cancel?: { title?: string /* 기본 '취소' */; onPress?(): void /* 없으면 o
 
 ### 7.1 jest 기준
 
-기준(`3846de6`): 3 suites 실패 — `canvasSize`, `timeline`, `notices`(3 tests). 마지막 전체 실행(단계 3 마지막 커밋)도 같은 세 suite, 3 tests 실패이고 251 tests 통과다(기준 225 + 이번에 더한 31 − 이 브랜치에 없는 다른 작업의 `answerBubblePlacement` 5). 작업 중 한 번은 `messageBox`가 전체 실행 부하에서 5000ms 시간 초과로 실패했다가 혼자 돌리면 통과했다. 어떤 기존 파일도 새 컴포넌트를 가져오지 않는다(`grep` 결과 없음).
+기준(`3846de6`): 3 suites 실패 — `canvasSize`, `timeline`, `notices`(3 tests). 마지막 전체 실행(단계 3 마지막 커밋)도 같은 세 suite, 3 tests 실패이고 255 tests 통과다(기준 225 + 이번에 더한 35 − 이 브랜치에 없는 다른 작업의 `answerBubblePlacement` 5). 작업 중 한 번은 `messageBox`가 전체 실행 부하에서 5000ms 시간 초과로 실패했다가 혼자 돌리면 통과했다. 어떤 기존 파일도 새 컴포넌트를 가져오지 않는다(`grep` 결과 없음).

@@ -1,26 +1,39 @@
 import { useRef, useState, type ComponentProps } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, layout, radius, space, type } from './theme';
 
-/** 호출부가 넘길 수 있는 스타일은 배치뿐이다. 색·글자·크기는 variant와 size로만 정한다. */
+const LAYOUT_KEYS = [
+  'margin',
+  'marginTop',
+  'marginBottom',
+  'marginLeft',
+  'marginRight',
+  'marginHorizontal',
+  'marginVertical',
+  'flex',
+  'flexGrow',
+  'flexShrink',
+  'flexBasis',
+  'alignSelf',
+] as const;
+type LayoutKey = (typeof LAYOUT_KEYS)[number];
+
+/**
+ * 호출부가 넘길 수 있는 스타일은 배치뿐이다. 색·글자·크기는 variant와 size로만 정한다.
+ * 나머지 키를 never로 막아 StyleSheet 항목이나 변수로 넘겨도 타입 오류가 된다.
+ */
 export type LayoutStyle = StyleProp<
-  Pick<
-    ViewStyle,
-    | 'margin'
-    | 'marginTop'
-    | 'marginBottom'
-    | 'marginLeft'
-    | 'marginRight'
-    | 'marginHorizontal'
-    | 'marginVertical'
-    | 'flex'
-    | 'flexGrow'
-    | 'flexShrink'
-    | 'flexBasis'
-    | 'alignSelf'
-  >
+  Pick<ViewStyle, LayoutKey> & { [P in Exclude<keyof ViewStyle | keyof TextStyle, LayoutKey>]?: never }
 >;
+
+/** 타입을 우회해 들어온 키도 실행 중에 버린다. */
+export function pickLayout(style: LayoutStyle): ViewStyle {
+  const flat = (StyleSheet.flatten(style) ?? {}) as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const k of LAYOUT_KEYS) if (flat[k] !== undefined) out[k] = flat[k];
+  return out as ViewStyle;
+}
 
 export type IoniconName = ComponentProps<typeof Ionicons>['name'];
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'text';
@@ -113,7 +126,7 @@ export function Button({
           borderColor: look.border,
         },
         pressed && !inactive && variant === 'danger' && styles.dangerPressed,
-        style,
+        pickLayout(style),
       ]}
     >
       <View style={[styles.content, busy && styles.hidden]}>

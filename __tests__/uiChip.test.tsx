@@ -2,6 +2,8 @@ import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Chip } from '../src/ui/Chip';
 
+const sheet = StyleSheet.create({ smuggle: { marginTop: 8, borderColor: 'red' } });
+
 describe('Chip', () => {
   it('reports selected and calls onPress', async () => {
     const onPress = jest.fn();
@@ -26,6 +28,15 @@ describe('Chip', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
+  it('reports checked, not selected, for checkbox and radio roles', async () => {
+    for (const role of ['checkbox', 'radio'] as const) {
+      await render(<Chip label="2025" selected onPress={() => {}} accessibilityRole={role} />);
+      const state = screen.getByRole(role).props.accessibilityState;
+      expect(state).toMatchObject({ checked: true });
+      expect(state.selected).toBeUndefined();
+    }
+  });
+
   it('uses minHeight 32 and no height', async () => {
     await render(<Chip label="수학 I" selected={false} onPress={() => {}} />);
     const style = StyleSheet.flatten(screen.getByRole('button').props.style);
@@ -36,6 +47,8 @@ describe('Chip', () => {
 
 export const typeGuards = () => (
   <>
+    {/* @ts-expect-error a StyleSheet entry with a color key is not layout-only */}
+    <Chip label="x" selected={false} onPress={() => {}} style={sheet.smuggle} />
     {/* @ts-expect-error style is layout-only */}
     <Chip label="x" selected={false} onPress={() => {}} style={{ borderColor: 'red' }} />
   </>

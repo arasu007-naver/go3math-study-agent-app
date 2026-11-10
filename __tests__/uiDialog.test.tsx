@@ -73,6 +73,33 @@ describe('Dialog', () => {
     });
   });
 
+  it('confirm can be disabled', async () => {
+    const onPress = jest.fn();
+    await render(<Dialog visible title="t" onDismiss={() => {}} confirm={{ title: '저장', onPress, disabled: true }} />);
+    await fireEvent.press(screen.getByRole('button', { name: '저장' }));
+    expect(onPress).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: '저장' }).props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it('cannot be dismissed while an async confirm is running', async () => {
+    let finish: () => void = () => {};
+    const onDismiss = jest.fn();
+    const cancel = jest.fn();
+    await render(<Dialog visible title="t" onDismiss={onDismiss} cancel={{ onPress: cancel }} confirm={{ title: '저장', onPress: () => new Promise<void>((r) => (finish = r)) }} />);
+    const first = fireEvent.press(screen.getByRole('button', { name: '저장' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: '취소' }).props.accessibilityState).toMatchObject({ disabled: true }));
+    await fireEvent.press(screen.getByRole('button', { name: '취소' }));
+    await fireEvent.press(screen.getByLabelText('닫기'));
+    expect(cancel).not.toHaveBeenCalled();
+    expect(onDismiss).not.toHaveBeenCalled();
+    await act(async () => {
+      finish();
+      await first;
+    });
+    await fireEvent.press(screen.getByLabelText('닫기'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it('children render between message and actions', async () => {
     await render(
       <Dialog visible title="이름 변경" onDismiss={() => {}} confirm={{ title: '저장', onPress: () => {} }}>
