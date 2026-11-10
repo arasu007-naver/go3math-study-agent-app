@@ -35,12 +35,12 @@
 | `src/kit/canvas/note-canvas/topic-notebook.tsx:417` | 보조 풀이 FAB (데드 코드 파일) | 60×60, 반경 30, `colors.accent`, 그림자 직접 지정 (H) | — | 예외 | 데드 코드, 정리는 별도 결정 | — |
 | `src/kit/concepts/ConceptLookupPanel.tsx:88` | 개념 검색 과목 선택. role=tab 유지 | padding 14/6, 반경 16, 테두리 1.5 `#fed7aa` → 선택 `#ea580c` (H) | role=tab, selected | Chip | — | 5 |
 | `src/kit/concepts/ConceptLookupPanel.tsx:113` | 개념 검색 단원 선택. role=tab 유지 | padding 12/6, 반경 14, 테두리 1.2 → 선택 `#ea580c` (H) | role=tab, selected | Chip | — | 5 |
-| `src/kit/concepts/ConceptLookupPanel.tsx:144` | 개념 항목(누르면 설명 모달). 선택이 아니라 열기 동작. selected=false 고정 | padding 12/7, 반경 14, 테두리 1.2 `#ea580c`, 흰 바탕 (H) | role=button | Chip | — | 5 |
-| `src/kit/concepts/ConceptLookupPanel.tsx:174` | 모달 배경 닫기 영역. 개념 설명 모달(concept_detail)의 배경 | — | — | Dialog | — | 5 |
-| `src/kit/concepts/ConceptLookupPanel.tsx:190` | 개념 설명 모달 닫기(주요). 개념 설명 모달의 닫기 → Dialog confirm | paddingVertical 12, 반경 12, `#ea580c` (H) | — | Dialog | — | 5 |
-| `src/kit/diary/DiaryPanel.tsx:99` | Diary "가자!!!" 확장 FAB. "가자!!!" 네 표현 중 하나 | 높이 48, `radius.pill`, `colors.accent`, `shadow.float` (H: 48) | pressed(`accentPress`) | Button primary md | — | 4 |
+| `src/kit/concepts/ConceptLookupPanel.tsx:144` | 개념 항목(누르면 설명 모달). 선택이 아니라 열기 동작. selected=false 고정 | padding 12/7, 반경 14, 테두리 1.2 `#ea580c`, 흰 바탕 (H) | role=button | Button secondary sm | — | 5 |
+| `src/kit/concepts/ConceptLookupPanel.tsx:174` | 모달 배경 닫기 영역. 개념 설명 모달(concept_detail)의 배경 | — | — | 예외 | 개념 설명 모달(폭 440, 높이 620, MathJax 스크롤)은 확인 대화상자가 아니다. 단계 5에서 `Sheet`로 | — |
+| `src/kit/concepts/ConceptLookupPanel.tsx:190` | 개념 설명 모달 닫기(주요). 개념 설명 모달의 닫기 | paddingVertical 12, 반경 12, `#ea580c` (H) | — | 예외 | 개념 설명 모달 안의 닫기. 모달을 `Sheet`로 옮길 때 같이 정한다 | — |
+| `src/kit/diary/DiaryPanel.tsx:99` | Diary "가자!!!" 확장 FAB. "가자!!!" 네 표현 중 하나 | 높이 48, `radius.pill`, `colors.accent`, `shadow.float` (H: 48) | pressed(`accentPress`) | Button primary sm | — | 4 |
 | `src/kit/diary/DiaryPanel.tsx:117` | "풀이 목록" 뒤로(텍스트+아이콘). icon 사용 | 높이 `layout.hit` (T) | — | Button text md | — | 4 |
-| `src/kit/diary/DiaryPanel.tsx:129` | 탭 헤더 라벨 | — | — | 예외 | 탭 헤더(세그먼트), 칩 아님 | — |
+| `src/kit/diary/DiaryPanel.tsx:129` | 탭 헤더 라벨. 다른 role=tab 세그먼트와 같게(Gate C Q4) | — | — | Chip | — | 4 |
 | `src/kit/diary/DiaryPanel.tsx:138` | Diary 탭 닫기 아이콘 | 높이 100%, 음수 margin (T) | hitSlop | 예외 | 아이콘 전용 닫기(Gate C Q5) | — |
 | `src/kit/diary/RecordsCalendar.tsx:85` | 이전 달 화살표 | `layout.hit` 정사각 (T) | — | 예외 | 아이콘 전용 화살표(Gate C Q5) | — |
 | `src/kit/diary/RecordsCalendar.tsx:98` | 다음 달 화살표 | 같은 정의 (T) | — | 예외 | 아이콘 전용 화살표(Gate C Q5) | — |
@@ -72,7 +72,7 @@
 | `src/kit/topic-panel/TopicTabsPanel.tsx:97` | 목록 행 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(목록 행) | — |
 | `src/kit/topic-panel/TopicTabsPanel.tsx:116` | 주제 탭의 과목 선택 | minHeight 36, 반경 18, 테두리 `lineStrong`, 흰 바탕 → 선택 `'orange'` (H) | selected | Chip | — | 5 |
 | `src/kit/topic-panel/TopicUnitList.tsx:60` | 단원 카드 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(단원 카드) | — |
-| `src/kit/topic-panel/TopicUnitList.tsx:74` | 주제 단원 "가자 !!!". "가자 !!!", #FFC256 테두리 → accent | minHeight 38, 반경 19, 테두리 2px `#FFC256`, 흰 바탕 (H) | pressed(opacity 0.6) | Button primary md | — | 5 |
+| `src/kit/topic-panel/TopicUnitList.tsx:74` | 주제 단원 "가자 !!!". "가자 !!!", #FFC256 테두리 → accent | minHeight 38, 반경 19, 테두리 2px `#FFC256`, 흰 바탕 (H) | pressed(opacity 0.6) | Button primary sm | — | 5 |
 | `src/kit/ui/PdfViewerModal.tsx:45` | PDF 뒤로(텍스트+아이콘). icon 사용 | minWidth 72, minHeight `layout.hit` (H: 72) | hitSlop | Button text md | — | 5 |
 | `src/kit/ui/PdfViewerModal.tsx:67` | PDF 닫기(outline) | minHeight 44, minWidth 64, 반경 22, 테두리 `colors.accent` (H) | — | Button secondary md | — | 5 |
 | `src/kit/ui/PdfViewerModal.web.tsx:17` | PDF 닫기(웹 변형) | 스타일 정의 미확인 | — | Button secondary md | — | 5 |
@@ -99,7 +99,7 @@
 | `app/notebook.tsx:223` | "해답"/"문제" 전환 | 보이는 쪽이 filled | Chip (selected = 해답 보는 중) | 4 |
 | `app/notebook.tsx:236` | 문제 목록 모달 "닫기" | outline small | Button secondary sm | 4 |
 | `app/public-questions.tsx:93` | "해답" | outline small | Button secondary sm | 5 |
-| `src/kit/exam-search/ExamSearchPanel.tsx:93` | "가자!!!" | outline small | Button primary md | 4 |
+| `src/kit/exam-search/ExamSearchPanel.tsx:93` | "가자!!!" | outline small | Button primary sm | 4 |
 | `src/kit/exam-search/ExamSearchPanel.tsx:103` | "계열 선택 ->" 라벨(onPress 없음) | filled `#30B650` xSmall | 글자 (`type.bodyStrong`, `colors.subtle`) | 4 |
 | `src/kit/diary/DailyRecordsList.tsx:121` | "책갈피 추가" | outline small | Button secondary sm | 4 |
 | `src/kit/diary/DailyRecordsList.tsx:122` | "답안 예시" | outline small | Button secondary sm | 4 |
@@ -280,15 +280,16 @@ grep -rnoE "#[0-9a-fA-F]{3,8}\b|'(tomato|red|blue|gray|grey|orange|white|black|g
 
 ## 5. 예외 대장
 
-§1의 `예외` 43행과 §1.1의 예외 10행을 사유별로 모은 것이다.
+§1의 `예외` 44행과 §1.1의 예외 10행을 사유별로 모은 것이다.
 
 | 사유 | 행 | 처리 |
 |---|---|---|
 | 버튼이 아닌 눌리는 면(카드·행·달력 칸·토스트 본문) | §1: `ChatTimeline:102`, `LiveClassListPanel:56`, `:73`, `ProblemListPanel:197`, `MessageBoxPanel:146`, `TopicTabsPanel:90`, `:97`, `TopicUnitList:60`, `RecordsCalendar:123`, `Toast:68` | 그대로. 카드 눌림 표현은 카드 규칙(`03-tokens-components.md` §4)에서 다룬다 |
-| 배경·바깥 닫기 영역, scrim | §1: `app/notebook:160`, `topic-live-class:194`, `hotline-class:187`, `ToolPopover:26`, `SheetHost:33`, `Sheet:24` | 그대로. `SheetHost` scrim은 Gate B Q5로 단계 4에서 없앤다. 대화상자의 배경 3곳은 `Dialog` 대상이라 예외가 아니다 |
+| 배경·바깥 닫기 영역, scrim | §1: `app/notebook:160`, `topic-live-class:194`, `hotline-class:187`, `ToolPopover:26`, `SheetHost:33`, `Sheet:24` | 그대로. `SheetHost` scrim은 Gate B Q5로 단계 4에서 없앤다. 대화상자의 배경 2곳은 `Dialog` 대상이라 예외가 아니다 |
 | 아이콘 전용 버튼 | §1: `ChatRail:120`, `:133`, `Stage:25`, `DiaryPanel:138`, `RecordsCalendar:85`, `:98`, `QuizResponseModal:235`, `ProblemActionRow:12`, `:15`, 선생님 메모 닫기 2곳. §1.1: `PlaybackToolbar:68`, `:75` | 공용 `Button`은 제목이 필수라 담지 못한다. `IconButton`을 단계 4에서 더할지 Gate C Q5에서 묻는다. role 없는 3곳(퀴즈 닫기, 메모 닫기 2)은 어느 쪽이든 단계 4에서 role을 단다 |
 | 이미 공용이고 모양이 같다 | §1: `PencilFab:8`, `EdgeHandle:15`, `SheetHandle:16` | 그대로 |
-| 전용 컨트롤 | §1: `FloatingToolbar:59`, `:84`(캔버스 툴바), `DiaryPanel:129`(탭 헤더), `welcome:139`(소셜 로그인 제공사 아이콘) | 그대로 |
+| 전용 컨트롤 | §1: `FloatingToolbar:59`, `:84`(캔버스 툴바), `welcome:139`(소셜 로그인 제공사 아이콘) | 그대로 |
 | 잉크 색·굵기 견본 | §1.1: 펜 색·굵기 `GoButton` 6곳(데드 코드 파일의 2곳은 아래 데드 코드 행) | 저장값 `orange, blue, black, red, green`은 사용자 데이터라 바꾸지 않는다. 표시 라벨만 한국어로(Gate B Q6, 단계 4) |
+| 확인 대화상자가 아닌 모달 | §1: `ConceptLookupPanel:174`, `:190`(개념 설명 모달) | 단계 5에서 `Sheet`로 옮긴다(Gate C Q4) |
 | 데드 코드 | §1: `DrawerFooter:54`, `topic-notebook:417`, `kit/ui/toast:69`. §1.1: `topic-notebook:296`, `:307` | 정리는 별도 결정(진단 §5) |
 | 공용 컴포넌트 자신 | §1: `go-button:103`(단계 5 뒤 삭제), `ui/Button:112`, `ui/Chip:19`, `ui/Dialog:48`, `:50`, `ui/StateView:25` | 그대로 |

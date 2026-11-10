@@ -6,7 +6,7 @@ Method: `expo-design-system`(기존 `theme.ts` 채택·확장, variant/size/stat
 
 | 항목 | 값 |
 |---|---|
-| 단계 / 상태 | 단계 3 / **승인대기** — Gate C 검토 중. 질문은 §6 |
+| 단계 / 상태 | 단계 3 / **완료** — Gate C 승인(§8) |
 | 기준 | `3846de6` (`design/ui-redesign`), 작업 브랜치 `design/ui-redesign-stage3` |
 | 설계·계획 | `docs/superpowers/specs/2026-11-10-ui-redesign-stage3-design.md`, `docs/superpowers/plans/2026-11-10-ui-redesign-stage3.md` |
 | 사용한 스킬 | `expo-design-system`, `impeccable` `extract`·`document`, `vercel-react-native-skills` |
@@ -150,10 +150,10 @@ cancel?: { title?: string /* 기본 '취소' */; onPress?(): void /* 없으면 o
 
 | 대상 | 행 | 교체 단계 4 | 교체 단계 5 |
 |---|---|---|---|
-| `Button` | 19 (primary md 5, primary sm 1, secondary md 4, secondary sm 1, text md 7, text sm 1) | 14 | 5 |
-| `Chip` | 8 | 3 | 5 |
-| `Dialog` | 6 (대화상자 3개의 배경·버튼) | 4 | 2 |
-| `예외` | 43 | — | — |
+| `Button` | 20 (primary md 3, primary sm 3, secondary md 4, secondary sm 2, text md 7, text sm 1) | 14 | 6 |
+| `Chip` | 8 | 4 | 4 |
+| `Dialog` | 4 (대화상자 2개의 배경·버튼) | 4 | 0 |
+| `예외` | 44 | — | — |
 
 §1.1 `GoButton` 호출 28곳: Button 13, Chip 2, Dialog 2, 글자 1, 예외 10(펜 색·굵기 견본 8, 아이콘 전용 2).
 
@@ -161,7 +161,7 @@ cancel?: { title?: string /* 기본 '취소' */; onPress?(): void /* 없으면 o
 
 ## 6. Gate C 요청
 
-답은 정하지 않았다.
+답은 §8.
 
 1. 새 토큰 세 개(`controlSm` 32, `railOpacity` 0.88, `dialogMax` 400)를 받는가?
 2. `Button` variant 표(§3.1)를 받는가? DESIGN.md는 지금까지 버튼을 **모서리 12**(`rounded.md`), 보조 버튼을 **`cardMuted` 채움**으로 적어 왔다. 단계 3 설계는 모서리 `pill`, 보조 버튼 `card` + 1px `lineStrong`으로 정했다(`InstructionCard`·`StudyNoteForm`은 12, `GoButton`·`TimelinePanel`·`DiaryPanel`은 pill). 이 문서와 DESIGN.md는 설계 쪽으로 고쳐 두었다. 12로 돌릴지 여기서 정한다.
@@ -192,3 +192,19 @@ cancel?: { title?: string /* 기본 '취소' */; onPress?(): void /* 없으면 o
 ### 7.1 jest 기준
 
 기준(`3846de6`): 3 suites 실패 — `canvasSize`, `timeline`, `notices`(3 tests). 마지막 전체 실행(단계 3 마지막 커밋)도 같은 세 suite, 3 tests 실패이고 255 tests 통과다(기준 225 + 이번에 더한 35 − 이 브랜치에 없는 다른 작업의 `answerBubblePlacement` 5). 작업 중 한 번은 `messageBox`가 전체 실행 부하에서 5000ms 시간 초과로 실패했다가 혼자 돌리면 통과했다. 어떤 기존 파일도 새 컴포넌트를 가져오지 않는다(`grep` 결과 없음).
+
+## 8. Gate C 결정
+
+2026-11-10, 사용자 답.
+
+| 질문 | 결정 |
+|---|---|
+| Q1 새 토큰 | `controlSm` 32, `railOpacity` 0.88, `dialogMax` 400 그대로(1안). 단계 4 실기기 확인에서 다시 볼 수 있다 |
+| Q2 버튼 모양 | 1안: 모서리 `pill`, 보조 버튼 `card` + 1px `lineStrong`. DESIGN.md는 이미 이 값이다 |
+| Q3 Phone 수업 카드 문구 | 1안 그대로: 제목 "지금 수업 중 · {수업명}", 부제 "문제만 볼 수 있어요. 수업 참여는 태블릿에서 해요." |
+| Q4 인벤토리 | 받되 리뷰가 찾은 배정 4곳을 고쳤다: "가자!!!" 4곳은 모두 `Button primary sm`, `ConceptLookupPanel:144`(열기 동작)는 `Button secondary sm`, 개념 설명 모달(`:174`, `:190`)은 예외(단계 5에서 `Sheet`), `DiaryPanel:129` 탭 헤더는 `Chip`. §5 수치는 고친 뒤의 값이다 |
+| Q5 아이콘 전용 버튼 | 단계 4에서 공용 `IconButton`(44 원형, Ionicons만, `accessibilityLabel` 필수)을 더하고 13곳을 옮긴다 |
+| Q6 위험 동작 | 단계 4에서 `text`·`secondary`에 위험 색 표현(빨간 글자·테두리, 채움 없음)을 더한다. 로그아웃은 구분선 뒤 빨간 텍스트 버튼, 책갈피 해제는 빨간 테두리 `secondary sm` |
+| Q7 Tag | 단계 4에서 읽기 전용 공용 `Tag`(중립·강조 톤)를 더해 손으로 만든 배지·태그 4곳을 옮긴다. 숫자 배지는 `colors.unread` |
+
+참고(결정 아님): 흰 글자 대 `accent` `#F97316`은 약 2.8:1로 WCAG AA(4.5:1, 굵은 큰 글자 3:1)에 못 미친다. 기존 팔레트 값이라 단계 3에서는 바꾸지 않았다. 바꾸려면 따로 정한다.
