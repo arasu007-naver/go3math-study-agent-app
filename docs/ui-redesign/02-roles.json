@@ -1,0 +1,822 @@
+{
+  "meta": {
+    "stage": 2,
+    "baseline": "76b99e3",
+    "structure": "docs/ui-structure/ui-structure.json"
+  },
+  "roles": [
+    "screen",
+    "dock",
+    "modeless",
+    "bottomsheet",
+    "modal",
+    "outside"
+  ],
+  "layers": [
+    "Stage",
+    "캔버스 툴바",
+    "Bottom Sheet",
+    "Dock",
+    "rail",
+    "toast",
+    "Modal",
+    "시스템 UI"
+  ],
+  "rows": [
+    {
+      "id": "nav_root",
+      "role": "outside",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "앱 시작 시 항상(`app/_layout.tsx:43`)",
+      "forms": "Phone / Tablet: 전역 오버레이를 감싸는 루트 스택",
+      "deviations": [],
+      "reason": "오버레이가 아닌 내비게이터"
+    },
+    {
+      "id": "nav_main",
+      "role": "outside",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "인증 게이트 통과 시(`app/(main)/_layout.tsx:75`)",
+      "forms": "Phone: 하단 탭 바 / Tablet: 탭 바 숨김, index만",
+      "deviations": [],
+      "reason": "오버레이가 아닌 내비게이터"
+    },
+    {
+      "id": "nav_timeline",
+      "role": "outside",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 선택(`app/(main)/_layout.tsx:77`)",
+      "forms": "Phone: 탭 안 스택",
+      "deviations": [],
+      "reason": "오버레이가 아닌 내비게이터"
+    },
+    {
+      "id": "nav_search",
+      "role": "outside",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 선택(`app/(main)/_layout.tsx:77`)",
+      "forms": "Phone: 탭 안 스택",
+      "deviations": [],
+      "reason": "오버레이가 아닌 내비게이터"
+    },
+    {
+      "id": "nav_diary",
+      "role": "outside",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 선택(`app/(main)/_layout.tsx:77`)",
+      "forms": "Phone: 탭 안 스택",
+      "deviations": [],
+      "reason": "오버레이가 아닌 내비게이터"
+    },
+    {
+      "id": "nav_chat",
+      "role": "outside",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 선택(`app/(main)/_layout.tsx:77`)",
+      "forms": "Phone: 탭 안 스택",
+      "deviations": [],
+      "reason": "오버레이가 아닌 내비게이터"
+    },
+    {
+      "id": "ext",
+      "role": "outside",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "OAuth 리디렉트(`app.config.ts:30`)",
+      "forms": "Phone / Tablet: 앱 밖 시스템",
+      "deviations": [],
+      "reason": "앱 밖 시스템(딥링크 scheme)"
+    },
+    {
+      "id": "welcome",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "미로그인 리디렉트(`app/auth/callback.tsx:6`). 로그인 성공 시 `/`로 교체(`app/welcome.tsx:51`)",
+      "forms": "Phone / Tablet: 같은 라우트, 로그인 + 공개 콘텐츠",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "auth_callback",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "OAuth 리디렉트로 열리고 즉시 `/welcome`으로 교체(`app/auth/callback.tsx:6`)",
+      "forms": "Phone / Tablet: 화면 없음",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "public_questions",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "welcome의 가자(`app/welcome.tsx:70`). 헤더 뒤로",
+      "forms": "Phone / Tablet: 헤더 있는 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "public_solution",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "public_questions의 해답(`app/public-questions.tsx:96`). 헤더 뒤로",
+      "forms": "Phone / Tablet: WebView 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "notebook",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "Stage 문제 목록의 연필 FAB(`src/host/widgets.tsx:67`). 툴바 나가기",
+      "forms": "Tablet: 전체 화면 캔버스. Phone 진입 없음",
+      "deviations": [
+        "D-06"
+      ],
+      "reason": null
+    },
+    {
+      "id": "topic_live",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "실황 주제 수업 문제 목록 연필 FAB(`src/host/widgets.tsx:155`). 툴바 나가기",
+      "forms": "Tablet: 전체 화면 캔버스. Phone 진입 없음",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "hotline",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "선생님 수업 문제 목록 연필 FAB(`src/host/widgets.tsx:157`). 툴바 나가기",
+      "forms": "Tablet: 전체 화면 캔버스. Phone 진입 없음",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "agent_home",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 index(`app/(main)/_layout.tsx:75`). 뒤로는 `back_requested`",
+      "forms": "Tablet: Stage + rail + dock. Phone은 `/timeline`으로 교체(`app/(main)/index.tsx:14`)",
+      "deviations": [
+        "D-02"
+      ],
+      "reason": null
+    },
+    {
+      "id": "profile",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 선택(`app/(main)/_layout.tsx:77`)",
+      "forms": "Phone: 내 정보 탭 화면. Tablet은 dock_profile",
+      "deviations": [
+        "D-11"
+      ],
+      "reason": null
+    },
+    {
+      "id": "timeline_index",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "Phone 첫 화면(`app/(main)/index.tsx:14`)",
+      "forms": "Phone: 타임라인 탭 첫 화면. Tablet은 dock_timeline",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "timeline_problems",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "task 탭(`src/phone/PhoneScreens.tsx:95`). 헤더 뒤로",
+      "forms": "Phone: 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "timeline_topic",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "여는 코드 없음(고아). 헤더 뒤로",
+      "forms": "Phone: 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "timeline_solution",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "눈(해답) 탭(`src/phone/PhoneScreens.tsx:216`). 헤더 뒤로",
+      "forms": "Phone: WebView 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "search_index",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 선택. 결과에서 dismissTo로 복귀(`src/phone/PhoneScreens.tsx:194`)",
+      "forms": "Phone: 검색 탭 첫 화면. Tablet은 dock_search",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "search_problems",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "기출 검색 제출(`src/phone/PhoneScreens.tsx:113`). 헤더 뒤로",
+      "forms": "Phone: 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "search_topic",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "토픽 탭(`src/phone/PhoneScreens.tsx:117`). 헤더 뒤로",
+      "forms": "Phone: 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "search_solution",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "눈(해답) 탭(`src/phone/PhoneScreens.tsx:216`). 헤더 뒤로",
+      "forms": "Phone: WebView 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "chat_index",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 선택. 결과에서 dismissTo로 복귀(`src/phone/PhoneScreens.tsx:194`)",
+      "forms": "Phone: Study Log 탭 첫 화면. Tablet은 dock_chat",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "chat_problems",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "에이전트 `show_component problem_list`(`src/phone/PhoneScreens.tsx:175`). 헤더 뒤로",
+      "forms": "Phone: 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "chat_topic",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "에이전트 `show_component problem_preview`(`src/phone/PhoneScreens.tsx:176`). 헤더 뒤로",
+      "forms": "Phone: 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "chat_solution",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "눈(해답) 탭(`src/phone/PhoneScreens.tsx:216`). 헤더 뒤로",
+      "forms": "Phone: WebView 스택 화면",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "diary_index",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "탭 선택(`app/(main)/diary/_layout.tsx:10`)",
+      "forms": "Phone: Diary 탭 첫 화면(달력 + 공지). Tablet은 dock_notice",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "diary_day",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "달력 날짜 탭(`src/phone/PhoneScreens.tsx:139`). 헤더 뒤로",
+      "forms": "Phone: 스택 화면. Tablet은 dock_notice의 날짜 탭",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "diary_solution",
+      "role": "screen",
+      "expectedBlocking": null,
+      "recordedBlocking": null,
+      "openClose": "답안 예시 탭(`src/phone/PhoneScreens.tsx:278`). 헤더 뒤로",
+      "forms": "Phone: WebView 스택 화면. Tablet은 날짜 탭 안 해답",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "study_note_sheet",
+      "role": "bottomsheet",
+      "expectedBlocking": false,
+      "recordedBlocking": true,
+      "openClose": "학습장 탭(`src/phone/PhoneScreens.tsx:97`, `src/agent/tablet/TabletAgentLayer.tsx:125`). scrim 탭·뒤로로 닫음(`src/host/SheetHost.tsx:31`, `:33`)",
+      "forms": "Phone: 아래 붙은 카드 / Tablet: 폭 제한 카드",
+      "deviations": [
+        "NEW-01"
+      ],
+      "reason": null
+    },
+    {
+      "id": "global_loading",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "`beginBlocking()` 호출부 없음(고아). pointerEvents none",
+      "forms": "Phone / Tablet: 전체 덮개(표시되지 않음)",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "tablet_launch",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "앱 시작(`src/ui/TabletLaunchOverlay.tsx:18`). 1초 후 페이드아웃",
+      "forms": "Tablet: Android 태블릿만. Phone 없음",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "chat_rail",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "agent_home에 항상(`src/agent/tablet/TabletAgentLayer.tsx:109`). 닫지 않음, 손잡이로 이동",
+      "forms": "Tablet: 끌 수 있는 pill 툴바. Phone은 하단 탭 바",
+      "deviations": [
+        "D-02"
+      ],
+      "reason": null
+    },
+    {
+      "id": "dock_timeline",
+      "role": "dock",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "rail 타임라인 또는 홈 진입 기본(`src/agent/tablet/ChatRail.tsx:123`, `src/agent/tablet/TabletAgentLayer.tsx:54`). 같은 항목·닫기 손잡이·문제 목록 표시로 닫힘(`src/agent/tablet/TabletAgentLayer.tsx:100`, `:112`, `:90`)",
+      "forms": "Tablet: Stage 위 dock. Phone은 timeline_index",
+      "deviations": [
+        "D-10"
+      ],
+      "reason": null
+    },
+    {
+      "id": "dock_notice",
+      "role": "dock",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "rail Diary(`src/agent/tablet/ChatRail.tsx:123`). 같은 항목·닫기 손잡이로 닫힘. Diary의 `list` 문제 목록은 dock을 두고 연다(`src/agent/tablet/TabletAgentLayer.tsx:90`)",
+      "forms": "Tablet: Stage 위 dock. Phone은 diary_index",
+      "deviations": [
+        "D-10"
+      ],
+      "reason": null
+    },
+    {
+      "id": "dock_search",
+      "role": "dock",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "rail 검색(`src/agent/tablet/ChatRail.tsx:123`). 같은 항목·닫기 손잡이·검색 제출로 닫힘(`src/agent/tablet/TabletAgentLayer.tsx:165`)",
+      "forms": "Tablet: Stage 위 dock. Phone은 search_index",
+      "deviations": [
+        "D-10"
+      ],
+      "reason": null
+    },
+    {
+      "id": "dock_live",
+      "role": "dock",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "rail 실황 수업(`src/agent/tablet/ChatRail.tsx:123`). 같은 항목·닫기 손잡이·문제 목록 표시로 닫힘(`src/agent/tablet/TabletAgentLayer.tsx:90`)",
+      "forms": "Tablet: Stage 위 dock. Phone 진입 없음(§6)",
+      "deviations": [
+        "D-10"
+      ],
+      "reason": null
+    },
+    {
+      "id": "dock_profile",
+      "role": "dock",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "rail 내 정보(`src/agent/tablet/ChatRail.tsx:123`). 같은 항목·닫기 손잡이로 닫힘",
+      "forms": "Tablet: Stage 위 dock. Phone은 profile",
+      "deviations": [
+        "D-10",
+        "D-11"
+      ],
+      "reason": null
+    },
+    {
+      "id": "dock_chat",
+      "role": "dock",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "rail Study Log 또는 instruction 도착(`src/agent/tablet/ChatRail.tsx:137`, `src/agent/tablet/TabletAgentLayer.tsx:74`). 같은 버튼·닫기 손잡이로 닫힘",
+      "forms": "Tablet: Stage 위 dock. Phone은 chat_index",
+      "deviations": [
+        "D-10"
+      ],
+      "reason": null
+    },
+    {
+      "id": "agent_toast",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "instruction 도착(`src/agent/tablet/TabletAgentLayer.tsx:71`). 시간이 지나면 사라짐(`src/ui/toast/Toast.tsx:44`), 탭하면 채팅 dock",
+      "forms": "Tablet: 우상단 toast. Phone은 하단 모달(PRODUCT.md)",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "canvas_toolbar",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "캔버스 화면에 항상(`src/kit/canvas/CanvasChrome.tsx:95`). 닫지 않음",
+      "forms": "Tablet: 캔버스 하단 툴바. Phone 없음",
+      "deviations": [
+        "D-04"
+      ],
+      "reason": null
+    },
+    {
+      "id": "concept_sheet",
+      "role": "bottomsheet",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "툴바 개념(`src/kit/canvas/CanvasChrome.tsx:77`). 손잡이 끌기",
+      "forms": "Tablet: snap 70% 시트, 툴바를 덮음",
+      "deviations": [
+        "D-04"
+      ],
+      "reason": null
+    },
+    {
+      "id": "clear_confirm",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "툴바 전체 지우기(`src/kit/canvas/CanvasChrome.tsx:81`). 확인·취소",
+      "forms": "Tablet: 확인 대화상자",
+      "deviations": [
+        "D-13"
+      ],
+      "reason": null
+    },
+    {
+      "id": "landscape_notice",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "가로 회전·제한 버튼(`src/kit/canvas/CanvasChrome.tsx:94`). 자동 사라짐, pointerEvents none",
+      "forms": "Tablet: 캔버스 안내. 제한 목록이 비어 표시되지 않음",
+      "deviations": [
+        "D-06"
+      ],
+      "reason": null
+    },
+    {
+      "id": "pencil_popover",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "툴바 Options(`src/kit/canvas/note-canvas/notebook.tsx:167`). 바깥 탭(light-dismiss)",
+      "forms": "Tablet: 툴바에 붙은 팝오버",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "concept_detail",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "개념 칩(`src/kit/concepts/ConceptLookupPanel.tsx:147`). 닫기 버튼",
+      "forms": "Phone / Tablet: 카드 대화상자",
+      "deviations": [
+        "D-13"
+      ],
+      "reason": null
+    },
+    {
+      "id": "name_edit_modal",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "이름 변경(`src/kit/profile/ProfileActions.tsx:58`). 저장·취소",
+      "forms": "Phone / Tablet: 입력 대화상자",
+      "deviations": [
+        "D-13"
+      ],
+      "reason": null
+    },
+    {
+      "id": "pdf_viewer",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "사서함 답변(`src/kit/profile/MessageBoxPanel.tsx:148`). 닫기",
+      "forms": "Phone: fullScreen(`src/kit/ui/PdfViewerModal.tsx:41`) / Tablet: 투명 카드(`:62`)",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "upload_alert",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "업로드 끝(`src/phone/PhoneScreens.tsx:204`, `:207`). 시스템 확인",
+      "forms": "Phone: 시스템 Alert",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "bookmark_alert",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "책갈피(`src/kit/diary/DailyRecordsList.tsx:100`, `:103`). 시스템 확인",
+      "forms": "Phone: 시스템 Alert",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "quiz_modal",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "실황 메시지 action quiz(`app/topic-live-class.tsx:82`, `app/hotline-class.tsx:110`). 답안 제출·닫기",
+      "forms": "Tablet: 퀴즈 대화상자",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "nb_list_modal",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "툴바 목록(`app/notebook.tsx:247`). 닫기 버튼",
+      "forms": "Tablet: 목록 모달",
+      "deviations": [
+        "D-07"
+      ],
+      "reason": null
+    },
+    {
+      "id": "nb_answer_sheet",
+      "role": "bottomsheet",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "툴바 해답(`app/notebook.tsx:248`). 손잡이 끌기",
+      "forms": "Tablet: 화면 절반 시트, 툴바를 덮음",
+      "deviations": [
+        "D-04"
+      ],
+      "reason": null
+    },
+    {
+      "id": "nb_workout_sheet",
+      "role": "bottomsheet",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "툴바 내 풀이·저장 후 자동(`app/notebook.tsx:249`, `:132`, `:105`). 손잡이 끌기",
+      "forms": "Tablet: 화면 절반 시트, 툴바를 덮음",
+      "deviations": [
+        "D-04"
+      ],
+      "reason": null
+    },
+    {
+      "id": "tl_list_modal",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "툴바 목록(`app/topic-live-class.tsx:181`). 닫기 버튼",
+      "forms": "Tablet: 목록 모달",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "tl_answer_sheet",
+      "role": "bottomsheet",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "툴바 답안 예시(`app/topic-live-class.tsx:182`). 손잡이 끌기",
+      "forms": "Tablet: 같은 BottomSheetModal 구성(`app/topic-live-class.tsx:233`). 툴바 겹침은 캡처 없음(미확인)",
+      "deviations": [
+        "D-04"
+      ],
+      "reason": null
+    },
+    {
+      "id": "tl_toast",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "답안 전송·오류·강의 미준비(`app/topic-live-class.tsx:66`). 2.5초 후 사라짐",
+      "forms": "Tablet: 캔버스 위 toast",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "tl_memo",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "스크립트 MEMO 컷(`src/kit/canvas/note-canvas/topic-live-canvas.tsx:283`). ✕로 닫음",
+      "forms": "Tablet: 캔버스 우상단 메모",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "tl_popup",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "여는 호출 없음(고아). `src/ui/Sheet.tsx` 카드 모달",
+      "forms": "Tablet: 카드 모달(표시되지 않음)",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "hl_list_modal",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "툴바 목록(`app/hotline-class.tsx:174`). 닫기 버튼",
+      "forms": "Tablet: 목록 모달",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "hl_answer_sheet",
+      "role": "bottomsheet",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "툴바 답안 예시(`app/hotline-class.tsx:175`). 손잡이 끌기",
+      "forms": "Tablet: 같은 BottomSheetModal 구성. 툴바 겹침은 캡처 없음(미확인)",
+      "deviations": [
+        "D-04"
+      ],
+      "reason": null
+    },
+    {
+      "id": "hl_toast",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "Notes 준비·답안 전송·오류(`app/hotline-class.tsx:65`). 시간이 지나면 사라짐",
+      "forms": "Tablet: 캔버스 위 toast",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "hl_memo",
+      "role": "modeless",
+      "expectedBlocking": false,
+      "recordedBlocking": false,
+      "openClose": "스크립트 MEMO 컷(`src/kit/canvas/note-canvas/hotline-class-canvas.tsx:291`). ✕로 닫음",
+      "forms": "Tablet: 캔버스 우상단 메모",
+      "deviations": [],
+      "reason": null
+    },
+    {
+      "id": "hl_popup",
+      "role": "modal",
+      "expectedBlocking": true,
+      "recordedBlocking": true,
+      "openClose": "여는 호출 없음(고아). `src/ui/Sheet.tsx` 카드 모달",
+      "forms": "Tablet: 카드 모달(표시되지 않음)",
+      "deviations": [],
+      "reason": null
+    }
+  ],
+  "deviations": [
+    {
+      "id": "D-02",
+      "nodes": [
+        "agent_home",
+        "chat_rail"
+      ],
+      "rule": "Modeless는 경쟁하는 Stage 콘텐츠를 가리지 않는다",
+      "evidence": "`src/agent/tablet/ChatRail.tsx:149-150`, 캡처 `ipad-sim-agent_home-problems-before.png`",
+      "stage": 3
+    },
+    {
+      "id": "D-04",
+      "nodes": [
+        "canvas_toolbar",
+        "concept_sheet",
+        "nb_answer_sheet",
+        "nb_workout_sheet",
+        "tl_answer_sheet",
+        "hl_answer_sheet"
+      ],
+      "rule": "캔버스 Bottom Sheet는 툴바 위에서 멈추고, 높이는 공용 단계에서 고르며, 보이는 닫기가 있다",
+      "evidence": "`app/notebook.tsx:252`, `:272`, `src/kit/canvas/CanvasChrome.tsx:77`",
+      "stage": 3
+    },
+    {
+      "id": "D-06",
+      "nodes": [
+        "notebook",
+        "landscape_notice"
+      ],
+      "rule": "(규칙 아님) 가로 빈 띠 처리는 사용자 결정 대기",
+      "evidence": "`src/kit/canvas/landscapeRestrictions.ts:3-4`",
+      "stage": "사용자 결정"
+    },
+    {
+      "id": "D-07",
+      "nodes": [
+        "nb_list_modal"
+      ],
+      "rule": "Modal 안 목록과 버튼은 공용 기준(최소 터치 영역)을 따른다",
+      "evidence": "`app/notebook.tsx:160-236`, `src/kit/ui/go-button.tsx:35-37`",
+      "stage": 3
+    },
+    {
+      "id": "D-10",
+      "nodes": [
+        "dock_timeline",
+        "dock_notice",
+        "dock_search",
+        "dock_live",
+        "dock_profile",
+        "dock_chat"
+      ],
+      "rule": "Dock은 Modeless다. 폭과 Stage inset을 한 규칙으로 정한다",
+      "evidence": "`src/agent/DockWrapper.tsx:43`, `src/agent/tablet/TabletAgentLayer.tsx:112`",
+      "stage": 3
+    },
+    {
+      "id": "D-11",
+      "nodes": [
+        "profile",
+        "dock_profile"
+      ],
+      "rule": "같은 기능의 동작은 Phone과 Tablet에서 같은 자리에 둔다(재구성하되 순서 유지)",
+      "evidence": "`src/kit/profile/ProfileActions.tsx:53-74`",
+      "stage": 3
+    },
+    {
+      "id": "D-13",
+      "nodes": [
+        "clear_confirm",
+        "concept_detail",
+        "name_edit_modal"
+      ],
+      "rule": "Modal 대화상자는 한 틀을 쓴다",
+      "evidence": "`src/kit/canvas/CanvasChrome.tsx:113-124`, `src/kit/concepts/ConceptLookupPanel.tsx:172-190`, `src/kit/profile/ProfileActions.tsx:83-100`",
+      "stage": 3
+    },
+    {
+      "id": "NEW-01",
+      "nodes": [
+        "study_note_sheet"
+      ],
+      "rule": "Bottom Sheet는 자기 영역만 덮는다. 학습장 시트는 RN Modal + scrim이라 뒤 전체를 막는다(블록도 blocking true)",
+      "evidence": "`src/host/SheetHost.tsx:31`, `:33`",
+      "stage": 3
+    }
+  ],
+  "names": []
+}
