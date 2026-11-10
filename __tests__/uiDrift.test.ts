@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // 공용 UI 컴포넌트에는 hex 색과 숫자 fontSize를 쓰지 않는다(값은 theme.ts에서만).
-const FILES = ['src/ui/Button.tsx'];
+const FILES = ['src/ui/Button.tsx', 'src/ui/Chip.tsx'];
 
 function findDrift(source: string): string[] {
   return [...(source.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []), ...(source.match(/fontSize:\s*\d/g) ?? [])];
