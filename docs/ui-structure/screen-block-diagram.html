@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Screen Block Diagram</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --card: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --line: #e2e2dc;
+    --accent: #e8630a; --accent-soft: #fdeee3; --warn: #b54708; --warn-soft: #fff4e5;
+    --code: #f0f0ec; --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614; --card: #1f1f1d; --text: #ecece8; --muted: #a3a39c; --line: #34342f;
+      --accent: #ff8a3d; --accent-soft: #3a2616; --warn: #ffb066; --warn-soft: #33240f; --code: #2a2a27;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614; --card: #1f1f1d; --text: #ecece8; --muted: #a3a39c; --line: #34342f;
+    --accent: #ff8a3d; --accent-soft: #3a2616; --warn: #ffb066; --warn-soft: #33240f; --code: #2a2a27;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 36px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+  h3 { font-size: 15px; margin: 20px 0 8px; }
+  p.sub { color: var(--muted); margin: 0 0 16px; }
+  code { font-family: var(--mono); font-size: 12px; background: var(--code); padding: 1px 4px; border-radius: 4px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 24px; }
+  .meta div span { color: var(--muted); display: block; font-size: 12px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 12px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .stat b { font-size: 20px; display: block; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .tabs button, .tools button { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 6px 14px; font: inherit; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tools { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .tools .hint { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .diagram-wrap { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: auto; height: 72vh; min-height: 420px; position: relative; }
+  .diagram { transform-origin: 0 0; padding: 16px; width: max-content; }
+  .diagram svg { max-width: none !important; }
+  .desc { color: var(--muted); margin: 0 0 8px; }
+  details { margin-top: 8px; }
+  details pre { background: var(--code); padding: 12px; border-radius: 8px; overflow: auto; max-height: 360px; font: 12px/1.45 var(--mono); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+  .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+  th { position: sticky; top: 0; background: var(--card); font-weight: 600; white-space: nowrap; }
+  td.mono { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
+  tr.orphan td { background: var(--warn-soft); }
+  .pill { display: inline-block; padding: 0 8px; border-radius: 999px; font-size: 11px; border: 1px solid var(--line); white-space: nowrap; }
+  .k-navigator { background: #e7eefc; color: #1e3a8a; } .k-screen { background: #eef2f0; color: #1f3d2c; }
+  .k-modal { background: #fde8e8; color: #8a1c1c; } .k-modeless { background: #e8f4fd; color: #0c4a6e; }
+  .k-bottomsheet { background: #f3e8fd; color: #5b1f8a; } .k-external { background: #eee; color: #333; }
+  .filter { width: 100%; max-width: 360px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); font: inherit; margin-bottom: 8px; }
+  ul.issues li { margin-bottom: 8px; }
+  .tag { font-size: 11px; font-weight: 600; color: var(--warn); margin-right: 6px; }
+  .err { color: #c0262d; white-space: pre-wrap; font-family: var(--mono); font-size: 12px; padding: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Go3Math 학생 앱 · Screen Block Diagram</h1>
+  <p class="sub">Screen / Modal / Modeless / Bottom Sheet / Navigator 구조와 전환 관계. 코드에서 확인한 것만 그렸다 (<code>docs/expo-ui-block-diagram-spec.md</code> 기준).</p>
+
+  <section class="card">
+    <div class="meta" id="meta"></div>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <h2>1. Block Diagram</h2>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <p class="desc" id="viewDesc"></p>
+  <div class="tools">
+    <button type="button" data-zoom="-0.15">−</button>
+    <button type="button" data-zoom="0">맞춤</button>
+    <button type="button" data-zoom="0.15">+</button>
+    <span class="hint" id="zoomLabel"></span>
+  </div>
+  <div class="diagram-wrap"><div class="diagram" id="diagram"></div></div>
+  <div class="legend">
+    <span>▭ Screen</span><span>⧈ Modal (이중 사각형)</span><span>◖◗ Modeless (둥근 사각형)</span><span>⏢ Bottom Sheet (사다리꼴)</span><span>◯ External</span>
+    <span>── navigate</span><span>┄┄ present</span><span>━━ deeplink</span><span>점선 회색 테두리 = orphan</span>
+    <span>contains 관계는 subgraph로 대신 그렸다(표에는 남김)</span>
+  </div>
+  <details><summary>이 다이어그램의 Mermaid 소스</summary><pre id="mmdSrc"></pre></details>
+
+  <h2>2. 노드 목록</h2>
+  <input class="filter" id="nodeFilter" placeholder="id·이름·파일로 거르기" />
+  <div class="table-wrap"><table id="nodeTable"></table></div>
+
+  <h2>3. 엣지 목록</h2>
+  <input class="filter" id="edgeFilter" placeholder="from·to·트리거·근거로 거르기" />
+  <div class="table-wrap"><table id="edgeTable"></table></div>
+
+  <h2>4. 미확인 / 이슈 목록</h2>
+  <ul class="issues" id="issues"></ul>
+
+  <h2>5. 계획(미구현)</h2>
+  <p class="desc">코드에 자리만 있고 동작이 없는 항목. 실제 구조가 아니므로 위 다이어그램에는 넣지 않았다.</p>
+  <div class="diagram-wrap" style="height:auto;min-height:0"><div class="diagram" id="plannedDiagram"></div></div>
+
+  <h2>6. 기계 판독용 JSON</h2>
+  <div class="tools"><button type="button" id="dlJson">ui-structure.json 내려받기</button><span class="hint">스펙 §5.2 형식. 위 표와 같은 데이터에서 만든다.</span></div>
+  <details><summary>JSON 보기</summary><pre id="jsonSrc"></pre></details>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+// ───────────────────────── 데이터(단일 원천: 다이어그램·표·JSON이 모두 여기서 나온다)
+const META = {
+  project: 'go3math-study-agent-app (qoolla-agent-app 3.0.0)',
+  branch: 'feat/study-note',
+  commit: '76b99e3',
+  router: 'expo-router ~6.0.24 (app/ 디렉터리, Expo SDK 54). React Navigation 직접 정의 없음',
+  generatedAt: '2026-11-10',
+  modes: 'Phone / Tablet — useDeviceMode(): 짧은 변 ≥ 600 진입, < 560 이탈, 200ms 디바운스 (src/layout/deviceMode.ts)',
+};
+
+const P = 'src/phone/PhoneScreens.tsx', T = 'src/agent/tablet/TabletAgentLayer.tsx', W = 'src/host/widgets.tsx';
+const BOTH = ['phone', 'tablet'], PH = ['phone'], TB = ['tablet'];
+
+// kind: navigator | screen | modal | modeless | bottomsheet | external
+// group: 다이어그램에서만 쓰는 시각 묶음(Navigator가 아닌 subgraph)
+const NODES = [
+  // Navigators
+  { id: 'nav_root', kind: 'navigator', type: 'Stack', name: 'Root', comp: 'RootLayout', file: 'app/_layout.tsx', parent: null, modes: BOTH, note: 'headerShown:false. BottomSheetModalProvider·AdSlotFrame·전역 오버레이를 감싼다' },
+  { id: 'nav_main', kind: 'navigator', type: 'Tabs', name: 'Main (인증 게이트)', comp: 'MainLayout', file: 'app/(main)/_layout.tsx', route: '/(main)', parent: 'nav_root', modes: BOTH, note: 'useAuthGate: loading→null, signedOut→Redirect /welcome. Phone만 탭 바 표시, Tablet은 탭 바 숨김(index만 href)' },
+  { id: 'nav_timeline', kind: 'navigator', type: 'Stack', name: 'History 탭', comp: 'TimelineTabLayout', file: 'app/(main)/timeline/_layout.tsx', route: '/timeline', parent: 'nav_main', modes: PH, note: 'initialRouteName: index' },
+  { id: 'nav_search', kind: 'navigator', type: 'Stack', name: '검색 탭', comp: 'SearchTabLayout', file: 'app/(main)/search/_layout.tsx', route: '/search', parent: 'nav_main', modes: PH, note: 'initialRouteName: index' },
+  { id: 'nav_diary', kind: 'navigator', type: 'Stack', name: 'Diary 탭', comp: 'DiaryTabLayout', file: 'app/(main)/diary/_layout.tsx', route: '/diary', parent: 'nav_main', modes: PH, note: 'initialRouteName: index' },
+  { id: 'nav_chat', kind: 'navigator', type: 'Stack', name: 'Study Log 탭', comp: 'ChatTabLayout', file: 'app/(main)/chat/_layout.tsx', route: '/chat', parent: 'nav_main', modes: PH, note: 'initialRouteName: index' },
+
+  // External
+  { id: 'ext', kind: 'external', name: 'External', comp: '—', file: 'app.config.ts', parent: null, modes: BOTH, note: 'scheme com.qoolla.student. 스펙 kind 목록 밖의 의사 노드' },
+
+  // Root Stack screens
+  { id: 'welcome', kind: 'screen', name: 'Welcome (로그인)', comp: 'WelcomeScreen', file: 'app/welcome.tsx', route: '/welcome', parent: 'nav_root', modes: BOTH, note: '소셜 로그인 + 공개 콘텐츠 패널(ExamSearchPanel / TopicTabsPanel)' },
+  { id: 'auth_callback', kind: 'screen', name: 'OAuth 콜백', comp: 'AuthCallback', file: 'app/auth/callback.tsx', route: '/auth/callback', parent: 'nav_root', modes: BOTH, note: '화면 없이 Redirect만 한다' },
+  { id: 'public_questions', kind: 'screen', name: '공개 문제 목록', comp: 'PublicQuestionsViewScreen', file: 'app/public-questions.tsx', route: '/public-questions', parent: 'nav_root', modes: BOTH, note: 'headerShown:true (뒤로)' },
+  { id: 'public_solution', kind: 'screen', name: '공개 해답', comp: 'PublicSolutionViewScreen', file: 'app/public-solution.tsx', route: '/public-solution', parent: 'nav_root', modes: BOTH, note: 'headerShown:true. WebView' },
+  { id: 'notebook', kind: 'screen', name: '문제 풀이 캔버스', comp: 'NotebookScreen', file: 'app/notebook.tsx', route: '/notebook', parent: 'nav_root', modes: TB, note: '패널 NotebookCanvasPanel(src/kit/canvas/note-canvas/notebook.tsx). 폰에서 여는 코드 없음' },
+  { id: 'topic_live', kind: 'screen', name: '주제 실황 수업', comp: 'TopicLiveClassScreen', file: 'app/topic-live-class.tsx', route: '/topic-live-class', parent: 'nav_root', modes: TB, note: '패널 TopicLiveClassCanvasPanel(src/kit/canvas/note-canvas/topic-live-canvas.tsx). 폰에서 여는 코드 없음' },
+  { id: 'hotline', kind: 'screen', name: '선생님 수업', comp: 'HotlineClassScreen', file: 'app/hotline-class.tsx', route: '/hotline-class', parent: 'nav_root', modes: TB, note: '패널 HotlineClassCanvasPanel(src/kit/canvas/note-canvas/hotline-class-canvas.tsx). 폰에서 여는 코드 없음' },
+
+  // Main Tabs
+  { id: 'agent_home', kind: 'screen', name: '에이전트 홈 (Stage)', comp: 'AgentHome', file: 'app/(main)/index.tsx', route: '/', parent: 'nav_main', modes: TB, note: 'Stage(src/host/Stage.tsx) + TabletAgentLayer. Phone이면 즉시 Redirect /timeline' },
+  { id: 'profile', kind: 'screen', name: '내 정보 탭', comp: 'ProfileTabScreen', file: 'app/(main)/profile.tsx', route: '/profile', parent: 'nav_main', modes: PH, note: `구현 ${P}` },
+
+  // History tab
+  { id: 'timeline_index', kind: 'screen', name: 'History', comp: 'TimelineTabScreen', file: 'app/(main)/timeline/index.tsx', route: '/timeline', parent: 'nav_timeline', modes: PH, note: `구현 ${P}. Phone 첫 화면` },
+  { id: 'timeline_problems', kind: 'screen', name: '문제 목록', comp: 'TimelineProblemsScreen', file: 'app/(main)/timeline/problems.tsx', route: '/timeline/problems', parent: 'nav_timeline', modes: PH, note: 'ProblemsResultScreen tab=timeline' },
+  { id: 'timeline_topic', kind: 'screen', name: '주제 문제', comp: 'TimelineTopicScreen', file: 'app/(main)/timeline/topic.tsx', route: '/timeline/topic', parent: 'nav_timeline', modes: PH, orphan: true, note: 'TopicResultScreen tab=timeline. 이 탭에서 여는 코드 없음(이슈 참고)' },
+  { id: 'timeline_solution', kind: 'screen', name: '해답', comp: 'SolutionResultScreen', file: 'app/(main)/timeline/solution.tsx', route: '/timeline/solution', parent: 'nav_timeline', modes: PH, note: 'WebView' },
+  // 검색 tab
+  { id: 'search_index', kind: 'screen', name: '검색', comp: 'SearchTabScreen', file: 'app/(main)/search/index.tsx', route: '/search', parent: 'nav_search', modes: PH, note: `구현 ${P}. ResearchPanel` },
+  { id: 'search_problems', kind: 'screen', name: '문제 목록', comp: 'SearchProblemsScreen', file: 'app/(main)/search/problems.tsx', route: '/search/problems', parent: 'nav_search', modes: PH, note: 'ProblemsResultScreen tab=search' },
+  { id: 'search_topic', kind: 'screen', name: '주제 문제', comp: 'SearchTopicScreen', file: 'app/(main)/search/topic.tsx', route: '/search/topic', parent: 'nav_search', modes: PH, note: 'TopicResultScreen tab=search' },
+  { id: 'search_solution', kind: 'screen', name: '해답', comp: 'SolutionResultScreen', file: 'app/(main)/search/solution.tsx', route: '/search/solution', parent: 'nav_search', modes: PH, note: 'WebView' },
+  // Study Log tab
+  { id: 'chat_index', kind: 'screen', name: 'Study Log', comp: 'ChatTabScreen', file: 'app/(main)/chat/index.tsx', route: '/chat', parent: 'nav_chat', modes: PH, note: `구현 ${P}. ChatTimeline` },
+  { id: 'chat_problems', kind: 'screen', name: '문제 목록', comp: 'ChatProblemsScreen', file: 'app/(main)/chat/problems.tsx', route: '/chat/problems', parent: 'nav_chat', modes: PH, note: 'ProblemsResultScreen tab=chat' },
+  { id: 'chat_topic', kind: 'screen', name: '주제 문제', comp: 'ChatTopicScreen', file: 'app/(main)/chat/topic.tsx', route: '/chat/topic', parent: 'nav_chat', modes: PH, note: 'TopicResultScreen tab=chat' },
+  { id: 'chat_solution', kind: 'screen', name: '해답', comp: 'SolutionResultScreen', file: 'app/(main)/chat/solution.tsx', route: '/chat/solution', parent: 'nav_chat', modes: PH, note: 'WebView' },
+  // Diary tab
+  { id: 'diary_index', kind: 'screen', name: 'Diary', comp: 'DiaryTabScreen', file: 'app/(main)/diary/index.tsx', route: '/diary', parent: 'nav_diary', modes: PH, note: `구현 ${P}. 달력 + 공지` },
+  { id: 'diary_day', kind: 'screen', name: '그날 풀이 기록', comp: 'DiaryDayScreen', file: 'app/(main)/diary/day.tsx', route: '/diary/day', parent: 'nav_diary', modes: PH, note: 'DailyRecordsList' },
+  { id: 'diary_solution', kind: 'screen', name: '답안 예시', comp: 'SolutionResultScreen', file: 'app/(main)/diary/solution.tsx', route: '/diary/solution', parent: 'nav_diary', modes: PH, note: 'WebView' },
+
+  // 앱 전역
+  { id: 'study_note_sheet', kind: 'bottomsheet', name: '학습장 시트', comp: 'SheetHost', file: 'src/host/SheetHost.tsx', parent: 'nav_main', blocking: true, modes: BOTH, note: '자체 구현: RN Modal + scrim + 아래 붙은 카드. 내용 StudyNoteWidget→StudyNoteForm(src/host/widgets.tsx). Tablet은 카드 폭 560 제한' },
+  { id: 'global_loading', kind: 'modeless', name: '앱 차단 로딩', comp: 'GlobalLoadingOverlay', file: 'src/kit/ui/loading-view/global-overlay.tsx', parent: 'nav_root', blocking: false, modes: BOTH, orphan: true, note: 'pointerEvents none. beginBlocking() 호출부가 없어 표시되지 않는다' },
+  { id: 'tablet_launch', kind: 'modeless', name: '태블릿 런치 로고', comp: 'TabletLaunchOverlay', file: 'src/ui/TabletLaunchOverlay.tsx', parent: 'nav_root', blocking: false, modes: TB, note: 'Android 태블릿만, 1초 후 페이드아웃. pointerEvents none' },
+
+  // 태블릿 에이전트 레이어
+  { id: 'chat_rail', kind: 'modeless', group: 'grp_tablet', name: '세로 pill 툴바', comp: 'ChatRail', file: 'src/agent/tablet/ChatRail.tsx', parent: 'agent_home', blocking: false, modes: TB, note: '끌어서 옮기는 플로팅 툴바. 항목 5개 + 채팅 버튼' },
+  { id: 'dock_timeline', kind: 'modeless', group: 'grp_tablet', name: 'Study dock', comp: 'DockWrapper · TimelinePanel', file: T, parent: 'agent_home', blocking: false, modes: TB, note: 'box-none: Stage 조작 가능. 홈 진입 시 기본으로 열림' },
+  { id: 'dock_notice', kind: 'modeless', group: 'grp_tablet', name: 'Diary dock', comp: 'DockWrapper · DiaryPanel', file: T, parent: 'agent_home', blocking: false, modes: TB },
+  { id: 'dock_search', kind: 'modeless', group: 'grp_tablet', name: '검색 dock', comp: 'DockWrapper · ResearchPanel', file: T, parent: 'agent_home', blocking: false, modes: TB },
+  { id: 'dock_live', kind: 'modeless', group: 'grp_tablet', name: '실황 수업 dock', comp: 'DockWrapper · LiveClassListPanel', file: T, parent: 'agent_home', blocking: false, modes: TB },
+  { id: 'dock_profile', kind: 'modeless', group: 'grp_tablet', name: '내 정보 dock', comp: 'DockWrapper · ProfileActions', file: T, parent: 'agent_home', blocking: false, modes: TB, note: 'MyInfoPanel + MessageBoxPanel + ProfileActions' },
+  { id: 'dock_chat', kind: 'modeless', group: 'grp_tablet', name: 'Study Log dock', comp: 'DockWrapper · ChatTimeline', file: T, parent: 'agent_home', blocking: false, modes: TB, note: 'InstructionCard 선택지 포함' },
+  { id: 'agent_toast', kind: 'modeless', group: 'grp_tablet', name: '튜터·에이전트 토스트', comp: 'Toast', file: 'src/ui/toast/Toast.tsx', parent: 'agent_home', blocking: false, modes: TB, note: '우상단, motion.toastMs 후 사라짐' },
+
+  // 캔버스 공통 (CanvasChrome)
+  { id: 'canvas_toolbar', kind: 'modeless', group: 'grp_canvas', name: '캔버스 하단 툴바', comp: 'FloatingToolbar', file: 'src/kit/canvas/FloatingToolbar.tsx', parent: null, blocking: false, modes: TB, note: 'CanvasChrome가 3개 캔버스 패널 위에 띄운다. 화면별 버튼(나가기·목록·해답…) + 도구' },
+  { id: 'concept_sheet', kind: 'bottomsheet', group: 'grp_canvas', name: '개념 검색 시트', comp: 'CanvasChrome · ConceptLookupPanel', file: 'src/kit/canvas/CanvasChrome.tsx', parent: null, blocking: false, modes: TB, note: '@gorhom BottomSheetModal, snap 70%, backdropComponent 없음' },
+  { id: 'clear_confirm', kind: 'modal', group: 'grp_canvas', name: '전체 지우기 확인', comp: 'CanvasChrome (inline Modal)', file: 'src/kit/canvas/CanvasChrome.tsx', parent: null, blocking: true, modes: TB },
+  { id: 'landscape_notice', kind: 'modeless', group: 'grp_canvas', name: '가로 모드 안내', comp: 'LandscapeNotice', file: 'src/kit/canvas/LandscapeNotice.tsx', parent: null, blocking: false, modes: TB, note: 'pointerEvents none, 자동 사라짐' },
+  { id: 'pencil_popover', kind: 'modal', group: 'grp_canvas', name: '펜 설정 팝오버', comp: 'PencilPropsModal', file: 'src/kit/canvas/note-canvas/pencil-props-modal.tsx', parent: null, blocking: true, modes: TB, note: 'ToolPopover: 캔버스 전체를 덮는 투명 Pressable이 바깥 탭을 받아 닫는다(light-dismiss) → Modal로 분류' },
+
+  // 패널 공용 모달
+  { id: 'concept_detail', kind: 'modal', name: '개념 설명 모달', comp: 'ConceptLookupPanel (inline Modal)', file: 'src/kit/concepts/ConceptLookupPanel.tsx', parent: null, blocking: true, modes: BOTH, note: 'ResearchPanel 개념 탭과 개념 검색 시트 안에서 열린다' },
+  { id: 'name_edit_modal', kind: 'modal', name: '이름 변경', comp: 'ProfileActions (inline Modal)', file: 'src/kit/profile/ProfileActions.tsx', parent: null, blocking: true, modes: BOTH },
+  { id: 'pdf_viewer', kind: 'modal', name: '사서함 PDF', comp: 'PdfViewerModal', file: 'src/kit/ui/PdfViewerModal.tsx', parent: null, blocking: true, modes: BOTH, note: 'Phone: presentationStyle fullScreen / Tablet: 투명 카드 Modal' },
+  { id: 'upload_alert', kind: 'modal', name: '풀이 업로드 결과', comp: 'Alert.alert (SolutionRow)', file: P, parent: null, blocking: true, modes: PH, note: '시스템 Alert(확인)' },
+  { id: 'bookmark_alert', kind: 'modal', name: '책갈피 결과', comp: 'Alert.alert (DailyRecordsList)', file: 'src/kit/diary/DailyRecordsList.tsx', parent: 'diary_day', blocking: true, modes: PH, note: '시스템 Alert' },
+  { id: 'quiz_modal', kind: 'modal', name: '실황 퀴즈', comp: 'QuizResponseModal', file: 'src/kit/live-class/QuizResponseModal.tsx', parent: null, blocking: true, modes: TB, note: 'topic_live·hotline이 각각 하나씩 렌더' },
+
+  // notebook
+  { id: 'nb_list_modal', kind: 'modal', name: '문제 목록 모달', comp: 'NotebookScreen (inline Modal)', file: 'app/notebook.tsx', parent: 'notebook', blocking: true, modes: TB, note: '카드별 교체·책갈피·해답 토글' },
+  { id: 'nb_answer_sheet', kind: 'bottomsheet', name: '해답 시트', comp: 'NotebookScreen (BottomSheetModal)', file: 'app/notebook.tsx', parent: 'notebook', blocking: false, modes: TB, note: 'backdropComponent 없음' },
+  { id: 'nb_workout_sheet', kind: 'bottomsheet', name: '내 풀이 시트', comp: 'NotebookScreen (BottomSheetModal)', file: 'app/notebook.tsx', parent: 'notebook', blocking: false, modes: TB, note: 'backdropComponent 없음' },
+  // topic live
+  { id: 'tl_list_modal', kind: 'modal', name: '수업 문제 목록', comp: 'TopicLiveClassScreen (inline Modal)', file: 'app/topic-live-class.tsx', parent: 'topic_live', blocking: true, modes: TB },
+  { id: 'tl_answer_sheet', kind: 'bottomsheet', name: '답안 예시 시트', comp: 'TopicLiveClassScreen (BottomSheetModal)', file: 'app/topic-live-class.tsx', parent: 'topic_live', blocking: false, modes: TB },
+  { id: 'tl_toast', kind: 'modeless', name: '상단 토스트', comp: 'TopicLiveClassScreen (inline View)', file: 'app/topic-live-class.tsx', parent: 'topic_live', blocking: false, modes: TB, note: '2.5초 후 사라짐' },
+  { id: 'tl_memo', kind: 'modeless', name: '선생님 메모', comp: 'TopicLiveClassCanvasPanel', file: 'src/kit/canvas/note-canvas/topic-live-canvas.tsx', parent: 'topic_live', blocking: false, modes: TB, note: '✕로 닫음' },
+  { id: 'tl_popup', kind: 'modal', name: '해설 팝업', comp: 'Sheet', file: 'src/kit/canvas/note-canvas/topic-live-canvas.tsx', parent: 'topic_live', blocking: true, modes: TB, orphan: true, note: 'src/ui/Sheet.tsx 카드 모달. 여는 호출 없음' },
+  // hotline
+  { id: 'hl_list_modal', kind: 'modal', name: '수업 문제 목록', comp: 'HotlineClassScreen (inline Modal)', file: 'app/hotline-class.tsx', parent: 'hotline', blocking: true, modes: TB },
+  { id: 'hl_answer_sheet', kind: 'bottomsheet', name: '답안 예시 시트', comp: 'HotlineClassScreen (BottomSheetModal)', file: 'app/hotline-class.tsx', parent: 'hotline', blocking: false, modes: TB },
+  { id: 'hl_toast', kind: 'modeless', name: '상단 토스트', comp: 'HotlineClassScreen (inline View)', file: 'app/hotline-class.tsx', parent: 'hotline', blocking: false, modes: TB },
+  { id: 'hl_memo', kind: 'modeless', name: '선생님 메모', comp: 'HotlineClassCanvasPanel', file: 'src/kit/canvas/note-canvas/hotline-class-canvas.tsx', parent: 'hotline', blocking: false, modes: TB, note: '✕로 닫음' },
+  { id: 'hl_popup', kind: 'modal', name: '해설 팝업', comp: 'Sheet', file: 'src/kit/canvas/note-canvas/hotline-class-canvas.tsx', parent: 'hotline', blocking: true, modes: TB, orphan: true, note: 'src/ui/Sheet.tsx 카드 모달. 여는 호출 없음' },
+];
+
+const GROUPS = {
+  grp_tablet: { title: '태블릿 에이전트 레이어', comp: 'TabletAgentLayer', file: T },
+  grp_canvas: { title: '캔버스 공통 오버레이', comp: 'CanvasChrome', file: 'src/kit/canvas/CanvasChrome.tsx' },
+};
+
+// rel: contains | navigate | present | dismiss_to | deeplink
+const E = (from, to, rel, trigger, cond, src) => ({ from, to, rel, trigger, condition: cond, source: src });
+const EDGES = [
+  // contains
+  E('nav_root', 'nav_main', 'contains', '그룹 (main)', null, 'app/_layout.tsx:43'),
+  ...['welcome', 'auth_callback', 'public_questions', 'public_solution', 'notebook', 'topic_live', 'hotline'].map((s) =>
+    E('nav_root', s, 'contains', '파일 기반 라우트', null, 'app/_layout.tsx:43')),
+  E('nav_main', 'agent_home', 'contains', 'Tabs.Screen index', 'Tablet만 href', 'app/(main)/_layout.tsx:75'),
+  ...['nav_timeline', 'nav_search', 'nav_diary', 'profile', 'nav_chat'].map((s) =>
+    E('nav_main', s, 'contains', 'Tabs.Screen (PHONE_TABS)', 'Phone만 href', 'app/(main)/_layout.tsx:77')),
+  ...['timeline', 'search', 'chat'].flatMap((t) => [
+    E(`nav_${t}`, `${t}_index`, 'contains', 'Stack.Screen index', null, `app/(main)/${t}/_layout.tsx:11`),
+    ...['problems', 'topic', 'solution'].map((c) => E(`nav_${t}`, `${t}_${c}`, 'contains', '파일 기반 child', null, `app/(main)/${t}/_layout.tsx:9`)),
+  ]),
+  E('nav_diary', 'diary_index', 'contains', 'Stack.Screen index', null, 'app/(main)/diary/_layout.tsx:10'),
+  E('nav_diary', 'diary_day', 'contains', '파일 기반 child', null, 'app/(main)/diary/_layout.tsx:9'),
+  E('nav_diary', 'diary_solution', 'contains', '파일 기반 child', null, 'app/(main)/diary/_layout.tsx:9'),
+
+  // deeplink
+  E('ext', 'auth_callback', 'deeplink', 'OAuth 리디렉트 com.qoolla.student://auth/callback', null, 'app.config.ts:30'),
+
+  // 인증·진입
+  E('auth_callback', 'welcome', 'navigate', 'Redirect /welcome', '콜백 화면에 직접 도착', 'app/auth/callback.tsx:6'),
+  E('nav_main', 'welcome', 'navigate', 'Redirect /welcome', '비로그인·로그아웃 (gate signedOut)', 'app/(main)/_layout.tsx:57'),
+  E('welcome', 'agent_home', 'navigate', 'Redirect / (로그인 성공·개발용 둘러보기)', 'gate signedIn', 'app/welcome.tsx:51'),
+  E('agent_home', 'timeline_index', 'navigate', 'Redirect /timeline', 'Phone만', 'app/(main)/index.tsx:14'),
+  E('welcome', 'public_questions', 'navigate', '탭: 가자 (2026·모의 기출)', null, 'app/welcome.tsx:70'),
+  E('welcome', 'public_questions', 'navigate', '탭: 토픽 (과목별)', null, 'app/welcome.tsx:88'),
+  E('public_questions', 'public_solution', 'navigate', '탭: 해답', null, 'app/public-questions.tsx:96'),
+
+  // Tablet → 캔버스
+  E('agent_home', 'notebook', 'navigate', '탭: 연필 FAB (Stage 문제 목록·주제 문제·책갈피)', 'Tablet만', `${W}:67 (호출 :111, :159, :178)`),
+  E('agent_home', 'topic_live', 'navigate', '탭: 연필 FAB (실황 주제 수업 문제 목록)', "source.kind 'topic_live'", `${W}:155 → :74`),
+  E('agent_home', 'hotline', 'navigate', '탭: 연필 FAB (선생님 수업 문제 목록)', "source.kind 'hotline'", `${W}:157 → :81`),
+  E('dock_notice', 'notebook', 'navigate', '탭: 가자!!! (그날 문제)', null, `${T}:136`),
+  E('dock_live', 'topic_live', 'navigate', '탭: 주제 실황 수업', null, `${T}:147`),
+  E('dock_live', 'hotline', 'navigate', '탭: 선생님 수업', null, `${T}:148`),
+  E('notebook', 'agent_home', 'navigate', '툴바: 나가기 (back, 없으면 replace /) · Redirect /', 'Redirect는 solveStore 비었을 때', 'app/notebook.tsx:246, :113'),
+  E('topic_live', 'agent_home', 'navigate', '툴바: 나가기 · 강의 미준비 토스트 후 자동 · Redirect /', 'Redirect는 topicId 없을 때', 'app/topic-live-class.tsx:178, :102, :163'),
+  E('hotline', 'agent_home', 'navigate', '툴바: 나가기 · Redirect /', 'Redirect는 tutorId 없을 때', 'app/hotline-class.tsx:171, :156'),
+
+  // Phone 탭 스택
+  E('timeline_index', 'timeline_problems', 'navigate', '탭: 타임라인 task', null, `${P}:95 → :65`),
+  E('search_index', 'search_problems', 'navigate', '기출 검색 제출', null, `${P}:113 → :65`),
+  E('search_index', 'search_topic', 'navigate', '탭: 토픽', null, `${P}:117 → :69`),
+  E('chat_index', 'chat_problems', 'navigate', '에이전트 show_component problem_list', '채팅 탭 포커스 중', `${P}:175`),
+  E('chat_index', 'chat_topic', 'navigate', '에이전트 show_component problem_preview', '채팅 탭 포커스 중', `${P}:176`),
+  ...['timeline', 'search', 'chat'].flatMap((t) => [
+    E(`${t}_problems`, `${t}_solution`, 'navigate', '탭: 눈(해답)', null, `${P}:216`),
+    E(`${t}_topic`, `${t}_solution`, 'navigate', '탭: 눈(해답)', null, `${P}:216 (:253)`),
+    E(`${t}_problems`, `${t}_index`, 'navigate', '헤더 뒤로 (dismissTo)', null, `${P}:194`),
+    E(`${t}_topic`, `${t}_index`, 'navigate', '헤더 뒤로 (dismissTo)', null, `${P}:194`),
+  ]),
+  E('diary_index', 'diary_day', 'navigate', '탭: 달력 날짜', null, `${P}:139`),
+  E('diary_day', 'diary_solution', 'navigate', '탭: 답안 예시', null, `${P}:278`),
+
+  // 앱 전역 오버레이
+  E('nav_root', 'tablet_launch', 'present', '앱 시작', 'Android 태블릿만', 'src/ui/TabletLaunchOverlay.tsx:18 (app/_layout.tsx:47)'),
+  E('timeline_index', 'study_note_sheet', 'present', '탭: 학습장', null, `${P}:97 → src/agent/session.ts:119`),
+  E('dock_timeline', 'study_note_sheet', 'present', '탭: 학습장', null, `${T}:125 → src/agent/session.ts:119`),
+  ...['notebook', 'topic_live', 'hotline'].map((s) =>
+    E(s, 'study_note_sheet', 'present', '화면 나감 → solve_finished → 에이전트 show_component(study_note)', '푼 문제 ≥1·에이전트가 응답할 때 (mockAgent로만 확인)', 'src/host/useSolveFinished.ts:12 → src/agent/commandRouter.ts:92')),
+
+  // 태블릿 레이어
+  E('agent_home', 'chat_rail', 'present', '항상 표시', null, `${T}:109 (app/(main)/index.tsx:20)`),
+  E('chat_rail', 'dock_timeline', 'present', '탭: 타임라인 / 홈 진입 시 기본', null, `src/agent/tablet/ChatRail.tsx:123, ${T}:54`),
+  E('chat_rail', 'dock_notice', 'present', '탭: Diary', null, 'src/agent/tablet/ChatRail.tsx:123'),
+  E('chat_rail', 'dock_search', 'present', '탭: 검색', null, 'src/agent/tablet/ChatRail.tsx:123'),
+  E('chat_rail', 'dock_live', 'present', '탭: 실황 수업', null, 'src/agent/tablet/ChatRail.tsx:123'),
+  E('chat_rail', 'dock_profile', 'present', '탭: 내 정보', null, 'src/agent/tablet/ChatRail.tsx:123'),
+  E('chat_rail', 'dock_chat', 'present', '탭: 채팅', null, 'src/agent/tablet/ChatRail.tsx:137'),
+  E('agent_home', 'dock_chat', 'present', '에이전트 instruction 도착', 'dock 닫힘·응답 필요', `${T}:74`),
+  E('agent_home', 'agent_toast', 'present', '에이전트 instruction 도착', '다른 dock 열림, 또는 응답 불필요한 튜터 메시지·문제 목록 중', `${T}:71`),
+  E('agent_toast', 'dock_chat', 'present', '탭: 토스트', null, `${T}:182`),
+
+  // 패널 공용 모달
+  E('search_index', 'concept_detail', 'present', '탭: 개념 칩 (개념 카테고리)', null, 'src/kit/concepts/ConceptLookupPanel.tsx:147 (src/kit/research/ResearchPanel.tsx:75)'),
+  E('dock_search', 'concept_detail', 'present', '탭: 개념 칩 (개념 카테고리)', null, 'src/kit/concepts/ConceptLookupPanel.tsx:147 (src/kit/research/ResearchPanel.tsx:75)'),
+  E('concept_sheet', 'concept_detail', 'present', '탭: 개념 칩', 'Bottom Sheet 위 Modal', 'src/kit/concepts/ConceptLookupPanel.tsx:147 (src/kit/canvas/CanvasChrome.tsx:137)'),
+  E('profile', 'name_edit_modal', 'present', '탭: 이름 변경', null, 'src/kit/profile/ProfileActions.tsx:58'),
+  E('dock_profile', 'name_edit_modal', 'present', '탭: 이름 변경', null, 'src/kit/profile/ProfileActions.tsx:58'),
+  E('profile', 'pdf_viewer', 'present', '탭: 사서함 답변', 'Phone: fullScreen', 'src/kit/profile/MessageBoxPanel.tsx:148 (src/kit/ui/PdfViewerModal.tsx:41)'),
+  E('dock_profile', 'pdf_viewer', 'present', '탭: 사서함 답변', 'Tablet: 투명 카드', 'src/kit/profile/MessageBoxPanel.tsx:148 (src/kit/ui/PdfViewerModal.tsx:62)'),
+  ...['timeline', 'search', 'chat'].flatMap((t) => ['problems', 'topic'].map((c) =>
+    E(`${t}_${c}`, 'upload_alert', 'present', '탭: 카메라 → 업로드 끝', null, `${P}:204, :207`))),
+  E('diary_day', 'bookmark_alert', 'present', '탭: 책갈피', null, 'src/kit/diary/DailyRecordsList.tsx:100, :103'),
+
+  // 캔버스 공통
+  ...['notebook', 'topic_live', 'hotline'].map((s) =>
+    E(s, 'canvas_toolbar', 'present', '항상 표시', null, `src/kit/canvas/CanvasChrome.tsx:95 (${{ notebook: 'src/kit/canvas/note-canvas/notebook.tsx:162', topic_live: 'src/kit/canvas/note-canvas/topic-live-canvas.tsx:694', hotline: 'src/kit/canvas/note-canvas/hotline-class-canvas.tsx:715' }[s]})`)),
+  E('canvas_toolbar', 'concept_sheet', 'present', '툴바: 개념', null, 'src/kit/canvas/CanvasChrome.tsx:77'),
+  E('canvas_toolbar', 'clear_confirm', 'present', '툴바: 전체 지우기', null, 'src/kit/canvas/CanvasChrome.tsx:81'),
+  E('canvas_toolbar', 'pencil_popover', 'present', '툴바: Options(color)', null, 'src/kit/canvas/note-canvas/notebook.tsx:167, topic-live-canvas.tsx:699, hotline-class-canvas.tsx:720'),
+  E('canvas_toolbar', 'landscape_notice', 'present', '가로 회전 / 제한 버튼 탭', '가로 + 제한 도구 있음', 'src/kit/canvas/CanvasChrome.tsx:94'),
+
+  // notebook
+  E('notebook', 'nb_list_modal', 'present', '툴바: 목록', null, 'app/notebook.tsx:247'),
+  E('notebook', 'nb_answer_sheet', 'present', '툴바: 해답', null, 'app/notebook.tsx:248'),
+  E('notebook', 'nb_workout_sheet', 'present', '툴바: 내 풀이 · 저장 후 · 이전 풀이 있으면 자동', null, 'app/notebook.tsx:249, :132, :105'),
+  // topic live
+  E('topic_live', 'tl_list_modal', 'present', '툴바: 목록', '수업 문제 2개 이상', 'app/topic-live-class.tsx:181'),
+  E('topic_live', 'tl_answer_sheet', 'present', '툴바: 답안 예시', null, 'app/topic-live-class.tsx:182'),
+  E('topic_live', 'quiz_modal', 'present', "실황 메시지 action 'quiz'", null, 'app/topic-live-class.tsx:82, :220'),
+  E('topic_live', 'tl_toast', 'present', '답안 전송·오류·강의 미준비', null, 'app/topic-live-class.tsx:66'),
+  E('topic_live', 'tl_memo', 'present', '스크립트 MEMO 컷', null, 'src/kit/canvas/note-canvas/topic-live-canvas.tsx:283'),
+  // hotline
+  E('hotline', 'hl_list_modal', 'present', '툴바: 목록', '수업 문제 2개 이상', 'app/hotline-class.tsx:174'),
+  E('hotline', 'hl_answer_sheet', 'present', '툴바: 답안 예시', null, 'app/hotline-class.tsx:175'),
+  E('hotline', 'quiz_modal', 'present', "실황 메시지 action 'quiz'", null, 'app/hotline-class.tsx:110, :212'),
+  E('hotline', 'hl_toast', 'present', 'Notes 준비·답안 전송·오류', null, 'app/hotline-class.tsx:65 (:210, :222)'),
+  E('hotline', 'hl_memo', 'present', '스크립트 MEMO 컷', null, 'src/kit/canvas/note-canvas/hotline-class-canvas.tsx:291'),
+];
+
+const ISSUES = [
+  { tag: 'orphan', text: '<b>GlobalLoadingOverlay</b> — <code>app/_layout.tsx:45</code>에 마운트돼 있지만 표시 조건인 <code>beginBlocking()</code>(<code>src/state/blocking.ts:24</code>)을 부르는 곳이 없다. 표시되지 않는 오버레이.' },
+  { tag: 'orphan', text: '<b>해설 팝업 Sheet</b> ×2 — <code>topic-live-canvas.tsx:651</code>, <code>hotline-class-canvas.tsx:672</code>. 여는 콜백 <code>setShowPopupModal</code>(:161, :169)을 부르는 곳이 없고, <code>topic-live-canvas.tsx:278</code>은 POPUP 컷을 건너뛴다.' },
+  { tag: '중첩', text: '<b>Bottom Sheet 위 Modal</b> — 캔버스의 개념 검색 시트(@gorhom <code>BottomSheetModal</code>) 안 <code>ConceptLookupPanel</code>이 개념 칩을 누르면 RN <code>Modal</code>을 띄운다(<code>ConceptLookupPanel.tsx:172</code>). 시트 → 모달 2단 중첩.' },
+  { tag: '모드', text: '<b>캔버스 3화면은 Tablet에서만 진입</b> — <code>/notebook</code>, <code>/topic-live-class</code>, <code>/hotline-class</code>를 여는 코드는 Stage 위젯·태블릿 dock뿐이다(<code>src/phone/PhoneScreens.tsx:6</code> 주석: 폰에는 풀이 캔버스가 없다). 라우트 자체는 폰에서도 존재하므로 딥 링크로 들어오면 열릴 수 있다(미확인).' },
+  { tag: 'orphan', text: '<b>/timeline/topic</b> — History 탭에서 <code>openTopic(\'timeline\', …)</code>을 부르는 곳이 없다(TimelineTabScreen은 <code>openProblems</code>만 부른다, <code>src/phone/PhoneScreens.tsx:95</code>). 라우트 파일은 있지만 앱 안 진입 경로가 없는 데드 라우트. 나가는 엣지(해답·뒤로)는 TopicResultScreen 공용 코드라 남겼다.' },
+  { tag: '미확인', text: '<b>캔버스 나감 → 학습장 시트</b> — 앱은 <code>solve_finished</code>만 보낸다(<code>useSolveFinished.ts:12</code>). 시트를 띄우는 <code>show_component(study_note)</code>는 에이전트 응답이고, 코드에서 확인한 것은 <code>src/agent/mockAgent.ts:93</code>뿐이다. 실서버 동작은 미확인.' },
+  { tag: '복귀', text: '<b>주제 실황 강의 미준비</b> — 토스트를 2.5초 띄운 뒤 자동으로 <code>goBack</code>한다(<code>topic-live-class.tsx:102</code>). 사용자 조작 없이 화면이 닫힌다.' },
+  { tag: '복귀', text: '<b>캔버스 나가기</b> — <code>router.canGoBack() ? back() : replace(\'/\')</code>. 진입점이 모두 태블릿 홈이라 돌아가는 곳은 홈(Stage 문제 목록 유지)이다.' },
+  { tag: '분류', text: '<b>펜 설정 팝오버(ToolPopover)</b> — 투명 전면 Pressable이 바깥 탭을 받아 닫히므로 뒤 캔버스 필기가 막힌다. "비차단 팝오버"가 아니어서 Modal(blocking)로 분류.' },
+  { tag: '분류', text: '<b>@gorhom BottomSheetModal 4개</b>(해답·내 풀이·답안 예시 ×2, 개념 검색)은 <code>backdropComponent</code>를 주지 않아 backdrop이 없다 → <code>blocking: false</code>로 판정. 실제 기기에서 뒤 캔버스 터치가 통과하는지는 확인하지 않았다.' },
+  { tag: '분류', text: '<b>학습장 시트</b>는 @gorhom이 아니라 RN <code>Modal</code> + scrim + 아래 카드로 만든 자체 시트(<code>SheetHost.tsx:31</code>) → Bottom Sheet, <code>blocking: true</code>.' },
+  { tag: '데드 코드', text: '어디서도 import하지 않는 UI: <code>AgentDrawer</code>(src/agent/tablet/AgentDrawer.tsx), <code>DrawerFooter</code> 컴포넌트(타입만 사용), <code>ScriptMessageToast</code>(src/kit/ui/toast.tsx), <code>QFlatlist</code>(내부 토스트 포함), <code>src/kit/canvas/note-canvas/topic-notebook.tsx</code>(Sheet 팝업 2개 포함). 노드로 넣지 않았다.' },
+  { tag: '공유', text: '<b>SolutionResultScreen</b> 한 컴포넌트가 4개 스택(timeline·search·chat·diary)의 해답 라우트로 재사용된다. 블록은 라우트마다 따로 그렸다.' },
+  { tag: '참고', text: '탭 바 전환(History·검색·Diary·내 정보·Study Log)은 Tabs Navigator의 기본 동작이라 navigate 엣지로 그리지 않았다. Phone 탭 바는 결과 child 화면에서 숨는다(<code>src/layout/fullScreenRoutes.ts</code>).' },
+  { tag: '익명', text: 'default export가 익명인 라우트·컴포넌트는 없다.' },
+];
+
+const PLANNED = `flowchart LR
+  welcome_p["Welcome<br/>WelcomeScreen<br/>app/welcome.tsx"]
+  intro("소개 패널 (준비 중)<br/>WelcomeScreen<br/>app/welcome.tsx:92")
+  welcome_p -.->|"칩: 소개"| intro
+  class intro planned`;
+
+// ───────────────────────── 뷰
+const VIEWS = [
+  { id: 'all', label: '전체', desc: '모든 노드와 엣지. 노드가 40개를 넘어 Navigator·레이어 단위 subgraph로 나눴다. 모드별 보기가 더 읽기 쉽다.', filter: () => true },
+  { id: 'phone', label: 'Phone', desc: '짧은 변 < 600. 하단 탭 5개(History·검색·Diary·내 정보·Study Log)와 각 탭 Stack의 결과 child 화면.', filter: (n) => n.modes.includes('phone') },
+  { id: 'tablet', label: 'Tablet', desc: '짧은 변 ≥ 600. 탭 바 없이 에이전트 홈(Stage) 위에 pill 툴바·dock·토스트가 떠 있고, 캔버스 3화면으로 들어간다.', filter: (n) => n.modes.includes('tablet') },
+  { id: 'canvas', label: '캔버스 상세', desc: 'Tablet 캔버스 3화면(문제 풀이·주제 실황·선생님 수업)과 그 위의 Modal·Bottom Sheet·Modeless.', filter: (n) => CANVAS.has(n.id) },
+];
+const CANVAS = new Set(['nav_root', 'agent_home', 'nav_main', 'dock_notice', 'dock_live', 'notebook', 'topic_live', 'hotline', 'study_note_sheet', 'canvas_toolbar', 'concept_sheet', 'clear_confirm', 'landscape_notice', 'pencil_popover', 'concept_detail', 'quiz_modal', 'nb_list_modal', 'nb_answer_sheet', 'nb_workout_sheet', 'tl_list_modal', 'tl_answer_sheet', 'tl_toast', 'tl_memo', 'tl_popup', 'hl_list_modal', 'hl_answer_sheet', 'hl_toast', 'hl_memo', 'hl_popup']);
+
+const byId = Object.fromEntries(NODES.map((n) => [n.id, n]));
+const esc = (s) => String(s).replace(/"/g, '#quot;');
+const label = (n) => esc(`${n.orphan ? '⚠ orphan · ' : ''}${n.kind === 'navigator' ? `[${n.type}] ` : ''}${n.name}<br/>${n.comp}<br/>${n.file}`);
+
+function shape(n) {
+  const l = label(n);
+  switch (n.kind) {
+    case 'modal': return `${n.id}[["${l}"]]`;
+    case 'modeless': return `${n.id}("${l}")`;
+    case 'bottomsheet': return `${n.id}[/"${l}"\\]`;
+    case 'external': return `${n.id}(("External"))`;
+    default: return `${n.id}["${l}"]`;
+  }
+}
+
+function buildMermaid(view, dark) {
+  const visible = new Set(NODES.filter(view.filter).map((n) => n.id));
+  // navigator는 보이는 자손이 있을 때만
+  const hasChild = (id) => NODES.some((c) => c.parent === id && visible.has(c.id) && (c.kind !== 'navigator' || hasChild(c.id)));
+  for (const n of NODES) if (n.kind === 'navigator' && visible.has(n.id) && !hasChild(n.id)) visible.delete(n.id);
+  // 외부 진입은 끝점이 보일 때만
+  if (!EDGES.some((e) => e.from === 'ext' && visible.has(e.to))) visible.delete('ext');
+
+  const out = ['flowchart TD'];
+  const placed = new Set();
+  const isNavChild = (n) => n.parent && byId[n.parent]?.kind === 'navigator' && !n.group && ['screen', 'navigator'].includes(n.kind);
+
+  function emitNav(id, depth) {
+    const nav = byId[id];
+    const pad = '  '.repeat(depth);
+    out.push(`${pad}subgraph ${id}["${label(nav)}"]`);
+    out.push(`${pad}  direction TB`);
+    for (const c of NODES) {
+      if (c.parent !== id || !visible.has(c.id) || !isNavChild(c)) continue;
+      if (c.kind === 'navigator') emitNav(c.id, depth + 1);
+      else { out.push(`${pad}  ${shape(c)}`); placed.add(c.id); }
+    }
+    out.push(`${pad}end`);
+    placed.add(id);
+  }
+  if (visible.has('nav_root')) emitNav('nav_root', 1);
+
+  for (const [gid, g] of Object.entries(GROUPS)) {
+    const members = NODES.filter((n) => n.group === gid && visible.has(n.id));
+    if (!members.length) continue;
+    out.push(`  subgraph ${gid}["${esc(`${g.title}<br/>${g.comp}<br/>${g.file}`)}"]`);
+    out.push('    direction TB');
+    for (const m of members) { out.push(`    ${shape(m)}`); placed.add(m.id); }
+    out.push('  end');
+  }
+  for (const n of NODES) if (visible.has(n.id) && !placed.has(n.id)) out.push(`  ${shape(n)}`);
+
+  const linkStyles = [];
+  let i = 0;
+  for (const e of EDGES) {
+    if (e.rel === 'contains' || !visible.has(e.from) || !visible.has(e.to)) continue;
+    const lab = esc(e.condition ? `${e.trigger} (${e.condition})` : e.trigger);
+    const arrow = { navigate: '-->', present: '-.->', dismiss_to: '-.->', deeplink: '==>' }[e.rel];
+    out.push(`  ${e.from} ${arrow}|"${e.rel === 'dismiss_to' ? 'dismiss' : lab}"| ${e.to}`);
+    if (e.rel === 'navigate') linkStyles.push(`  linkStyle ${i} stroke:${dark ? '#9aa4b2' : '#475467'},stroke-width:1.6px`);
+    if (e.rel === 'deeplink') linkStyles.push(`  linkStyle ${i} stroke:${dark ? '#ff8a3d' : '#e8630a'},stroke-width:3px`);
+    i++;
+  }
+  out.push(...linkStyles);
+
+  const c = dark
+    ? { screen: '#1f3d2c,#5fb38a', modal: '#4a1d1d,#f07a7a', modeless: '#0f3047,#6cb8e6', bottomsheet: '#3a1d52,#c18cf0', ext: '#333,#aaa', text: '#ecece8' }
+    : { screen: '#eef7f1,#3f8f63', modal: '#fdecec,#c0392b', modeless: '#e8f4fd,#2b7bb9', bottomsheet: '#f4ebfd,#8e44ad', ext: '#eeeeee,#666', text: '#1d1d1b' };
+  const cd = (name, v) => { const [fill, stroke] = v.split(','); return `  classDef ${name} fill:${fill},stroke:${stroke},color:${c.text},stroke-width:1.4px`; };
+  out.push(cd('screen', c.screen), cd('modal', c.modal), cd('modeless', c.modeless), cd('bottomsheet', c.bottomsheet), cd('external', c.ext));
+  out.push(`  classDef orphan stroke-dasharray:5 4,stroke:#999,color:${dark ? '#aaa' : '#777'},fill:${dark ? '#262624' : '#f5f5f3'}`);
+  for (const kind of ['screen', 'modal', 'modeless', 'bottomsheet', 'external']) {
+    const ids = NODES.filter((n) => n.kind === kind && visible.has(n.id) && !n.orphan).map((n) => n.id);
+    if (ids.length) out.push(`  class ${ids.join(',')} ${kind}`);
+  }
+  const orph = NODES.filter((n) => n.orphan && visible.has(n.id)).map((n) => n.id);
+  if (orph.length) out.push(`  class ${orph.join(',')} orphan`);
+  return out.join('\n');
+}
+
+// ───────────────────────── 렌더
+const dark = () => document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+let zoom = 1, current = 'all', seq = 0;
+
+function initMermaid() {
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: dark() ? 'dark' : 'default',
+    securityLevel: 'strict',
+    maxTextSize: 200000,
+    maxEdges: 1000,
+    flowchart: { htmlLabels: true, useMaxWidth: false, curve: 'basis', nodeSpacing: 28, rankSpacing: 56, wrappingWidth: 260, subGraphTitleMargin: { top: 4, bottom: 44 } },
+    themeVariables: { fontFamily: '-apple-system, "Apple SD Gothic Neo", sans-serif', fontSize: '13px' },
+  });
+}
+
+async function renderView(id) {
+  current = id;
+  const view = VIEWS.find((v) => v.id === id);
+  document.querySelectorAll('#tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.view === id)));
+  document.getElementById('viewDesc').textContent = view.desc;
+  const src = buildMermaid(view, dark());
+  document.getElementById('mmdSrc').textContent = src;
+  const el = document.getElementById('diagram');
+  try {
+    const { svg } = await mermaid.render(`mmd${++seq}`, src);
+    el.innerHTML = svg;
+    fitZoom();
+  } catch (err) {
+    el.innerHTML = `<div class="err">Mermaid 렌더 실패: ${String(err?.message ?? err).replace(/</g, '&lt;')}</div>`;
+    console.error(err);
+  }
+}
+
+function applyZoom() {
+  document.getElementById('diagram').style.transform = `scale(${zoom})`;
+  document.getElementById('zoomLabel').textContent = `${Math.round(zoom * 100)}% · 스크롤로 이동`;
+}
+function fitZoom() {
+  const svg = document.querySelector('#diagram svg');
+  const wrap = document.querySelector('.diagram-wrap');
+  if (!svg) return;
+  const w = svg.getBoundingClientRect().width / zoom;
+  zoom = Math.min(1, Math.max(0.2, (wrap.clientWidth - 32) / w));
+  applyZoom();
+}
+
+function pill(kind) { return `<span class="pill k-${kind}">${kind}</span>`; }
+const td = (v, cls = '') => `<td${cls ? ` class="${cls}"` : ''}>${v ?? '—'}</td>`;
+
+function renderTables() {
+  const nodeRows = NODES.map((n) => ({ n, text: [n.id, n.name, n.comp, n.file, n.route, n.note].join(' ').toLowerCase() }));
+  const drawNodes = (q) => {
+    document.getElementById('nodeTable').innerHTML =
+      '<thead><tr><th>id</th><th>종류</th><th>이름</th><th>컴포넌트</th><th>파일 경로</th><th>route</th><th>부모</th><th>blocking</th><th>modes</th><th>비고</th></tr></thead><tbody>' +
+      nodeRows.filter((r) => !q || r.text.includes(q)).map(({ n }) =>
+        `<tr class="${n.orphan ? 'orphan' : ''}">${td(n.id, 'mono')}${td(pill(n.kind) + (n.type ? ` <small>${n.type}</small>` : ''))}${td(n.name)}${td(n.comp, 'mono')}${td(n.file, 'mono')}${td(n.route, 'mono')}${td(n.parent, 'mono')}${td(n.blocking == null ? null : String(n.blocking))}${td(n.modes.join(', '))}${td((n.orphan ? '<span class="tag">orphan</span>' : '') + (n.note ?? ''))}</tr>`).join('') + '</tbody>';
+  };
+  const edgeRows = EDGES.map((e) => ({ e, text: [e.from, e.to, e.rel, e.trigger, e.condition, e.source].join(' ').toLowerCase() }));
+  const drawEdges = (q) => {
+    document.getElementById('edgeTable').innerHTML =
+      '<thead><tr><th>#</th><th>from</th><th>to</th><th>관계</th><th>트리거</th><th>조건</th><th>근거(파일:라인)</th></tr></thead><tbody>' +
+      edgeRows.map((r, i) => ({ ...r, i })).filter((r) => !q || r.text.includes(q)).map(({ e, i }) =>
+        `<tr>${td(i + 1)}${td(e.from, 'mono')}${td(e.to, 'mono')}${td(e.rel)}${td(e.trigger)}${td(e.condition)}${td(e.source, 'mono')}</tr>`).join('') + '</tbody>';
+  };
+  drawNodes(''); drawEdges('');
+  document.getElementById('nodeFilter').addEventListener('input', (ev) => drawNodes(ev.target.value.trim().toLowerCase()));
+  document.getElementById('edgeFilter').addEventListener('input', (ev) => drawEdges(ev.target.value.trim().toLowerCase()));
+}
+
+function renderMeta() {
+  document.getElementById('meta').innerHTML = [
+    ['프로젝트', META.project], ['브랜치 / 커밋', `${META.branch} @ ${META.commit}`], ['라우팅', META.router],
+    ['레이아웃 모드', META.modes], ['분석 날짜', META.generatedAt], ['산출물', 'docs/ui-structure/screen-block-diagram.html'],
+  ].map(([k, v]) => `<div><span>${k}</span>${v}</div>`).join('');
+  const count = (arr, key) => arr.reduce((m, x) => ((m[x[key]] = (m[x[key]] ?? 0) + 1), m), {});
+  const kinds = count(NODES, 'kind'), rels = count(EDGES, 'rel');
+  const stats = [
+    ['노드', NODES.length], ...Object.entries(kinds).map(([k, v]) => [k, v]),
+    ['엣지', EDGES.length], ...Object.entries(rels).map(([k, v]) => [k, v]),
+    ['orphan', NODES.filter((n) => n.orphan).length], ['이슈', ISSUES.length],
+  ];
+  document.getElementById('stats').innerHTML = stats.map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('');
+}
+
+function toJson() {
+  return {
+    meta: { commit: META.commit, branch: META.branch, router: 'expo-router', generatedAt: META.generatedAt },
+    nodes: NODES.map((n) => ({ id: n.id, kind: n.kind, name: n.name, component: n.comp, file: n.file, route: n.route ?? null, parent: n.parent ?? null, blocking: n.blocking ?? null, modes: n.modes, orphan: !!n.orphan, note: n.note ?? null })),
+    edges: EDGES.map((e) => ({ from: e.from, to: e.to, rel: e.rel, trigger: e.trigger, condition: e.condition ?? null, source: e.source })),
+    unresolved: ISSUES.map((i) => `[${i.tag}] ${i.text.replace(/<[^>]+>/g, '')}`),
+  };
+}
+
+function boot() {
+  // 데이터 무결성: 모든 엣지 끝점이 노드여야 한다
+  const bad = EDGES.filter((e) => !byId[e.from] || !byId[e.to]);
+  if (bad.length) console.error('unknown edge endpoints', bad);
+  renderMeta();
+  renderTables();
+  document.getElementById('issues').innerHTML = ISSUES.map((i) => `<li><span class="tag">${i.tag}</span>${i.text}</li>`).join('');
+  const json = JSON.stringify(toJson(), null, 2);
+  document.getElementById('jsonSrc').textContent = json;
+  document.getElementById('dlJson').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    a.download = 'ui-structure.json';
+    a.click();
+  });
+  document.getElementById('tabs').innerHTML = VIEWS.map((v) => `<button type="button" role="tab" data-view="${v.id}">${v.label}</button>`).join('');
+  document.getElementById('tabs').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (b) renderView(b.dataset.view); });
+  document.querySelectorAll('[data-zoom]').forEach((b) => b.addEventListener('click', () => {
+    const d = Number(b.dataset.zoom);
+    if (d === 0) return fitZoom();
+    zoom = Math.min(2.5, Math.max(0.15, zoom + d));
+    applyZoom();
+  }));
+
+  if (!window.mermaid) {
+    document.getElementById('diagram').innerHTML = '<div class="err">mermaid를 불러오지 못했습니다(네트워크 확인). 표와 JSON은 그대로 볼 수 있습니다.</div>';
+    return;
+  }
+  initMermaid();
+  renderView('all');
+  const planned = PLANNED + `\n  classDef planned stroke-dasharray:5 4,stroke:#999,color:#888,fill:${dark() ? '#262624' : '#f5f5f3'}`;
+  mermaid.render('mmdPlanned', planned).then(({ svg }) => (document.getElementById('plannedDiagram').innerHTML = svg));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { initMermaid(); renderView(current); });
+}
+boot();
+</script>
+</body>
+</html>
