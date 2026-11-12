@@ -223,4 +223,13 @@ describe('NotebookScreen - canvas sheets (Gate B Q4)', () => {
       expect(p.enableContentPanningGesture).toBe(false);
     }
   });
+
+  // BottomSheetView는 absolute(아래 미고정)라 내용 높이만큼만 커진다 — 높이 없는 WebView는 0이 되어 해답이 비었다
+  it('answer sheet body is a flex View that fills the sheet, not the content-sized BottomSheetView', async () => {
+    const { BottomSheetView } = require('@gorhom/bottom-sheet');
+    await render(<NotebookScreen />);
+    const [answer] = lastSheets(2);
+    expect(answer.children.type).not.toBe(BottomSheetView);
+    expect(StyleSheet.flatten(answer.children.props.style).flex).toBe(1);
+  });
 });

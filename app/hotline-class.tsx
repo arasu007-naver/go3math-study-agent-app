@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type Ref } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useLazyQuery, useMutation, useSubscription } from '@apollo/client/react';
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useIsFocused } from '@react-navigation/native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
@@ -236,7 +236,7 @@ export default function HotlineClassScreen() {
         enableContentPanningGesture={false}
         handleComponent={SheetHandle}
       >
-        <BottomSheetView style={styles.sheetBody}>
+        <View style={styles.sheetBody}>
           <View style={styles.answerRow}>
             <View style={styles.answerPane}>
               {problemUrl && <DynamicDimensionsImage source={{ uri: problemUrl }} width={360} />}
@@ -256,7 +256,7 @@ export default function HotlineClassScreen() {
               )}
             </View>
           </View>
-        </BottomSheetView>
+        </View>
       </BottomSheetModal>
     </SafeAreaView>
   );

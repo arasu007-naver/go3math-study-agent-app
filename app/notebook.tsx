@@ -260,7 +260,7 @@ export default function NotebookScreen() {
         enableContentPanningGesture={false}
         handleComponent={SheetHandle}
       >
-        <BottomSheetView style={styles.sheetBody}>
+        <View style={styles.sheetBody}>
           <View style={styles.bottomContainerStyle}>
             <View style={{ flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
               {answerUrl && (
@@ -277,7 +277,7 @@ export default function NotebookScreen() {
               )}
             </View>
           </View>
-        </BottomSheetView>
+        </View>
       </BottomSheetModal>
       <BottomSheetModal
         ref={workoutSheetListRef}
