@@ -1,3 +1,4 @@
+import { BackHandler } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { SheetHost } from '../src/host/SheetHost';
 import type { AgentSession, SessionSnapshot } from '../src/agent/session';
@@ -8,6 +9,30 @@ jest.mock('react-native-mmkv', () => ({ createMMKV: () => ({ getString: () => un
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('../src/state/bootstrap', () => ({ apolloClient: {} }));
+
+// gorhom 모달: 내용을 그리고, present·dismiss·onDismiss를 잡는다. dismiss는 실제처럼 onDismiss를 부른다.
+const mockPresent = jest.fn();
+const mockDismiss = jest.fn();
+const mockModal: { props: any } = { props: null };
+jest.mock('@gorhom/bottom-sheet', () => {
+  const React = require('react');
+  const { TextInput } = require('react-native');
+  return {
+    BottomSheetModal: React.forwardRef((props: any, ref: any) => {
+      mockModal.props = props;
+      React.useImperativeHandle(ref, () => ({
+        present: mockPresent,
+        dismiss: () => {
+          mockDismiss();
+          mockModal.props.onDismiss?.();
+        },
+      }));
+      return props.children;
+    }),
+    BottomSheetView: ({ children }: any) => children,
+    BottomSheetTextInput: TextInput,
+  };
+});
 
 const mockFetchNote = jest.fn(async (_id: number) => null);
 const mockRegister = jest.fn(async () => {});
@@ -35,14 +60,11 @@ function fakeSession() {
   };
 }
 
-function findModal(): any {
-  let node: any = screen.getByLabelText('닫기');
-  while (node && !node.props.onRequestClose) node = node.parent;
-  return node;
-}
+const dragDown = () => act(async () => mockModal.props.onDismiss());
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockModal.props = null;
   solveStore.dispatch(null);
 });
 
@@ -85,25 +107,10 @@ describe('SheetHost', () => {
     expect(session.emit).toHaveBeenCalledWith('study_note_saved', { taskId: 7 });
   });
 
-  it('dismissed → emits study_note_dismissed and closes', async () => {
-    const session = fakeSession();
-    await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
-    await screen.findByText('학습장 · t');
-    await fireEvent.press(screen.getByLabelText('닫기'));
-    expect(session.emit).toHaveBeenCalledTimes(1);
-    expect(session.emit).toHaveBeenCalledWith('study_note_dismissed', { taskId: 7 });
-    expect(session.closeSheet).toHaveBeenCalledTimes(1);
-  });
-
-  it('modal supports portrait and landscape', async () => {
-    await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={fakeSession()} />);
-    await screen.findByText('학습장 · t');
-    expect(findModal().props.supportedOrientations).toEqual(['portrait', 'landscape']);
-  });
-
   it('renders nothing when sheet is null', async () => {
     await render(<SheetHost state={snap(null)} session={fakeSession()} />);
     expect(screen.queryByText(/학습장/)).toBeNull();
+    expect(mockPresent).not.toHaveBeenCalled();
   });
 
   it('remounts the form when taskId changes and saves against the new task', async () => {
@@ -119,15 +126,65 @@ describe('SheetHost', () => {
     expect(session.emit).toHaveBeenCalledTimes(1);
     expect(session.emit).toHaveBeenCalledWith('study_note_saved', { taskId: 8 });
   });
+});
 
-  it('double backdrop press emits once', async () => {
+describe('SheetHost as a bottom sheet (Gate B Q5)', () => {
+  it('presents once when a sheet appears, and not again for a new taskId', async () => {
+    const session = fakeSession();
+    const { rerender } = await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await screen.findByText('학습장 · t');
+    expect(mockPresent).toHaveBeenCalledTimes(1);
+    await rerender(<SheetHost state={snap({ taskId: 8, mode: 'self', title: 't' })} session={session} />);
+    await waitFor(() => expect(mockFetchNote).toHaveBeenCalledWith(8));
+    expect(mockPresent).toHaveBeenCalledTimes(1);
+  });
+
+  it('has no backdrop or scrim, sizes to content up to 90%, and keeps the keyboard behaviour', async () => {
+    await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={fakeSession()} />);
+    await screen.findByText('학습장 · t');
+    const p = mockModal.props;
+    expect(p.backdropComponent).toBeUndefined();
+    expect(p.enableDynamicSizing).toBe(true);
+    const { height } = require('react-native').Dimensions.get('window');
+    expect(p.maxDynamicContentSize).toBeCloseTo(height * 0.9);
+    expect(p.keyboardBehavior).toBe('interactive');
+    expect(p.keyboardBlurBehavior).toBe('restore');
+    expect(p.android_keyboardInputMode).toBe('adjustResize');
+    expect(screen.queryByLabelText('닫기')).toBeNull();
+  });
+
+  it('drag down → study_note_dismissed once and closes, even if it fires twice', async () => {
     const session = fakeSession();
     await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
     await screen.findByText('학습장 · t');
-    await fireEvent.press(screen.getByLabelText('닫기'));
-    await fireEvent.press(screen.getByLabelText('닫기'));
+    await dragDown();
+    await dragDown();
     expect(session.emit).toHaveBeenCalledTimes(1);
+    expect(session.emit).toHaveBeenCalledWith('study_note_dismissed', { taskId: 7 });
     expect(session.closeSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('save, then the session closes the sheet → only study_note_saved', async () => {
+    const session = fakeSession();
+    const { rerender } = await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await screen.findByText('학습장 · t');
+    await fireEvent.press(screen.getByText('거의'));
+    await fireEvent.press(screen.getByText('저장'));
+    await waitFor(() => expect(session.closeSheet).toHaveBeenCalledTimes(1));
+    await rerender(<SheetHost state={snap(null)} session={session} />);
+    expect(mockDismiss).toHaveBeenCalledTimes(1);
+    expect(session.emit).toHaveBeenCalledTimes(1);
+    expect(session.emit).toHaveBeenCalledWith('study_note_saved', { taskId: 7 });
+  });
+
+  it('session closes the sheet without a widget finish → nothing emitted', async () => {
+    const session = fakeSession();
+    const { rerender } = await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await screen.findByText('학습장 · t');
+    await rerender(<SheetHost state={snap(null)} session={session} />);
+    expect(mockDismiss).toHaveBeenCalledTimes(1);
+    expect(session.emit).not.toHaveBeenCalled();
+    expect(session.closeSheet).not.toHaveBeenCalled();
   });
 
   it('dismiss during pending save emits once', async () => {
@@ -138,7 +195,7 @@ describe('SheetHost', () => {
     await screen.findByText('학습장 · t');
     await fireEvent.press(screen.getByText('거의'));
     const savePress = fireEvent.press(screen.getByText('저장'));
-    findModal().props.onRequestClose(); // 저장 act가 끝나기 전이라 fireEvent를 겹쳐 쓰지 않는다
+    mockModal.props.onDismiss(); // 저장 act가 끝나기 전이라 act를 겹쳐 쓰지 않는다
     release();
     await savePress;
     await new Promise((r) => setTimeout(r, 20));
@@ -147,15 +204,27 @@ describe('SheetHost', () => {
     expect(session.closeSheet).toHaveBeenCalledTimes(1);
   });
 
-  it('Android back (onRequestClose) dismisses once', async () => {
+  it('Android back closes the open sheet once and is released when the sheet goes', async () => {
+    const remove = jest.fn();
+    let onBack: (() => boolean) | undefined;
+    const add = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_e, h) => {
+      onBack = h as () => boolean;
+      return { remove };
+    });
     const session = fakeSession();
-    await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    const { rerender } = await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
     await screen.findByText('학습장 · t');
-    const node = findModal();
-    await act(async () => node.props.onRequestClose());
-    await act(async () => node.props.onRequestClose());
+    expect(add).toHaveBeenCalledWith('hardwareBackPress', expect.any(Function));
+    let consumed = false;
+    await act(async () => {
+      consumed = onBack!();
+    });
+    expect(consumed).toBe(true);
+    expect(mockDismiss).toHaveBeenCalledTimes(1);
     expect(session.emit).toHaveBeenCalledTimes(1);
     expect(session.emit).toHaveBeenCalledWith('study_note_dismissed', { taskId: 7 });
-    expect(session.closeSheet).toHaveBeenCalledTimes(1);
+    await rerender(<SheetHost state={snap(null)} session={session} />);
+    await waitFor(() => expect(remove).toHaveBeenCalled());
+    add.mockRestore();
   });
 });

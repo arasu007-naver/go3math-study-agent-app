@@ -48,6 +48,8 @@ type ButtonBase = {
   debounceMs?: number;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  /** 펼치기 버튼이면 펼친 상태(접근성 expanded). 주지 않으면 알리지 않는다 */
+  expanded?: boolean;
   style?: LayoutStyle;
 };
 
@@ -99,6 +101,7 @@ export function Button({
   debounceMs = 400,
   accessibilityLabel,
   accessibilityHint,
+  expanded,
   style,
 }: ButtonProps) {
   const [pending, setPending] = useState(false);
@@ -133,7 +136,7 @@ export function Button({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled, busy }}
+      accessibilityState={expanded === undefined ? { disabled, busy } : { disabled, busy, expanded }}
       style={({ pressed }) => [
         styles.base,
         {

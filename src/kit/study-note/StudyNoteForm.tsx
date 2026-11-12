@@ -4,8 +4,11 @@
  * 키보드 회피는 이 컴포넌트가 아니라 시트(SheetHost)가 맡는다.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { KeyValueStore } from '../../storage/types';
+import { Button } from '../../ui/Button';
+import { Chip } from '../../ui/Chip';
 import { colors, radius, space, type } from '../../ui/theme';
 import { clearDraft, loadDraft, saveDraft } from './draft';
 import {
@@ -31,28 +34,6 @@ export type StudyNoteFormProps = {
   store: KeyValueStore;
   onDone(result: 'saved' | 'dismissed'): void;
 };
-
-function Chip(props: {
-  label: string;
-  role: 'radio' | 'checkbox' | 'button';
-  selected: boolean;
-  onPress(): void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole={props.role}
-      accessibilityLabel={props.label}
-      accessibilityState={
-        props.role === 'button' ? undefined : { selected: props.selected, checked: props.selected }
-      }
-      hitSlop={6}
-      onPress={props.onPress}
-      style={[styles.chip, props.selected && styles.chipSelected]}
-    >
-      <Text style={[styles.chipText, props.selected && styles.chipTextSelected]}>{props.label}</Text>
-    </Pressable>
-  );
-}
 
 export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store, onDone }: StudyNoteFormProps) {
   const [form, setForm] = useState<FormState>(() => loadDraft(store, taskId) ?? emptyForm());
@@ -139,7 +120,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
           <Chip
             key={a.value}
             label={a.label}
-            role="radio"
+            accessibilityRole="radio"
             selected={form.achievement === a.value}
             onPress={() => change((p) => ({ ...p, achievement: a.value }))}
           />
@@ -152,7 +133,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
           <Chip
             key={d.code}
             label={d.label}
-            role="checkbox"
+            accessibilityRole="checkbox"
             selected={form.difficulties.includes(d.code)}
             onPress={() => change((p) => ({ ...p, difficulties: toggleDifficulty(p.difficulties, d.code) }))}
           />
@@ -164,11 +145,11 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
         <View style={styles.chips}>
           <Text style={styles.caption}>추천:</Text>
           {topicHints.map((h) => (
-            <Chip key={h} label={h} role="button" selected={false} onPress={() => addHint(h)} />
+            <Chip key={h} label={h} selected={false} onPress={() => addHint(h)} />
           ))}
         </View>
       ) : null}
-      <TextInput
+      <BottomSheetTextInput
         accessibilityLabel={memoLabel}
         style={styles.input}
         multiline
@@ -180,16 +161,16 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
 
       {!live ? (
         <>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ expanded: goalVisible }}
-            hitSlop={8}
+          <Button
+            variant="text"
+            size="sm"
+            title="▸ 다음 목표 (선택)"
+            expanded={goalVisible}
             onPress={() => setGoalOpen((v) => !v)}
-          >
-            <Text style={styles.toggle}>▸ 다음 목표 (선택)</Text>
-          </Pressable>
+            style={styles.toggle}
+          />
           {goalVisible ? (
-            <TextInput
+            <BottomSheetTextInput
               accessibilityLabel="다음 목표"
               style={styles.input}
               multiline
@@ -205,19 +186,8 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
       {failed ? <Text style={styles.error}>저장하지 못했어요. 다시 시도해 주세요.</Text> : null}
 
       <View style={styles.actions}>
-        <Pressable accessibilityRole="button" hitSlop={8} onPress={() => onDone('dismissed')} style={styles.later}>
-          <Text style={styles.laterText}>나중에</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={saveLabel}
-          accessibilityState={{ disabled: saveDisabled }}
-          disabled={saveDisabled}
-          onPress={save}
-          style={[styles.save, saveDisabled && styles.saveDisabled]}
-        >
-          <Text style={[styles.saveText, saveDisabled && styles.saveTextDisabled]}>{saveLabel}</Text>
-        </Pressable>
+        <Button variant="text" title="나중에" onPress={() => onDone('dismissed')} />
+        <Button variant="primary" title={saveLabel} disabled={saveDisabled} onPress={save} />
       </View>
     </ScrollView>
   );
@@ -232,16 +202,6 @@ const styles = StyleSheet.create({
   body: { ...type.body, color: colors.text },
   question: { ...type.bodyStrong, color: colors.text },
   chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
-  chip: {
-    height: 32,
-    paddingHorizontal: space.md,
-    borderRadius: radius.pill,
-    justifyContent: 'center',
-    backgroundColor: colors.cardMuted,
-  },
-  chipSelected: { backgroundColor: colors.accentSoft },
-  chipText: { ...type.body, color: colors.subtle },
-  chipTextSelected: { ...type.bodyStrong, color: colors.accentText },
   input: {
     ...type.body,
     color: colors.text,
@@ -250,19 +210,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: space.md,
   },
-  toggle: { ...type.bodyStrong, color: colors.subtle },
+  // 펼치기 버튼은 왼쪽 정렬(질문 줄과 맞춘다)
+  toggle: { alignSelf: 'flex-start' },
   error: { ...type.body, color: colors.danger },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.sm },
-  later: { minHeight: 44, paddingHorizontal: space.lg, justifyContent: 'center' },
-  laterText: { ...type.bodyStrong, color: colors.subtle },
-  save: {
-    minHeight: 44,
-    paddingHorizontal: space.xl,
-    borderRadius: radius.md,
-    justifyContent: 'center',
-    backgroundColor: colors.accent,
-  },
-  saveDisabled: { backgroundColor: colors.cardMuted },
-  saveText: { ...type.bodyStrong, color: colors.onAccent },
-  saveTextDisabled: { color: colors.disabled },
 });

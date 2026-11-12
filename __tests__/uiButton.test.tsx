@@ -96,6 +96,15 @@ describe('Button', () => {
   });
 });
 
+describe('Button expanded', () => {
+  it('reports expanded only when given', async () => {
+    const { rerender } = await render(<Button variant="text" title="더 보기" onPress={() => {}} expanded={false} />);
+    expect(button().props.accessibilityState).toEqual({ disabled: false, busy: false, expanded: false });
+    await rerender(<Button variant="text" title="더 보기" onPress={() => {}} />);
+    expect(button().props.accessibilityState).toEqual({ disabled: false, busy: false });
+  });
+});
+
 describe('Button danger tone', () => {
   // RNTL v14에는 UNSAFE_getByType이 없어 누름 색은 buttonLook으로 확인한다
   const pressedBg = (variant: 'secondary' | 'text') => buttonLook(variant, 'danger', false).pressedBg;
