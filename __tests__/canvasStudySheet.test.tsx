@@ -1,6 +1,6 @@
 import React, { createRef, useEffect } from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { layout } from '../src/ui/theme';
 
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
@@ -57,10 +57,22 @@ describe('CanvasStudySheet', () => {
     await fireEvent.press(screen.getByRole('tab', { name: '개념' }));
     expect(hidden('study-tab-concept')).toBe(false);
     expect(hidden('study-tab-answer')).toBe(true);
-    expect(last().index).toBe(1);
     await fireEvent.press(screen.getByRole('tab', { name: '해답' }));
     expect(screen.getByText('answer-body')).toBeTruthy();
     expect(mountCount).toBe(1);
+  });
+
+  // 실기기: index prop이 바뀌면 열린 시트가 움직였다(스펙 §6 위험 2) — 높이는 닫힐 때 다음 열기용으로만 정한다
+  it('switching tabs does not move the open sheet; closing on 개념 reopens at 70%', async () => {
+    await render(ui());
+    await fireEvent.press(screen.getByRole('tab', { name: '개념' }));
+    expect(last().index).toBe(0);
+    await act(() => last().onDismiss());
+    expect(last().index).toBe(1);
+    await fireEvent.press(screen.getByRole('tab', { name: '해답' }));
+    expect(last().index).toBe(1);
+    await act(() => last().onDismiss());
+    expect(last().index).toBe(0);
   });
 
   it('keeps the last tab across re-renders', async () => {

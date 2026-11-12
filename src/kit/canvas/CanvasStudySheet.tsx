@@ -25,6 +25,8 @@ export function CanvasStudySheet({
   answer: ReactNode;
 }) {
   const [tab, setTab] = useState<Tab>('answer');
+  // 여는 높이는 닫힐 때만 정한다 — index prop이 열린 동안 바뀌면 시트가 움직인다(실기기 확인)
+  const [openIndex, setOpenIndex] = useState(0);
   const bottomInset = useCanvasSheetBottomInset();
 
   return (
@@ -32,7 +34,8 @@ export function CanvasStudySheet({
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={CANVAS_SHEET_SNAPS}
-      index={tab === 'concept' ? 1 : 0}
+      index={openIndex}
+      onDismiss={() => setOpenIndex(tab === 'concept' ? 1 : 0)}
       bottomInset={bottomInset}
       enableDynamicSizing={false}
       enableContentPanningGesture={false}
