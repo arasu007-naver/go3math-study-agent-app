@@ -5,7 +5,9 @@
  * 아직 안 옮김: 이메일 변경, 캐시 지우기, 탈퇴.
  */
 import { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button } from '../../ui/Button';
+import { Dialog } from '../../ui/Dialog';
 import { colors, layout, radius, space, type } from '../../ui/theme';
 
 export interface ProfileEditors {
@@ -45,69 +47,54 @@ export function ProfileActions({ name, editors, onLogout }: { name?: string | nu
     }, '이름을 변경했어요.');
   };
 
+  const trimmed = draft.trim();
+
+  // 단계 4b: 공용 Button(text). 로그아웃은 구분선 뒤 마지막, 위험 톤. 버튼은 전처럼 바로 반응한다(debounceMs 0)
   return (
     <View style={styles.root}>
       {notice && <Text style={styles.notice}>{notice}</Text>}
       <View style={styles.row}>
         {busy && <ActivityIndicator color={colors.accent} />}
-        <Pressable
-          accessibilityRole="button"
+        <Button
+          variant="text"
+          size="sm"
+          title="이름 변경"
           disabled={busy}
+          debounceMs={0}
           onPress={() => {
             setDraft(name ?? '');
             setEditing(true);
           }}
-          style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-          <View style={styles.underline}>
-            <Text style={[styles.text, busy && styles.disabled]}>이름 변경</Text>
-          </View>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
+        />
+        <Button
+          variant="text"
+          size="sm"
+          title="프로필 이미지 변경"
           disabled={busy}
+          debounceMs={0}
           onPress={() => void run(editors.changeImage, '프로필 이미지를 변경했어요.')}
-          style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-          <View style={styles.underline}>
-            <Text style={[styles.text, busy && styles.disabled]}>프로필 이미지 변경</Text>
-          </View>
-        </Pressable>
-        <Pressable accessibilityRole="button" onPress={onLogout} style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-          <View style={styles.underline}>
-            <Text style={[styles.text, styles.logout]}>로그아웃</Text>
-          </View>
-        </Pressable>
+        />
+        <View testID="profile-actions-divider" style={styles.divider} />
+        <Button variant="text" size="sm" tone="danger" title="로그아웃" debounceMs={0} onPress={onLogout} />
       </View>
 
-      <Modal visible={editing} transparent animationType="fade" onRequestClose={() => setEditing(false)}>
-        <View style={styles.backdrop}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setEditing(false)} />
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>이름 변경</Text>
-            <TextInput
-              accessibilityLabel="새 이름"
-              value={draft}
-              onChangeText={setDraft}
-              maxLength={NAME_MAX}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={saveName}
-              style={styles.input}
-            />
-            <View style={styles.dialogRow}>
-              <Pressable accessibilityRole="button" onPress={() => setEditing(false)} style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-                <Text style={[styles.text, styles.cancel]}>취소</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                disabled={!draft.trim() || draft.trim() === name}
-                onPress={saveName}
-                style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-                <Text style={[styles.text, (!draft.trim() || draft.trim() === name) && styles.disabled]}>저장</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <Dialog
+        visible={editing}
+        title="이름 변경"
+        onDismiss={() => setEditing(false)}
+        cancel={{}}
+        confirm={{ title: '저장', disabled: !trimmed || trimmed === name, onPress: saveName }}>
+        <TextInput
+          accessibilityLabel="새 이름"
+          value={draft}
+          onChangeText={setDraft}
+          maxLength={NAME_MAX}
+          autoFocus
+          returnKeyType="done"
+          onSubmitEditing={saveName}
+          style={styles.input}
+        />
+      </Dialog>
     </View>
   );
 }
@@ -116,17 +103,6 @@ const styles = StyleSheet.create({
   root: { paddingHorizontal: space.sm, gap: space.xs },
   notice: { ...type.caption, color: colors.muted, textAlign: 'right', paddingHorizontal: space.sm },
   row: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: space.xs },
-  btn: { minHeight: layout.hit, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.sm },
-  pressed: { backgroundColor: colors.cardMuted },
-  text: { ...type.bodyStrong, color: colors.accentText },
-  // 하단 줄 세 버튼만 검은 밑줄. textDecoration은 글자와의 간격을 못 정하므로 아래 테두리로 그리고 6px 띄운다
-  underline: { paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#000000' },
-  logout: { color: colors.danger },
-  cancel: { color: colors.muted },
-  disabled: { color: colors.disabled },
-  backdrop: { flex: 1, backgroundColor: colors.scrim, alignItems: 'center', justifyContent: 'center', padding: space.lg },
-  dialog: { width: '100%', maxWidth: 360, backgroundColor: colors.card, borderRadius: radius.lg, padding: space.lg, gap: space.md },
-  dialogTitle: { ...type.title, color: colors.text },
+  divider: { width: StyleSheet.hairlineWidth * 2, height: 24, backgroundColor: colors.line, marginHorizontal: space.xs },
   input: { ...type.body, color: colors.text, minHeight: layout.hit, paddingHorizontal: space.md, borderRadius: radius.sm, backgroundColor: colors.cardMuted },
-  dialogRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: space.xs },
 });

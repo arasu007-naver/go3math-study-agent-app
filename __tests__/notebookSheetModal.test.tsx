@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ADD_BOOKMARK } from '../src/api/graphql/mutations';
+import { StyleSheet } from 'react-native';
+import { colors, layout } from '../src/ui/theme';
 
 const mockAddBookmark = jest.fn().mockResolvedValue({ data: { addBookmark: true } });
 const mockCreateRecord = jest.fn().mockResolvedValue({ data: { createRecord: { id: 1 } } });
@@ -23,10 +25,22 @@ jest.mock('expo-router', () => ({
   router: { back: jest.fn(), replace: jest.fn(), canGoBack: () => true },
 }));
 
+const mockSheetProps: any[] = [];
 jest.mock('@gorhom/bottom-sheet', () => ({
-  BottomSheetModal: () => null,
+  BottomSheetModal: (p: any) => {
+    mockSheetProps.push(p);
+    return null;
+  },
   BottomSheetView: ({ children }: any) => children,
 }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const actual = jest.requireActual('react-native-safe-area-context');
+  return { ...actual, useSafeAreaInsets: () => ({ top: 0, bottom: 20, left: 0, right: 0 }) };
+});
+
+/** 마지막 렌더의 시트 props(같은 ref 순서대로 렌더된다) */
+const lastSheets = (n: number) => mockSheetProps.slice(-n);
 
 jest.mock('@openspacelabs/react-native-zoomable-view', () => ({
   ReactNativeZoomableView: ({ children }: any) => children,
@@ -97,9 +111,9 @@ describe('NotebookScreen - Problem List Modal', () => {
     const bookmarkButtons = screen.getAllByText('책갈피');
     expect(bookmarkButtons.length).toBe(2);
 
-    // 2 in problem list cards + 1 in bottom canvas toolbar
+    // 2 in problem list cards; the toolbar button is now 개념·해답
     const answerButtons = screen.getAllByText('해답');
-    expect(answerButtons.length).toBe(3);
+    expect(answerButtons.length).toBe(2);
   });
 
   it('calls addBookmark GraphQL mutation when 책갈피 button is clicked', async () => {
@@ -158,5 +172,71 @@ describe('NotebookScreen - Problem List Modal', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('mock-webview')).toBeNull();
     });
+  });
+});
+
+describe('NotebookScreen - list modal uses shared Button and Chip', () => {
+  beforeEach(() => jest.clearAllMocks());
+  const openList = async () => {
+    await render(<NotebookScreen />);
+    await fireEvent.press(screen.getByText('목록'));
+    await waitFor(() => expect(screen.getAllByRole('button', { name: '교체' }).length).toBe(2));
+  };
+  const flat = (node: any) => StyleSheet.flatten(node.props.style);
+
+  it('교체 and 책갈피 are small secondary buttons and 닫기 is a secondary button', async () => {
+    await openList();
+    for (const name of ['교체', '책갈피']) {
+      const node = screen.getAllByRole('button', { name })[0];
+      expect(flat(node)).toMatchObject({ minHeight: layout.controlSm, backgroundColor: colors.card });
+    }
+    expect(flat(screen.getByRole('button', { name: '닫기' }))).toMatchObject({ backgroundColor: colors.card });
+  });
+
+  it('해답/문제 is a Chip that reports its selection', async () => {
+    await openList();
+    const chip = screen.getAllByRole('button', { name: '해답' })[0];
+    expect(chip.props.accessibilityState).toMatchObject({ selected: false });
+    await fireEvent.press(chip);
+    await waitFor(() => expect(screen.getByRole('button', { name: '문제' }).props.accessibilityState).toMatchObject({ selected: true }));
+  });
+
+  it('a bookmarked problem shows a disabled 책갈피됨 that does not bookmark again', async () => {
+    await openList();
+    await fireEvent.press(screen.getAllByRole('button', { name: '책갈피' })[0]);
+    await waitFor(() => expect(screen.getByRole('button', { name: '책갈피됨' })).toBeTruthy());
+    const done = screen.getByRole('button', { name: '책갈피됨' });
+    expect(done.props.accessibilityState).toMatchObject({ disabled: true });
+    await fireEvent.press(done);
+    expect(mockAddBookmark).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('NotebookScreen - canvas sheets (Gate B Q4)', () => {
+  it('answer and workouts sheets open at 보기 50% with 넓게 70% and stop above the toolbar', async () => {
+    await render(<NotebookScreen />);
+    for (const p of lastSheets(2)) {
+      expect(p.snapPoints).toEqual(['50%', '70%']);
+      expect(p.index).toBe(0);
+      expect(p.bottomInset).toBe(layout.toolbarH + 20);
+      expect(p.enableDynamicSizing).toBe(false);
+      expect(p.enableContentPanningGesture).toBe(false);
+    }
+  });
+
+  // BottomSheetView는 absolute(아래 미고정)라 내용 높이만큼만 커진다 — 높이 없는 WebView는 0이 되어 해답이 비었다
+  it('answer sheet body is a flex View that fills the sheet, not the content-sized BottomSheetView', async () => {
+    const { BottomSheetView } = require('@gorhom/bottom-sheet');
+    await render(<NotebookScreen />);
+    const [answer] = lastSheets(2);
+    expect(answer.children.type).not.toBe(BottomSheetView);
+    expect(StyleSheet.flatten(answer.children.props.style).flex).toBe(1);
+  });
+
+  it('toolbar has one 개념·해답 button and no separate 해답 or 개념 button', async () => {
+    await render(<NotebookScreen />);
+    expect(screen.getByText('개념·해답')).toBeTruthy();
+    expect(screen.queryByText('해답')).toBeNull();
+    expect(screen.queryByText('개념')).toBeNull();
   });
 });

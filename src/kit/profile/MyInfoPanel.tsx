@@ -5,7 +5,7 @@
  * 아직 안 옮김: '정보 변경'(ChangeProfilePage 필요). 쪽지 목록은 MessageBoxPanel.
  */
 import { Image, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { colors, radius, space } from '../../ui/theme';
+import { colors, radius, space, type } from '../../ui/theme';
 
 export const DEFAULT_AVATAR_URL = 'https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/public/go3math.png';
 
@@ -28,11 +28,11 @@ export function MyInfoPanel({ info, style }: { info: MyInfo; style?: StyleProp<V
 }
 
 const styles = StyleSheet.create({
-  root: { padding: 16, gap: 12, backgroundColor: '#FFFFFF' },
+  root: { padding: 16, gap: 12, backgroundColor: colors.card },
   card: { flexDirection: 'row', alignItems: 'center', gap: space.lg, padding: space.md, borderRadius: radius.md, backgroundColor: colors.cardMuted },
-  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#E4E4E7' },
+  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.line },
   text: { flex: 1, gap: 4 },
-  name: { fontSize: 18, fontWeight: '600', color: 'darkorange' },
-  email: { fontSize: 14, color: '#18181B' },
-  via: { fontSize: 12, color: '#52525B' },
+  name: { ...type.title, color: colors.accentText },
+  email: { ...type.body, color: colors.text },
+  via: { ...type.caption, color: colors.subtle },
 });

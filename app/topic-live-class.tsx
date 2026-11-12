@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type Ref } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useLazyQuery, useMutation, useSubscription } from '@apollo/client/react';
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useIsFocused } from '@react-navigation/native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
@@ -13,6 +13,7 @@ import { LAST_LIVE_TOPIC_MESSAGE, STUDY_TOPIC } from '@/src/api/graphql/queries'
 import { TOPIC_LIVE_MESSAGE_ADDED } from '@/src/api/graphql/subscriptions';
 import { UNITANSWER, UNITIMAGE } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
+import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
 import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import LegacyTopicLiveClassCanvasPanel from '@/src/kit/canvas/note-canvas/topic-live-canvas';
 import { storage } from '@/src/kit/canvas/note-canvas/legacy';
@@ -24,8 +25,7 @@ import { ensureTaskId } from '@/src/adapters/ensureTask';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { topicLiveSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
-import { SheetHandle } from '@/src/ui/SheetHandle';
-import { colors, radius } from '@/src/ui/theme';
+import { colors, radius, type } from '@/src/ui/theme';
 
 // 주제 실황 수업 화면: 기존 qoolla-student-app `pages/notebook/topic-live-class.tsx`를 옮김. 패널은 note-canvas/topic-live-canvas.tsx 그대로.
 // 실황 수업 dock에서 주제를 누르면 Stage에 그 주제 문제 목록(ProblemListPanel)을 띄우고 이 화면으로 온다. 나가면 문제 목록이 그대로 남는다.
@@ -183,7 +183,7 @@ export default function TopicLiveClassScreen() {
     canvasAction('sync', '필기 따라가기', 'sync-outline', syncBoard),
     canvasAction('lastStep', '마지막 단계', 'checkmark-done-outline', playLastStep),
     ...(topicUnits.length > 1 ? [canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true))] : []),
-    canvasAction('answer', '답안 예시', 'eye-outline', () => sheetRef.current?.present()),
+    canvasAction('study', '개념·해답', 'book-outline', () => sheetRef.current?.present()),
   ];
 
   return (
@@ -234,13 +234,15 @@ export default function TopicLiveClassScreen() {
         onSubmitted={() => showToast('답안을 보냈습니다.')}
         onError={(msg) => showToast(msg)}
       />
-      <BottomSheetModal ref={sheetRef} handleComponent={SheetHandle}>
-        <BottomSheetView>
-          <View style={[styles.answerRow, { height: height / 2 }]}>
-            <View style={[styles.answerPane, { height: height / 2 - 64 }]}>
+      <CanvasStudySheet
+        sheetRef={sheetRef}
+        answerLabel="답안 예시"
+        answer={
+          <View style={styles.answerRow}>
+            <View style={styles.answerPane}>
               {problemUrl && <DynamicDimensionsImage source={{ uri: problemUrl }} width={360} />}
             </View>
-            <View style={[styles.answerPane, { height: height / 2 - 64 }]}>
+            <View style={styles.answerPane}>
               {answerUrl && (
                 <WebView
                   originWhitelist={['*']}
@@ -255,8 +257,8 @@ export default function TopicLiveClassScreen() {
               )}
             </View>
           </View>
-        </BottomSheetView>
-      </BottomSheetModal>
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -264,7 +266,7 @@ export default function TopicLiveClassScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   fullSize: { flex: 1, width: '100%', height: '100%' },
-  savedMessage: { position: 'absolute', top: 8, left: 12, zIndex: 10, fontSize: 12, color: colors.danger },
+  savedMessage: { position: 'absolute', top: 8, left: 12, zIndex: 10, ...type.caption, color: colors.danger },
   toast: {
     position: 'absolute',
     top: 40,
@@ -276,10 +278,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 5,
   },
-  toastText: { color: 'white', fontSize: 14, fontWeight: 'bold' },
-  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  listContainer: { position: 'absolute', backgroundColor: '#FFF', padding: 20, borderRadius: 12, elevation: 5 },
+  toastText: { ...type.bodyStrong, color: colors.onAccent },
+  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: colors.scrim },
+  listContainer: { position: 'absolute', backgroundColor: colors.card, padding: 20, borderRadius: 12, elevation: 5 },
   listItem: { marginRight: 16 },
-  answerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 6 },
+  // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
+  answerRow: { flex: 1, flexDirection: 'row', gap: 6, paddingHorizontal: 6 },
   answerPane: { flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card },
 });

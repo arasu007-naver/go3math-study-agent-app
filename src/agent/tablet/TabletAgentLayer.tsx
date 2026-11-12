@@ -147,9 +147,10 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
           )}
           {dock === 'profile' && (
             <>
+              {/* 단계 4b D7(Gate B D-11): 카드 → 동작 버튼 → 사서함, 폰과 같은 순서 */}
               <MyInfoPanel info={myInfo} />
-              <MessageBoxPanel fetchers={messageBoxFetchers} />
               <ProfileActions name={myInfo.name} editors={profileEditors} onLogout={() => void logout()} />
+              <MessageBoxPanel fetchers={messageBoxFetchers} />
             </>
           )}
           {dock === 'search' && (

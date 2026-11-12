@@ -57,6 +57,7 @@ export const colors = {
   offline: palette.gray[400],
   success: palette.success[600],
   danger: palette.danger[600],
+  dangerSoft: palette.danger[50], // 위험 톤 버튼의 누름 바탕(accentSoft와 같은 짝, 단계 4a)
   warnSoft: palette.warn[100],
   // 하위호환 (기존 import 유지용 — 신규 코드에서 사용 금지)
   surface: palette.gray[0],
@@ -130,6 +131,9 @@ export const layout = {
   toolbarGap: 16, // 툴바와 하단 바/drawer/토스트 사이 최소 간격
   hit: 44, // 최소 터치 영역
   toastW: 360,
+  controlSm: 32, // 밀집 행의 Button sm·Chip 최소 높이. hitSlop으로 hit까지 채운다
+  railOpacity: 0.88, // rail 카드 바탕 투명도(Gate B Q3). 단계 4에서 ChatRail에 적용
+  dialogMax: 400, // Dialog 최대 폭(= chatMax). 버튼 둘과 한국어 제목 한 줄
 } as const;
 
 export const z = { canvas: 0, dock: 10, drawer: 20, toolbar: 30, toast: 40, modal: 50 } as const;

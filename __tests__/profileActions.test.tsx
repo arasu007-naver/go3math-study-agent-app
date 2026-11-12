@@ -8,9 +8,39 @@ const editors = (over: Partial<ProfileEditors> = {}): ProfileEditors => ({
 });
 
 describe('ProfileActions', () => {
-  it('lays out name, image, then logout (logout rightmost)', async () => {
+  it('lists name, image, then logout last as shared buttons (spec 4b)', async () => {
+    const { StyleSheet } = require('react-native');
+    const { colors } = require('../src/ui/theme');
     await render(<ProfileActions name="길동" editors={editors()} onLogout={() => {}} />);
-    expect(screen.getAllByText(/^(이름 변경|프로필 이미지 변경|로그아웃)$/).map((t) => t.props.children)).toEqual(['이름 변경', '프로필 이미지 변경', '로그아웃']);
+    const names = ['이름 변경', '프로필 이미지 변경', '로그아웃'];
+    expect(screen.getAllByText(/^(이름 변경|프로필 이미지 변경|로그아웃)$/).map((t) => t.props.children)).toEqual(names);
+    for (const n of names) {
+      expect(screen.getByRole('button', { name: n })).toBeTruthy();
+      expect(StyleSheet.flatten(screen.getByText(n).props.style).textDecorationLine).toBeUndefined();
+    }
+    expect(StyleSheet.flatten(screen.getByText('로그아웃').props.style).color).toBe(colors.danger);
+    expect(screen.getByTestId('profile-actions-divider')).toBeTruthy();
+  });
+
+  it('uses the small button size so the row fits a narrow phone (final review)', async () => {
+    const { StyleSheet } = require('react-native');
+    const { type } = require('../src/ui/theme');
+    await render(<ProfileActions name="길동" editors={editors()} onLogout={() => {}} />);
+    for (const n of ['이름 변경', '프로필 이미지 변경', '로그아웃']) {
+      expect(StyleSheet.flatten(screen.getByText(n).props.style).fontSize).toBe(type.bodyStrong.fontSize);
+    }
+  });
+
+  it('name dialog disables save for unchanged or blank names', async () => {
+    const e = editors();
+    await render(<ProfileActions name="길동" editors={e} onLogout={() => {}} />);
+    await fireEvent.press(screen.getByRole('button', { name: '이름 변경' }));
+    expect(screen.getByRole('header', { name: '이름 변경' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '저장' }).props.accessibilityState.disabled).toBe(true);
+    await fireEvent.changeText(screen.getByLabelText('새 이름'), '   ');
+    expect(screen.getByRole('button', { name: '저장' }).props.accessibilityState.disabled).toBe(true);
+    await fireEvent.press(screen.getByRole('button', { name: '저장' }));
+    expect(e.changeName).not.toHaveBeenCalled();
   });
 
   it('changes the name through the dialog', async () => {

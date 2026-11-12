@@ -5,24 +5,27 @@
  * AppCtx(currentStudyCategory) 대신 내부 상태 + 기존 키 `lastAgenda` 저장. 데이터·이동은 props/콜백으로 받는다.
  */
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { ConceptLookupPanel } from '../concepts/ConceptLookupPanel';
+import { StyleSheet, View } from 'react-native';
+import { Chip } from '../../ui/Chip';
+import { colors, space } from '../../ui/theme';
 import { ExamSearchPanel, type ExamSearchMode } from '../exam-search/ExamSearchPanel';
 import type { ExamQuery } from '../exam-search/query';
 import { TopicTabsPanel } from '../topic-panel/TopicTabsPanel';
 import type { SubjectOption, TopicPanelFetchers, TopicSummary } from '../topic-panel/types';
 
-export type ResearchCategory = 'recent' | 'pre' | 'mentor' | 'concept';
+export type ResearchCategory = 'recent' | 'pre' | 'mentor';
 
 export const RESEARCH_CATEGORY_KEY = 'lastAgenda';
 
-// 기존 ResearchCategoriesSections 칩 순서·라벨('단원별'은 원본에서도 주석 처리). '개념'은 기존 chat FAB 패널(개념 조회)을 옮겨 추가.
+// 기존 ResearchCategoriesSections 칩 순서·라벨('단원별'은 원본에서도 주석 처리).
+// 단계 4b D2: '개념' 탭은 없앴다. 개념 검색은 풀이 화면(캔버스 개념 시트)에서만 쓴다.
 const CATEGORIES: { key: ResearchCategory; label: string }[] = [
   { key: 'recent', label: '2026' },
   { key: 'pre', label: '모의 고사' },
   { key: 'mentor', label: '주제/묶음' },
-  { key: 'concept', label: '개념' },
 ];
+
+const isCategory = (v: unknown): v is ResearchCategory => CATEGORIES.some((c) => c.key === v);
 
 const EXAM_MODE: Record<'recent' | 'pre', ExamSearchMode> = { recent: 'this_year', pre: 'pre_exam' };
 
@@ -38,10 +41,11 @@ type Props = {
   onSelectTopic(topic: TopicSummary): void;
 };
 
-export function resolveInitialCategory(preset: ResearchCategory | undefined, store?: Pick<Store, 'getString'>): ResearchCategory {
-  if (preset) return preset;
+/** 프리셋 → 저장값 → 'recent'. 탭 목록에 없는 값(예전 'concept')은 건너뛴다(단계 4b D3). 저장값은 지우지 않는다 */
+export function resolveInitialCategory(preset: string | undefined, store?: Pick<Store, 'getString'>): ResearchCategory {
+  if (isCategory(preset)) return preset;
   const stored = store?.getString(RESEARCH_CATEGORY_KEY);
-  return CATEGORIES.some((c) => c.key === stored) ? (stored as ResearchCategory) : 'recent';
+  return isCategory(stored) ? stored : 'recent';
 }
 
 export function ResearchPanel({ fetchers, topicSubjects, store, initialCategory, onSubmitSearch, onSelectTopic }: Props) {
@@ -56,24 +60,12 @@ export function ResearchPanel({ fetchers, topicSubjects, store, initialCategory,
   return (
     <View style={styles.root}>
       <View style={styles.chips}>
-        {CATEGORIES.map((c) => {
-          const on = c.key === category;
-          return (
-            <Pressable
-              key={c.key}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: on }}
-              onPress={() => change(c.key)}
-              style={[styles.chip, on && styles.chipOn]}>
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>{c.label}</Text>
-            </Pressable>
-          );
-        })}
+        {CATEGORIES.map((c) => (
+          <Chip key={c.key} label={c.label} accessibilityRole="tab" selected={c.key === category} onPress={() => change(c.key)} />
+        ))}
       </View>
       <View style={styles.body}>
-        {category === 'concept' ? (
-          <ConceptLookupPanel />
-        ) : category === 'mentor' ? (
+        {category === 'mentor' ? (
           <TopicTabsPanel fetchers={fetchers} subjects={topicSubjects} store={store} onSelectTopic={onSelectTopic} />
         ) : (
           <ExamSearchPanel
@@ -89,12 +81,8 @@ export function ResearchPanel({ fetchers, topicSubjects, store, initialCategory,
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
-  // 기존: 높이 36, 가운데 정렬, gap 12, 선택 'orange' / 기본 '#E5E5E5'
-  chips: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
-  chip: { minHeight: 36, minWidth: 64, paddingHorizontal: 14, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E5E5E5' },
-  chipOn: { backgroundColor: 'orange' },
-  chipText: { fontSize: 14, color: '#18181B' },
-  chipTextOn: { fontWeight: '700' },
+  root: { flex: 1, backgroundColor: colors.card },
+  // 가운데 정렬 탭 칩(공용 Chip, role=tab)
+  chips: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.md },
   body: { flex: 1 },
 });

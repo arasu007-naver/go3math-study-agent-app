@@ -68,19 +68,59 @@ components:
   button-primary:
     backgroundColor: "{colors.accent}"
     textColor: "{colors.card}"
-    typography: "{typography.body-strong}"
-    rounded: "{rounded.md}"
-    padding: "0 12px"
+    typography: "{typography.title}"
+    rounded: "{rounded.pill}"
+    padding: "0 16px"
     height: "44px"
   button-primary-pressed:
     backgroundColor: "{colors.accent-press}"
   button-secondary:
-    backgroundColor: "{colors.card-muted}"
+    backgroundColor: "{colors.card}"
+    borderColor: "{colors.line-strong}"
     textColor: "{colors.text}"
-    typography: "{typography.body-strong}"
-    rounded: "{rounded.md}"
-    padding: "0 12px"
+    typography: "{typography.title}"
+    rounded: "{rounded.pill}"
+    padding: "0 16px"
     height: "44px"
+  button-secondary-pressed:
+    backgroundColor: "{colors.card-muted}"
+  button-danger:
+    backgroundColor: "{colors.danger}"
+    textColor: "{colors.card}"
+    typography: "{typography.title}"
+    rounded: "{rounded.pill}"
+    padding: "0 16px"
+    height: "44px"
+  button-text:
+    textColor: "{colors.accent-text}"
+    typography: "{typography.title}"
+    rounded: "{rounded.pill}"
+    padding: "0 16px"
+    height: "44px"
+  button-text-pressed:
+    backgroundColor: "{colors.accent-soft}"
+  button-sm:
+    typography: "{typography.body-strong}"
+    padding: "0 12px"
+    height: "32px"
+  chip:
+    backgroundColor: "{colors.card-muted}"
+    textColor: "{colors.subtle}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.pill}"
+    padding: "0 12px"
+    height: "32px"
+  chip-selected:
+    backgroundColor: "{colors.accent-soft}"
+    borderColor: "{colors.accent}"
+    textColor: "{colors.accent-text}"
+  chip-pressed:
+    backgroundColor: "{colors.accent-soft-press}"
+  dialog:
+    backgroundColor: "{colors.card}"
+    rounded: "{rounded.lg}"
+    padding: "16px"
+    width: "400px"
   surface-card:
     backgroundColor: "{colors.card}"
     rounded: "{rounded.lg}"
@@ -151,7 +191,7 @@ Go3 Math는 학생의 책상이다. 주인공은 학생의 필기와 문제이�
 ### Neutral
 - **Desk Surface** (`bg`): 앱 바닥. 카드가 놓이는 면이다.
 - **Paper White** (`card`): 카드, 패널, drawer, dock, 툴바, toast, 캔버스.
-- **Pencil Tray** (`card-muted`): 카드 안 보조 면. 보조 버튼, 세그먼트 바 바탕, 튜터 말풍선 상자.
+- **Pencil Tray** (`card-muted`): 카드 안 보조 면. 세그먼트 바 바탕, 튜터 말풍선 상자, 칩 비선택 바탕, 보조 버튼을 누른 상태.
 - **Ink** (`text`) / **Graphite** (`subtle`) / **Lead Gray** (`muted`) / **Eraser Gray** (`disabled`): 본문, 보조 글, 라벨·안내, 비활성.
 - **Hairline** (`line`) / **Hairline Strong** (`line-strong`): 꼭 필요할 때만 1px로 쓴다.
 - **Scrim** (`scrim`): Phone 하단 모달 뒤 딤.
@@ -194,6 +234,9 @@ Go3 Math는 학생의 책상이다. 주인공은 학생의 필기와 문제이�
 - **하단 고정 바**: 높이 56, 아이콘 22 + 라벨 6칸(공지·검색·타임라인·실황·주간·내 정보), 한 줄.
 - **캔버스**: 좌우 여백 6, 하단 가운데 플로팅 툴바(높이 52). 툴바는 하단 바·drawer·toast와 최소 16 떨어진다. 가로이면 화면 안에서 기능을 제한한다.
 - **간격 리듬**: 2·4·8·12·16·24·32. 카드 안 기본 패딩과 요소 간격은 12와 8이다.
+- **조작 높이**: 기본 44(`layout.hit`), 밀집 행 32(`layout.controlSm`, hitSlop으로 터치 영역 44). 고정 높이가 아니라 최소 높이라 글자를 키우면 자란다.
+- **대화상자 폭**: 최대 400(`layout.dialogMax`), 좁은 화면에서는 화면 폭 − gutter×2.
+- **rail 투명도**: rail 카드 바탕 0.88(`layout.railOpacity`, 단계 4에서 적용). 겹친 글자가 뒤에 있다는 것이 보이게 한다.
 - **쌓임 순서**: canvas 0 < dock 10 < drawer 20 < toolbar 30 < toast 40 < modal 50.
 
 ## Elevation & Depth
@@ -214,10 +257,28 @@ Go3 Math는 학생의 책상이다. 주인공은 학생의 필기와 문제이�
 ## Components
 
 ### Buttons
-- **Shape:** 부드럽게 둥근 사각(12), 최소 높이 44, 좌우 패딩 12.
-- **Primary:** Desk Lamp Orange 면 + 흰 Body Strong 글자. 화면(카드)당 하나만 둔다. 누르면 Pressed Ember.
-- **Secondary:** Pencil Tray 면 + Ink 글자. 주 행동이 아닌 나머지 선택지.
-- **Icon button:** 44 원형. 평소에는 투명, 켜지면 Morning Glow, 누르면 Warm Press.
+공용 `Button`(`src/ui/Button.tsx`, 단계 3, Gate C 승인 대기). 위계는 호출부가 `variant`로 반드시 고른다. 색·글자를 덮어쓸 수 없다.
+- **Shape:** 원형(pill). 최소 높이 44(`md`) 또는 32(`sm`, 터치 영역 44). 좌우 패딩 16(`sm` 12). 글자는 Title(`sm`은 Body Strong). 2026-11 단계 3 전에는 모서리 12, 좌우 패딩 12, Body Strong이었다.
+- **Primary:** Desk Lamp Orange 면 + 흰 글자. 화면(카드)당 하나만 둔다. 누르면 Pressed Ember.
+- **Secondary:** Paper White 면 + 1px Hairline Strong 테두리 + Ink 글자. 누르면 Pencil Tray. 단계 3 전에는 Pencil Tray 면이었다.
+- **Danger:** Danger 면 + 흰 글자. 되돌릴 수 없는 확인에만 쓴다. 누르면 불투명도 0.85.
+- **Text:** 면 없이 Burnt Label 글자. 누르면 Morning Glow 면.
+- **비활성:** Pencil Tray 면 + Eraser Gray 글자(Text·Secondary는 글자·테두리만 Eraser Gray). 불투명도로 흐리게 하지 않는다.
+- **Loading:** 글자 자리에 스피너가 뜨고 폭은 그대로다. 돌려받은 promise가 끝날 때까지 자동으로 켜지고, 400ms 안의 중복 누름을 무시한다.
+- **Pressed:** 색만 바뀐다. 누를 때 커지는 애니메이션은 쓰지 않는다.
+- **Icon button:** 44 원형. 평소에는 투명, 켜지면 Morning Glow, 누르면 Warm Press. 공용 컴포넌트로 만들지는 Gate C에서 정한다.
+
+### Chips
+공용 `Chip`(`src/ui/Chip.tsx`). 선택·필터에만 쓴다. 눌리지 않는 라벨을 칩 모양으로 그리지 않는다.
+- 원형, 최소 높이 32(터치 영역 44), 좌우 패딩 12, Body Strong.
+- 비선택 Pencil Tray 면 + Graphite 글자, 선택 Morning Glow 면 + 1px Desk Lamp Orange 테두리 + Burnt Label 글자, 누르면 Warm Press. 비선택에도 투명 테두리를 둬 선택할 때 크기가 바뀌지 않는다.
+- 역할은 button(기본)·tab·radio·checkbox 중 하나로 알린다.
+
+### State View (로딩·빈·오류)
+공용 `StateView`(`src/ui/StateView.tsx`). 가운데 정렬, 제목 Title + Ink, 설명 Body + Lead Gray. 오류에는 주요 버튼(다시 시도·로그인), 비었을 때는 보조 버튼을 단다. 문구는 무엇이 일어났는지와 다음에 할 일을 말하고 기술 용어를 쓰지 않는다. 모양을 아는 목록의 로딩은 스켈레톤 카드를 쓴다.
+
+### Dialog
+공용 `Dialog`(`src/ui/Dialog.tsx`). 딤 위 가운데 Paper White 카드(20 모서리, Float 그림자, 패딩 16), 최대 폭 400. 제목 Title, 설명 Body + Graphite, 필요하면 입력, 오른쪽 아래에 `[보조 취소] [확인]`. 확인은 Primary 또는 Danger. 딤을 누르거나 뒤로 가기를 하면 닫힌다.
 
 ### Cards / Containers
 - **Corner Style:** 패널은 20, 내부 상자는 12.
@@ -252,7 +313,7 @@ Go3 Math는 학생의 책상이다. 주인공은 학생의 필기와 문제이�
 
 ### Do:
 - **Do** 모든 스타일을 `StyleSheet.create`와 `src/ui/theme.ts` 토큰으로 쓴다.
-- **Do** 화면마다 주 행동은 주황 버튼 하나로 두고, 나머지는 Pencil Tray 보조 버튼으로 둔다.
+- **Do** 화면마다 주 행동은 주황 버튼 하나로 두고, 나머지는 보조 버튼(Paper White 면 + Hairline Strong 테두리)이나 텍스트 버튼으로 둔다.
 - **Do** 영역은 면(Desk Surface와 Paper White)과 12 간격으로 나눈다.
 - **Do** 모든 터치 대상을 최소 44로 만든다.
 - **Do** 오버레이에 `pointerEvents="box-none"` 구조를 유지해, 자기 영역 밖의 필기 입력을 통과시킨다.

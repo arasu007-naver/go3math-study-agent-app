@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
   header: { height: layout.headerH, flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.md, backgroundColor: 'transparent' },
   title: { flex: 1, paddingLeft: 4 },
   logo: { height: 32, width: 32 * (987 / 242) },
-  // 책갈피 ↔ 문제 목록 전환 버튼: 회색 원 + 흰 테두리 2px
-  iconButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.lineStrong, borderWidth: 2, borderColor: colors.card },
+  // 책갈피 ↔ 문제 목록 전환 버튼: 회색 원 + 흰 테두리 2px, 터치 크기는 공용 hit(44)
+  iconButton: { minWidth: layout.hit, minHeight: layout.hit, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.lineStrong, borderWidth: 2, borderColor: colors.card },
   pressed: { opacity: 0.6 },
   status: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   fallback: { margin: space.md, padding: space.md, borderRadius: radius.sm, backgroundColor: colors.warnSoft, color: colors.text, ...type.body },

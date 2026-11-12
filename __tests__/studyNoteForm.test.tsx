@@ -1,5 +1,18 @@
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { StudyNoteForm } from '../src/kit/study-note/StudyNoteForm';
+import { colors, layout } from '../src/ui/theme';
+
+// 시트 밖에서 그리므로 gorhom 입력칸은 RN TextInput으로 바꾼다
+// 스크롤 영역은 testID를 붙여 gorhom 스크롤 뷰를 쓰는지 확인한다
+jest.mock('@gorhom/bottom-sheet', () => {
+  const React = require('react');
+  const { TextInput, ScrollView } = require('react-native');
+  return {
+    BottomSheetTextInput: TextInput,
+    BottomSheetScrollView: (p: any) => React.createElement(ScrollView, { ...p, testID: 'sheet-scroll' }),
+  };
+});
 import { draftKey } from '../src/kit/study-note/draft';
 import type { StudyNote } from '../src/kit/study-note/model';
 import type { StudyNoteFetchers } from '../src/kit/study-note/persist';
@@ -57,12 +70,12 @@ describe('StudyNoteForm', () => {
     const { ui } = setup();
     await render(ui);
     await settle();
-    expect(screen.getByRole('radio', { name: '거의' }).props.accessibilityState.selected).toBe(false);
-    expect(screen.getByRole('checkbox', { name: '개념' }).props.accessibilityState.selected).toBe(false);
+    expect(screen.getByRole('radio', { name: '거의' }).props.accessibilityState.checked).toBe(false);
+    expect(screen.getByRole('checkbox', { name: '개념' }).props.accessibilityState.checked).toBe(false);
     await fireEvent.press(screen.getByText('거의'));
     await fireEvent.press(screen.getByText('개념'));
-    expect(screen.getByRole('radio', { name: '거의' }).props.accessibilityState.selected).toBe(true);
-    expect(screen.getByRole('checkbox', { name: '개념' }).props.accessibilityState.selected).toBe(true);
+    expect(screen.getByRole('radio', { name: '거의' }).props.accessibilityState.checked).toBe(true);
+    expect(screen.getByRole('checkbox', { name: '개념' }).props.accessibilityState.checked).toBe(true);
   });
 
   it('prefills an existing note and labels the button 수정', async () => {
@@ -70,7 +83,7 @@ describe('StudyNoteForm', () => {
     const { fetchers, onDone, ui } = setup({ fetchNote: jest.fn(async () => note) });
     await render(ui);
     await waitFor(() => expect(screen.getByDisplayValue('일반항')).toBeTruthy());
-    expect(screen.getByRole('radio', { name: '절반' }).props.accessibilityState.selected).toBe(true);
+    expect(screen.getByRole('radio', { name: '절반' }).props.accessibilityState.checked).toBe(true);
     await fireEvent.press(screen.getByText('수정'));
     await waitFor(() => expect(onDone).toHaveBeenCalledWith('saved'));
     expect(fetchers.update).toHaveBeenCalled();
@@ -142,7 +155,7 @@ describe('StudyNoteForm', () => {
     await view.unmount();
     await render(ui);
     await settle();
-    expect(screen.getByRole('radio', { name: '거의' }).props.accessibilityState.selected).toBe(true);
+    expect(screen.getByRole('radio', { name: '거의' }).props.accessibilityState.checked).toBe(true);
 
     await fireEvent.press(screen.getByText('저장'));
     await waitFor(() => expect(onDone).toHaveBeenCalledWith('saved'));
@@ -171,5 +184,48 @@ describe('StudyNoteForm', () => {
     expect(onDone).toHaveBeenCalledWith('dismissed');
     expect(fetchers.register).not.toHaveBeenCalled();
     expect(fetchers.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('StudyNoteForm - shared components (stage 4a)', () => {
+  const flat = (node: any) => StyleSheet.flatten(node.props.style);
+
+  it('scrolls inside the bottom sheet with gorhom BottomSheetScrollView (review I2)', async () => {
+    const { ui } = setup();
+    await render(ui);
+    await settle();
+    const scroll = screen.getByTestId('sheet-scroll');
+    expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
+  });
+
+  it('chips are the shared Chip at controlSm height', async () => {
+    const { ui } = setup({}, { topicHints: ['일반항'] });
+    await render(ui);
+    await settle();
+    expect(flat(screen.getByRole('radio', { name: '거의' }))).toMatchObject({ minHeight: layout.controlSm, borderRadius: expect.any(Number) });
+    expect(flat(screen.getByRole('checkbox', { name: '개념' }))).toMatchObject({ minHeight: layout.controlSm });
+    expect(flat(screen.getByRole('button', { name: '일반항' }))).toMatchObject({ minHeight: layout.controlSm });
+  });
+
+  it('나중에 and the goal toggle are text buttons; the toggle reports expanded', async () => {
+    const { ui } = setup();
+    await render(ui);
+    await settle();
+    expect(flat(screen.getByRole('button', { name: '나중에' }))).toMatchObject({ backgroundColor: 'transparent', minHeight: layout.hit });
+    const toggle = screen.getByRole('button', { name: '▸ 다음 목표 (선택)' });
+    expect(flat(toggle)).toMatchObject({ backgroundColor: 'transparent', minHeight: layout.controlSm });
+    expect(toggle.props.accessibilityState).toMatchObject({ expanded: false });
+    await fireEvent.press(toggle);
+    expect(screen.getByRole('button', { name: '▸ 다음 목표 (선택)' }).props.accessibilityState).toMatchObject({ expanded: true });
+    expect(screen.getByLabelText('다음 목표')).toBeTruthy();
+  });
+
+  it('저장 is a primary button, disabled until an achievement is chosen', async () => {
+    const { ui } = setup();
+    await render(ui);
+    await settle();
+    expect(flat(screen.getByRole('button', { name: '저장' }))).toMatchObject({ backgroundColor: colors.cardMuted });
+    await fireEvent.press(screen.getByText('거의'));
+    expect(flat(screen.getByRole('button', { name: '저장' }))).toMatchObject({ backgroundColor: colors.accent });
   });
 });

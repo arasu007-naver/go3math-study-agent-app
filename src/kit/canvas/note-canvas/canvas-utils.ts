@@ -15,6 +15,8 @@ import { requestStorageUrl } from '../../../api/rest';
 // --- 상수 ---
 export const strokeWidths = [3, 4, 6, 9, 15, 24];
 export const strokeColors = ['orange', 'blue', 'black', 'red', 'green'];
+/** 펜 색 저장값 → 보이는 라벨(02-roles.json names, Gate B Q6). 저장·동기화·MMKV에는 여전히 저장값을 넘긴다 */
+export const INK_LABELS: Record<string, string> = { orange: '주황', blue: '파랑', black: '검정', red: '빨강', green: '초록' };
 
 // --- 유틸리티 ---
 export const getBase64StringFromDataURL = (dataURL: string): string =>

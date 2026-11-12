@@ -20,6 +20,8 @@ import uuid from 'react-native-uuid';
 import * as _ from 'lodash'
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { Sheet } from '../../../ui/Sheet';
+import { IconButton } from '../../../ui/IconButton';
+import { INK_LABELS } from './canvas-utils';
 import PencilPropsModal from './pencil-props-modal';
 import { colors, type } from '../../../ui/theme';
 import { CanvasChrome, canvasTool } from '../CanvasChrome';
@@ -524,7 +526,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
             return <GoButton onPress={() => {
                 setCanvasStrokeColor(color);
                 storage.set('canvasStrokeColor', color);
-            }} title={color} key={'pencil-color-' + index}
+            }} title={INK_LABELS[color]} key={'pencil-color-' + index}
                 variant={canvasStrokeColor == color ? 'filled' : 'outline'}
                 color={color}
                 textColor={canvasStrokeColor == color ? 'white' : 'black'}
@@ -694,9 +696,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                         />
                         {visibleMemoPopup && memoMessage && (
                             <View style={canvasStyles.memoToast}>
-                                <TouchableOpacity onPress={() => setVisibleMemoPopup(false)} style={canvasStyles.memoToastClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                                    <Text style={canvasStyles.memoToastCloseText}>✕</Text>
-                                </TouchableOpacity>
+                                <IconButton size="sm" icon="close" accessibilityLabel="메모 닫기" onPress={() => setVisibleMemoPopup(false)} style={canvasStyles.memoToastClose} />
                                 <MathJaxWrapper statement={memoMessage.content} fontSize={48} color="#ea580c" fullView={true} autoSize={true} maxWidth={640} />
                             </View>
                         )}

@@ -6,9 +6,11 @@
  * 아직 안 옮김: 일정 변경(달력·날짜 선택), 학습 노트 작성, 캘린더 앱 공유. 그 밖의 taskType(recommended 등)은 표시하지 않는다.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View, type TextStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
-import { colors, radius, space, type } from '../../ui/theme';
+import { Button } from '../../ui/Button';
+import { colors, space, type } from '../../ui/theme';
 import { ACHIEVEMENTS } from '../study-note/model';
 import { SkeletonCards } from '../ui/SkeletonCards';
 
@@ -80,6 +82,36 @@ export function describeTask(t: TimelineTask): { title: string; subtitle: string
       };
     }
   }
+}
+
+type LineIcon = 'document-text-outline' | 'calendar-outline' | 'list-outline' | 'time-outline';
+const LEADING_ICONS: [string, LineIcon][] = [
+  ['📝', 'document-text-outline'],
+  ['📆', 'calendar-outline'],
+  ['🗓', 'calendar-outline'],
+  ['🔢', 'list-outline'],
+  ['🕑', 'time-outline'],
+];
+
+/** 카드 줄 맨 앞 이모지를 Ionicons 이름과 나머지 글자로 나눈다(단계 4b §5.1). 모르는 이모지는 글자 그대로 */
+export function splitLeadingIcon(text: string): { icon?: LineIcon; text: string } {
+  for (const [emoji, icon] of LEADING_ICONS) {
+    if (text.startsWith(emoji)) return { icon, text: text.slice(emoji.length).replace(/^️?\s*/, '') };
+  }
+  return { text };
+}
+
+/** 아이콘(있으면) + 글자 한 줄 */
+function IconLine({ text, style, numberOfLines }: { text: string; style: TextStyle; numberOfLines?: number }) {
+  const s = splitLeadingIcon(text);
+  return (
+    <View style={styles.iconLine}>
+      {s.icon && <Ionicons name={s.icon} size={16} color={colors.muted} />}
+      <Text style={[style, styles.iconLineText]} numberOfLines={numberOfLines}>
+        {s.text}
+      </Text>
+    </View>
+  );
 }
 
 /** 카드 학습장 요약 `✏️ 내용 · 달성률 라벨`. 내용이 없으면 null */
@@ -172,16 +204,17 @@ export function TimelinePanel({
       onEndReachedThreshold={0.5}
       ItemSeparatorComponent={() => <View style={styles.divider} />}
       ListEmptyComponent={<Text style={styles.empty}>기출 검색이나 주제별 문제 모음 등을 조회한 기록이 없습니다.</Text>}
-      ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footer} color="orange" /> : null}
+      ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footer} color={colors.accent} /> : null}
       renderItem={({ item }) => {
         const d = describeTask(item);
+        const title = splitLeadingIcon(d.title).text;
         const note = describeNote(item);
         return (
           <View style={styles.card}>
-            <Text style={styles.title}>{d.title}</Text>
-            <Text style={styles.subtitle} numberOfLines={4}>{d.subtitle}</Text>
+            <IconLine text={d.title} style={styles.title} />
+            <IconLine text={d.subtitle} style={styles.subtitle} numberOfLines={4} />
             {d.lines.map((l) => (
-              <Text key={l} style={styles.line}>{l}</Text>
+              <IconLine key={l} text={l} style={splitLeadingIcon(l).icon === 'list-outline' ? styles.numbers : styles.line} />
             ))}
             {onOpenNote && (
               <Text style={[styles.note, { color: note ? colors.subtle : colors.muted }]} numberOfLines={1}>
@@ -189,27 +222,16 @@ export function TimelinePanel({
               </Text>
             )}
             {item.lastVisitedAt != null && (
-              <Text style={styles.date}>{`🕑 ${moment(item.lastVisitedAt * 1000).format('YYYY-MM-DD A h')}시`}</Text>
+              <View style={[styles.iconLine, styles.dateRow]}>
+                <Ionicons name="time-outline" size={14} color={colors.muted} />
+                <Text style={styles.date}>{`${moment(item.lastVisitedAt * 1000).format('YYYY-MM-DD A h')}시`}</Text>
+              </View>
             )}
             <View style={styles.actions}>
               {onOpenNote && (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`${d.title} 학습장`}
-                  onPress={() => onOpenNote(item)}
-                  hitSlop={6}
-                  style={styles.noteBtn}>
-                  <Text style={styles.noteBtnText}>학습장</Text>
-                </Pressable>
+                <Button variant="secondary" size="sm" title="학습장" accessibilityLabel={`${title} 학습장`} onPress={() => onOpenNote(item)} />
               )}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`${d.title} 학습하기`}
-                onPress={() => onSelectTask(item)}
-                hitSlop={6}
-                style={({ pressed }) => [styles.go, pressed && { backgroundColor: '#D35400' }]}>
-                <Text style={styles.goText}> 가자!!! </Text>
-              </Pressable>
+              <Button variant="primary" size="sm" title="가자!!!" accessibilityLabel={`${title} 학습하기`} onPress={() => onSelectTask(item)} />
             </View>
           </View>
         );
@@ -219,27 +241,20 @@ export function TimelinePanel({
 }
 
 const styles = StyleSheet.create({
-  card: { paddingHorizontal: 16, paddingVertical: 8, gap: 6, backgroundColor: '#FFFFFF' },
-  title: { fontSize: 18, fontWeight: '700', color: '#000000', textDecorationLine: 'underline' },
-  subtitle: { fontSize: 14, fontWeight: '700', color: 'orange' },
-  line: { fontSize: 14, color: '#18181B' },
-  date: { fontSize: 12, color: '#18181B', textAlign: 'right' },
-  // 크기는 GoButton small(높이 32)과 맞춘다. 누르는 영역은 hitSlop으로 44를 유지
+  card: { paddingHorizontal: space.lg, paddingVertical: space.sm, gap: 6, backgroundColor: colors.card },
+  // 단계 4b D1: 모양만 바꾼다(보이는 정보는 그대로). 이모지 → Ionicons, 글자·색 토큰
+  iconLine: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  iconLineText: { flexShrink: 1 },
+  title: { ...type.title, color: colors.text },
+  subtitle: { ...type.bodyStrong, color: colors.accentText },
+  line: { ...type.body, color: colors.subtle },
+  numbers: { ...type.caption, color: colors.muted },
+  // 날짜는 지금 자리(버튼 위 오른쪽)에 둔다
+  dateRow: { alignSelf: 'flex-end' },
+  date: { ...type.caption, color: colors.muted },
   note: { ...type.body },
   actions: { flexDirection: 'row', alignSelf: 'flex-end', alignItems: 'center', gap: space.sm },
-  noteBtn: {
-    minHeight: 32,
-    paddingHorizontal: space.md,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.lineStrong,
-    justifyContent: 'center',
-  },
-  noteBtnText: { ...type.bodyStrong, color: colors.subtle },
-  go: { minHeight: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#FF8800', justifyContent: 'center' },
-  goText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
-  // 기존 cardDivider
-  divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },
-  empty: { padding: 24, fontSize: 14, color: '#52525B' },
+  divider: { height: StyleSheet.hairlineWidth * 2, backgroundColor: colors.line, marginVertical: space.md, marginHorizontal: space.lg },
+  empty: { padding: 24, ...type.body, color: colors.subtle },
   footer: { padding: 12 },
 });

@@ -10,16 +10,18 @@ import { CREATE_RECORD, SEND_REQUEST_MESSAGE, ADD_BOOKMARK } from '@/src/api/gra
 import { UNIT_TRIES } from '@/src/api/graphql/queries';
 import { UNITANSWER } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
-import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
+import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
+import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
-import GoButton from '@/src/kit/ui/go-button';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { ensureTaskId } from '@/src/adapters/ensureTask';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
+import { Button } from '@/src/ui/Button';
+import { Chip } from '@/src/ui/Chip';
 import { SheetHandle } from '@/src/ui/SheetHandle';
-import { colors, radius } from '@/src/ui/theme';
+import { colors, radius, shadow, space } from '@/src/ui/theme';
 
 // 문제 풀이 화면: 기존 pages/notebook/index.tsx를 옮김. 패널은 note-canvas/notebook.tsx 그대로,
 // 하단 버튼 줄(나가기·목록·답안 예시·내 이전 풀이)은 아이콘 버튼으로 캔버스 하단 가운데 툴바(펜 설정 등)에 합쳤다. 모달·바텀시트는 기존 그대로다.
@@ -43,6 +45,7 @@ export default function NotebookScreen() {
   const { countSolved } = useSolveFinished({ taskId: session?.taskId || undefined, kind: 'self' });
   const panelRef = useRef<PanelHandle | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
+  const sheetBottomInset = useCanvasSheetBottomInset();
   const workoutSheetListRef = useRef<BottomSheetModal>(null);
   const [currentSheet, setCurrentSheet] = useState<SolveProblem | undefined>(session?.problems[session.index]);
   const [sheetListVisible, setSheetListVisible] = useState(false);
@@ -216,21 +219,16 @@ export default function NotebookScreen() {
 
                   {/* 아래 한 줄 버튼 그룹 */}
                   <View style={styles.cardButtonGroup}>
-                    <GoButton title="교체" size="small" onPress={() => setCurrentSheet(item)} />
+                    <Button variant="secondary" size="sm" title="교체" onPress={() => setCurrentSheet(item)} />
                     <View style={styles.cardButtonGroupRight}>
-                      <GoButton
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         title={isBookmarked ? '책갈피됨' : '책갈피'}
-                        size="small"
-                        variant={isBookmarked ? 'filled' : 'outline'}
                         disabled={isBookmarked}
                         onPress={() => handleBookmark(item)}
                       />
-                      <GoButton
-                        title={isShowingAnswer ? '문제' : '해답'}
-                        size="small"
-                        variant={isShowingAnswer ? 'filled' : 'outline'}
-                        onPress={() => toggleAnswer(itemKey)}
-                      />
+                      <Chip label={isShowingAnswer ? '문제' : '해답'} selected={isShowingAnswer} onPress={() => toggleAnswer(itemKey)} />
                     </View>
                   </View>
                 </View>
@@ -238,7 +236,7 @@ export default function NotebookScreen() {
             }}
           />
           <View style={styles.buttonContainerStyle}>
-            <GoButton title={'닫기'} onPress={() => setSheetListVisible(false)} />
+            <Button variant="secondary" size="sm" title="닫기" onPress={() => setSheetListVisible(false)} />
           </View>
         </View>
       </Modal>
@@ -250,14 +248,16 @@ export default function NotebookScreen() {
         screenActions={[
           canvasAction('exit', '나가기', 'chevron-back', () => (router.canGoBack() ? router.back() : router.replace('/'))),
           canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true)),
-          canvasAction('answer', '해답', 'eye-outline', handlePresentModalPress),
+          canvasAction('study', '개념·해답', 'book-outline', handlePresentModalPress),
           canvasAction('workouts', '내 풀이', 'layers-outline', handlePresentWorkoutSheetListModalPress),
         ]}
       />
-      <BottomSheetModal ref={sheetRef} handleComponent={SheetHandle}>
-        <BottomSheetView>
+      <CanvasStudySheet
+        sheetRef={sheetRef}
+        answerLabel="해답"
+        answer={
           <View style={styles.bottomContainerStyle}>
-            <View style={{ flex: 1, height: height / 2 - 64, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
+            <View style={{ flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
               {answerUrl && (
                 <WebView
                   originWhitelist={['*']}
@@ -272,12 +272,20 @@ export default function NotebookScreen() {
               )}
             </View>
           </View>
-        </BottomSheetView>
-      </BottomSheetModal>
-      <BottomSheetModal ref={workoutSheetListRef} handleComponent={SheetHandle}>
-        <BottomSheetView>
+        }
+      />
+      <BottomSheetModal
+        ref={workoutSheetListRef}
+        snapPoints={CANVAS_SHEET_SNAPS}
+        index={0}
+        bottomInset={sheetBottomInset}
+        enableDynamicSizing={false}
+        enableContentPanningGesture={false}
+        handleComponent={SheetHandle}
+      >
+        <BottomSheetView style={styles.sheetBody}>
           <View style={styles.workoutSheetContainerStyle}>
-            <View style={{ flex: 1, height: height / 2 - 108, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card, width: width - 12 }}>
+            <View style={{ flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card, width: width - 12 }}>
               <FlatList
                 data={workoutNotes}
                 keyExtractor={(_, index) => 'workout-sheet-' + index}
@@ -302,16 +310,12 @@ export default function NotebookScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg }, // 흰 캔버스 카드가 보이도록 옅은 회색 바닥(좌우 6px 여백)
-  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: colors.scrim },
   listContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.card,
     padding: 20,
     borderRadius: 12,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    ...shadow.float,
   },
   listContent: {
     alignItems: 'flex-start',
@@ -364,14 +368,17 @@ const styles = StyleSheet.create({
   cardButtonGroupRight: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: space.sm,
   },
   fullSize: {
     width: '100%',
     height: '100%',
   },
   buttonContainerStyle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: 44, marginTop: 6 },
-  bottomContainerStyle: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-end', width: '100%', height: height / 2 },
+  // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
+  sheetBody: { flex: 1 },
+  bottomContainerStyle: { flex: 1, flexDirection: 'row', width: '100%' },
   tryContainer: { width: width / 3 + 18 },
   tryImageContainer: { alignItems: 'flex-start', justifyContent: 'flex-start', width: width / 3 + 12 },
-  workoutSheetContainerStyle: { flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-end', width: '100%', height: height / 2 },
+  workoutSheetContainerStyle: { flex: 1, flexDirection: 'column', alignItems: 'flex-start', width: '100%' },
 });

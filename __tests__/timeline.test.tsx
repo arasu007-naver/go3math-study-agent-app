@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { TimelinePanel, describeNote, describeTask, noteModeOf, noteSheetProps, type TimelineFetchers, type TimelineTask } from '../src/kit/timeline/TimelinePanel';
+import { TimelinePanel, splitLeadingIcon, describeNote, describeTask, noteModeOf, noteSheetProps, type TimelineFetchers, type TimelineTask } from '../src/kit/timeline/TimelinePanel';
 
 const fetchers = (impl: TimelineFetchers['fetchTasks']): TimelineFetchers => ({ fetchTasks: impl });
 
@@ -31,10 +31,10 @@ describe('TimelinePanel', () => {
     const onSelectTask = jest.fn();
     const fetchTasks = jest.fn(async () => [selection, { id: 99, taskType: 'recommended' }]);
     render(<TimelinePanel fetchers={fetchers(fetchTasks)} onSelectTask={onSelectTask} />);
-    await waitFor(() => expect(screen.getByText('📝 기출 검색')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('기출 검색')).toBeTruthy());
     expect(fetchTasks).toHaveBeenCalledWith({ page: 0, pageSize: 36 });
     expect(screen.getAllByRole('button')).toHaveLength(1); // recommended는 표시하지 않음
-    fireEvent.press(screen.getByLabelText('📝 기출 검색 학습하기'));
+    fireEvent.press(screen.getByLabelText('기출 검색 학습하기'));
     expect(onSelectTask).toHaveBeenCalledWith(selection);
   });
 
@@ -88,14 +88,45 @@ describe('TimelinePanel note button', () => {
     render(<TimelinePanel fetchers={fetchers(async () => [selection, withNote])} onSelectTask={jest.fn()} onOpenNote={onOpenNote} />);
     await waitFor(() => expect(screen.getByText('학습장을 남겨 보세요')).toBeTruthy());
     expect(screen.getByText('✏️ 일반항 구하기 · 거의')).toBeTruthy();
-    fireEvent.press(screen.getAllByLabelText('📝 기출 검색 학습장')[0]);
+    fireEvent.press(screen.getAllByLabelText('기출 검색 학습장')[0]);
     expect(onOpenNote).toHaveBeenCalledWith(selection);
   });
 
   it('has no note button without onOpenNote', async () => {
     render(<TimelinePanel fetchers={fetchers(async () => [selection])} onSelectTask={jest.fn()} />);
-    await waitFor(() => expect(screen.getByText('📝 기출 검색')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('기출 검색')).toBeTruthy());
     expect(screen.getAllByRole('button')).toHaveLength(1);
     expect(screen.queryByText('학습장을 남겨 보세요')).toBeNull();
+  });
+});
+
+describe('splitLeadingIcon (spec 4b §5.1)', () => {
+  it('maps known emoji and keeps unknown text', () => {
+    expect(splitLeadingIcon('📝 기출 검색')).toEqual({ icon: 'document-text-outline', text: '기출 검색' });
+    expect(splitLeadingIcon('📝  책갈피')).toEqual({ icon: 'document-text-outline', text: '책갈피' });
+    expect(splitLeadingIcon('📆 10월')).toEqual({ icon: 'calendar-outline', text: '10월' });
+    expect(splitLeadingIcon('🗓 10월')).toEqual({ icon: 'calendar-outline', text: '10월' });
+    expect(splitLeadingIcon('🔢 번호: 1, 2')).toEqual({ icon: 'list-outline', text: '번호: 1, 2' });
+    expect(splitLeadingIcon('🕑 11/12')).toEqual({ icon: 'time-outline', text: '11/12' });
+    expect(splitLeadingIcon('★ 기타')).toEqual({ text: '★ 기타' });
+    expect(splitLeadingIcon('그냥 글')).toEqual({ text: '그냥 글' });
+  });
+});
+
+describe('TimelinePanel card look (spec 4b D1)', () => {
+  it('has no emoji glyphs, keeps the date, and uses shared Buttons', async () => {
+    const { StyleSheet } = require('react-native');
+    const { colors } = require('../src/ui/theme');
+    render(<TimelinePanel fetchers={fetchers(async () => [selection])} onSelectTask={jest.fn()} onOpenNote={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('기출 검색')).toBeTruthy());
+    expect(screen.queryByText(/📝|📆|🔢|🕑/)).toBeNull();
+    expect(screen.getByText('6월, 9월')).toBeTruthy();
+    expect(screen.getByText('번호: 21, 22')).toBeTruthy();
+    expect(screen.getByText(/^\d{4}-\d{2}-\d{2} .+시$/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: '기출 검색 학습하기' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '기출 검색 학습장' })).toBeTruthy();
+    const title = StyleSheet.flatten(screen.getByText('기출 검색').props.style);
+    expect(title.color).toBe(colors.text);
+    expect(title.textDecorationLine).toBeUndefined();
   });
 });

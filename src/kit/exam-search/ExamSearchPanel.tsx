@@ -5,9 +5,10 @@
  * 마지막 계열은 기존 키(`recent-exam-subject` / `pre-exam-subject`)에 그대로 저장한다.
  */
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import GoButton from '../ui/go-button';
-import { colors } from '../../ui/theme';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button } from '../../ui/Button';
+import { Chip } from '../../ui/Chip';
+import { colors, space, type } from '../../ui/theme';
 import { PRE_EXAMS_ASSETS, currentSubjects, thisMonths } from '../../config/exam.constants';
 import {
   buildPreExamQuery,
@@ -68,62 +69,68 @@ export function ExamSearchPanel({ mode, preset, store, onSubmit }: Props) {
       <ScrollView contentContainerStyle={styles.content}>
         <ChipRow label="계열">
           {subjects.map((s) => (
-            <Chip key={s.value} label={s.label} on={s.value === subject} onPress={() => changeSubject(s.value)} />
+            <Chip key={s.value} label={s.label} accessibilityRole="radio" selected={s.value === subject} onPress={() => changeSubject(s.value)} />
           ))}
         </ChipRow>
         {mode === 'pre_exam' && (
-          <ChipRow label="연도">
+          <ChipRow label="연도" onClear={() => setYears([])}>
             {yearOptions.map((y) => (
-              <Chip key={y.value} label={y.label} on={years.includes(y.value)} onPress={() => setYears(toggle(years, y.value))} />
+              <Chip key={y.value} label={y.label} accessibilityRole="checkbox" selected={years.includes(y.value)} onPress={() => setYears(toggle(years, y.value))} />
             ))}
           </ChipRow>
         )}
-        <ChipRow label="시행월">
+        <ChipRow label="시행월" onClear={() => setMonths([])}>
           {monthOptions.map((m) => (
-            <Chip key={m.value} label={m.label} on={months.includes(m.value)} onPress={() => setMonths(toggle(months, m.value))} />
+            <Chip key={m.value} label={m.label} accessibilityRole="checkbox" selected={months.includes(m.value)} onPress={() => setMonths(toggle(months, m.value))} />
           ))}
         </ChipRow>
-        <ChipRow label="번호">
+        <ChipRow label="번호" onClear={() => setNumbers([])}>
           {PRE_EXAMS_ASSETS.numbers.map((n) => (
-            <Chip key={n.value} label={n.label} on={numbers.includes(n.value)} onPress={() => setNumbers(toggle(numbers, n.value))} />
+            <Chip key={n.value} label={n.label} accessibilityRole="checkbox" selected={numbers.includes(n.value)} onPress={() => setNumbers(toggle(numbers, n.value))} />
           ))}
         </ChipRow>
         {notice && <Text style={styles.notice}>{notice}</Text>}
         <View style={styles.goRow}>
-          <GoButton title=" 가자!!! " onPress={submit} />
+          <Button variant="primary" size="sm" title="가자!!!" onPress={submit} />
         </View>
       </ScrollView>
     </View>
   );
 }
 
-function ChipRow({ label, children }: { label: string; children: ReactNode }) {
+/**
+ * 행 하나. onClear가 있으면 라벨이 그 행의 선택을 모두 지우는 버튼이다(단계 4b D4 — 라벨이 초기화 버튼으로도 쓰인다).
+ * 계열처럼 하나를 꼭 고르는 행은 onClear 없이 글자 라벨만 둔다.
+ */
+function ChipRow({ label, onClear, children }: { label: string; onClear?: () => void; children: ReactNode }) {
   return (
     <View style={styles.row}>
-      <GoButton variant="filled" color="#30B650" size="xSmall" title={`${label} 선택 ->`} />
+      {onClear ? (
+        <Button variant="secondary" size="sm" icon="refresh" title={`${label} 선택`} accessibilityHint="선택을 모두 지웁니다" onPress={onClear} />
+      ) : (
+        <Text style={styles.rowLabel}>{label}</Text>
+      )}
       {children}
     </View>
   );
 }
 
-function Chip({ label, on, onPress }: { label: string; on: boolean; onPress(): void }) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityState={{ selected: on }} onPress={onPress} style={[styles.chip, on && styles.chipOn]}>
-      <Text style={[styles.chipText, on && styles.chipTextOn]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
-  // 기존 앱 톤: 초록 행 라벨(GoButton xSmall), 회색 테두리·주황 채움(선택) 칩, 행 사이 구분선.
+  root: { flex: 1, backgroundColor: colors.card },
+  // 행 라벨 + 공용 칩, 행 사이 구분선.
   // "가자!!!"는 떠 있는 버튼 대신 마지막 행 아래 오른쪽 — 폰 하단 instruction 모달에 가리지 않게 스크롤 여유를 둔다.
   content: { padding: 3, paddingBottom: 300 },
-  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, padding: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#D4D4D8' },
-  chip: { minHeight: 32, minWidth: 40, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: '#FFFFFF' },
-  chipOn: { backgroundColor: 'orange' },
-  chipText: { fontSize: 14, color: '#18181B' },
-  chipTextOn: { fontWeight: '600' },
-  notice: { fontSize: 14, color: '#B45309', padding: 6 },
+  row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: space.xs,
+    padding: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.line,
+  },
+  rowLabel: { ...type.bodyStrong, color: colors.subtle, paddingHorizontal: space.sm },
+  // 1안: 글자용 warn 토큰이 없어 danger를 쓴다(새 토큰 없음)
+  notice: { ...type.body, color: colors.danger, padding: 6 },
   goRow: { alignItems: 'flex-end', paddingVertical: 12, paddingRight: 12 },
 });
