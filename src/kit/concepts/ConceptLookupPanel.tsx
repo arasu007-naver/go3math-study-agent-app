@@ -148,14 +148,19 @@ export function ConceptLookupPanel({ fetchers = conceptFetchers }: { fetchers?: 
                     accessibilityRole="button"
                     onPress={() => setSelected(c)}
                     style={[styles.conceptChip, on ? styles.chipOn : styles.conceptChipOff]}>
-                    <MathJaxWrapper
-                      iPath={c.imgPath ?? ''}
-                      statement={c.rawTitle || `개념 ${i + 1}`}
-                      fontSize={13}
-                      fontWeight="600"
-                      color={on ? '#ffffff' : '#ea580c'}
-                      inline={true}
-                    />
+                    {/* 수식을 MathJax(WebView)로 그린다. WebView가 터치를 가져가지 않게 막아 칩이 눌리게 한다 */}
+                    <View pointerEvents="none">
+                      <MathJaxWrapper
+                        iPath={c.imgPath ?? ''}
+                        statement={c.rawTitle || `개념 ${i + 1}`}
+                        fontSize={13}
+                        color={on ? '#ffffff' : '#ea580c'}
+                        backgroundColor={on ? '#ea580c' : '#ffffff'}
+                        fullView={true}
+                        autoSize={true}
+                        maxWidth={320}
+                      />
+                    </View>
                   </Pressable>
                 );
               })}

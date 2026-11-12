@@ -5,7 +5,7 @@ jest.mock('react-native-webview', () => ({ WebView: () => null }));
 jest.mock('../src/kit/math/MathJaxWrapper', () => {
   const { Text } = require('react-native');
   return (p: any) =>
-    p.fullView ? <Text testID="concept-detail">{`${p.titleStatement}|${p.statement}`}</Text> : <Text testID="concept-chip-text">{p.statement}</Text>;
+    p.fullView && !p.autoSize ? <Text testID="concept-detail">{`${p.titleStatement}|${p.statement}`}</Text> : <Text testID="concept-chip-text">{p.statement}</Text>;
 });
 
 import { ConceptLookupPanel, type ConceptFetchers } from '../src/kit/concepts/ConceptLookupPanel';
