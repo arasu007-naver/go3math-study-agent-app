@@ -4,7 +4,15 @@ import { StudyNoteForm } from '../src/kit/study-note/StudyNoteForm';
 import { colors, layout } from '../src/ui/theme';
 
 // 시트 밖에서 그리므로 gorhom 입력칸은 RN TextInput으로 바꾼다
-jest.mock('@gorhom/bottom-sheet', () => ({ BottomSheetTextInput: require('react-native').TextInput }));
+// 스크롤 영역은 testID를 붙여 gorhom 스크롤 뷰를 쓰는지 확인한다
+jest.mock('@gorhom/bottom-sheet', () => {
+  const React = require('react');
+  const { TextInput, ScrollView } = require('react-native');
+  return {
+    BottomSheetTextInput: TextInput,
+    BottomSheetScrollView: (p: any) => React.createElement(ScrollView, { ...p, testID: 'sheet-scroll' }),
+  };
+});
 import { draftKey } from '../src/kit/study-note/draft';
 import type { StudyNote } from '../src/kit/study-note/model';
 import type { StudyNoteFetchers } from '../src/kit/study-note/persist';
@@ -181,6 +189,14 @@ describe('StudyNoteForm', () => {
 
 describe('StudyNoteForm - shared components (stage 4a)', () => {
   const flat = (node: any) => StyleSheet.flatten(node.props.style);
+
+  it('scrolls inside the bottom sheet with gorhom BottomSheetScrollView (review I2)', async () => {
+    const { ui } = setup();
+    await render(ui);
+    await settle();
+    const scroll = screen.getByTestId('sheet-scroll');
+    expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
+  });
 
   it('chips are the shared Chip at controlSm height', async () => {
     const { ui } = setup({}, { topicHints: ['일반항'] });

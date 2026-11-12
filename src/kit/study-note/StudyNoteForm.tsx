@@ -4,8 +4,8 @@
  * 키보드 회피는 이 컴포넌트가 아니라 시트(SheetHost)가 맡는다.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { StyleSheet, Text, View } from 'react-native';
 import type { KeyValueStore } from '../../storage/types';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
@@ -102,7 +102,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
   const goalVisible = goalOpen || form.expectations !== '';
 
   return (
-    <ScrollView contentContainerStyle={styles.root} keyboardShouldPersistTaps="handled">
+    <BottomSheetScrollView contentContainerStyle={styles.root} keyboardShouldPersistTaps="handled">
       <Text style={styles.header} accessibilityRole="header">{`학습장 · ${title}`}</Text>
 
       {fetchFailed ? <Text style={styles.notice}>이전 메모를 불러오지 못했어요</Text> : null}
@@ -189,7 +189,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
         <Button variant="text" title="나중에" onPress={() => onDone('dismissed')} />
         <Button variant="primary" title={saveLabel} disabled={saveDisabled} onPress={save} />
       </View>
-    </ScrollView>
+    </BottomSheetScrollView>
   );
 }
 

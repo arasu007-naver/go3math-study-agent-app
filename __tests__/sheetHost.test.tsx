@@ -13,10 +13,11 @@ jest.mock('../src/state/bootstrap', () => ({ apolloClient: {} }));
 // gorhom 모달: 내용을 그리고, present·dismiss·onDismiss를 잡는다. dismiss는 실제처럼 onDismiss를 부른다.
 const mockPresent = jest.fn();
 const mockDismiss = jest.fn();
-const mockModal: { props: any } = { props: null };
+// defer = true면 실제 gorhom처럼 닫힘 애니메이션이 끝날 때까지 onDismiss를 미룬다(finishClose로 끝낸다)
+const mockModal: { props: any; defer: boolean; pending: (() => void) | null } = { props: null, defer: false, pending: null };
 jest.mock('@gorhom/bottom-sheet', () => {
   const React = require('react');
-  const { TextInput } = require('react-native');
+  const { TextInput, ScrollView } = require('react-native');
   return {
     BottomSheetModal: React.forwardRef((props: any, ref: any) => {
       mockModal.props = props;
@@ -24,15 +25,23 @@ jest.mock('@gorhom/bottom-sheet', () => {
         present: mockPresent,
         dismiss: () => {
           mockDismiss();
-          mockModal.props.onDismiss?.();
+          if (mockModal.defer) mockModal.pending = () => mockModal.props.onDismiss?.();
+          else mockModal.props.onDismiss?.();
         },
       }));
       return props.children;
     }),
     BottomSheetView: ({ children }: any) => children,
+    BottomSheetScrollView: ScrollView,
     BottomSheetTextInput: TextInput,
   };
 });
+const finishClose = () =>
+  act(async () => {
+    const p = mockModal.pending;
+    mockModal.pending = null;
+    p?.();
+  });
 
 const mockFetchNote = jest.fn(async (_id: number) => null);
 const mockRegister = jest.fn(async () => {});
@@ -65,6 +74,8 @@ const dragDown = () => act(async () => mockModal.props.onDismiss());
 beforeEach(() => {
   jest.clearAllMocks();
   mockModal.props = null;
+  mockModal.defer = false;
+  mockModal.pending = null;
   solveStore.dispatch(null);
 });
 
@@ -202,6 +213,37 @@ describe('SheetHost as a bottom sheet (Gate B Q5)', () => {
     expect(session.emit).toHaveBeenCalledTimes(1);
     expect(session.emit).toHaveBeenCalledWith('study_note_dismissed', { taskId: 7 });
     expect(session.closeSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('session closes and reopens before the close animation ends → presents again and the new sheet works', async () => {
+    mockModal.defer = true;
+    const session = fakeSession();
+    const { rerender } = await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await screen.findByText('학습장 · t');
+    await rerender(<SheetHost state={snap(null)} session={session} />);
+    await rerender(<SheetHost state={snap({ taskId: 8, mode: 'self', title: 'u' })} session={session} />);
+    await finishClose();
+    expect(mockPresent).toHaveBeenCalledTimes(2);
+    expect(await screen.findByText('학습장 · u')).toBeTruthy();
+    expect(session.emit).not.toHaveBeenCalled();
+  });
+
+  it('reopened sheet for the same taskId after a save can be saved again', async () => {
+    mockModal.defer = true;
+    const session = fakeSession();
+    const { rerender } = await render(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await screen.findByText('학습장 · t');
+    await fireEvent.press(screen.getByText('거의'));
+    await fireEvent.press(screen.getByText('저장'));
+    await waitFor(() => expect(session.closeSheet).toHaveBeenCalledTimes(1));
+    await rerender(<SheetHost state={snap(null)} session={session} />);
+    await rerender(<SheetHost state={snap({ taskId: 7, mode: 'self', title: 't' })} session={session} />);
+    await finishClose();
+    expect(mockPresent).toHaveBeenCalledTimes(2);
+    await screen.findByText('학습장 · t');
+    await fireEvent.press(screen.getByText('나중에'));
+    expect(session.emit).toHaveBeenCalledTimes(2);
+    expect(session.emit).toHaveBeenLastCalledWith('study_note_dismissed', { taskId: 7 });
   });
 
   it('Android back closes the open sheet once and is released when the sheet goes', async () => {
