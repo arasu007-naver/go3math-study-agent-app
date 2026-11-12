@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import { colors, layout } from '../src/ui/theme';
+import { colors } from '../src/ui/theme';
 
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 const mockSheetProps: any[] = [];
@@ -18,10 +18,7 @@ jest.mock('react-native-safe-area-context', () => {
   return { ...actual, useSafeAreaInsets: () => ({ top: 0, bottom: 20, left: 0, right: 0 }) };
 });
 
-/** 마지막 렌더의 시트 props(같은 ref 순서대로 렌더된다) */
-const lastSheets = (n: number) => mockSheetProps.slice(-n);
-
-import { CanvasChrome, canvasTool } from '../src/kit/canvas/CanvasChrome';
+import { CanvasChrome, canvasAction, canvasTool } from '../src/kit/canvas/CanvasChrome';
 
 describe('CanvasChrome - 전체 지우기 Confirmation Modal', () => {
   const tools = [
@@ -162,12 +159,14 @@ describe('CanvasChrome - 전체 지우기 uses the shared Dialog', () => {
   });
 });
 
-describe('CanvasChrome - concept sheet (Gate B Q4)', () => {
-  it('opens at 넓게 70% of the two steps and stops above the toolbar', async () => {
-    await render(<CanvasChrome tools={[canvasTool('save', '저장')]} onSelectTool={() => {}} />);
-    const p = lastSheets(1)[0];
-    expect(p.snapPoints).toEqual(['50%', '70%']);
-    expect(p.index).toBe(1);
-    expect(p.bottomInset).toBe(layout.toolbarH + 20);
+describe('CanvasChrome - no own concept button or sheet (개념·해답 merge)', () => {
+  it('passes only the screen actions to the toolbar and renders no sheet', async () => {
+    mockSheetProps.length = 0;
+    await render(
+      <CanvasChrome actions={[canvasAction('list', '목록', 'albums-outline', () => {})]} tools={[canvasTool('save', '저장')]} onSelectTool={() => {}} />
+    );
+    expect(screen.getByText('목록')).toBeTruthy();
+    expect(screen.queryByText('개념')).toBeNull();
+    expect(mockSheetProps).toHaveLength(0);
   });
 });

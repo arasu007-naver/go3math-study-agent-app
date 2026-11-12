@@ -1,15 +1,10 @@
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Dialog } from '../../ui/Dialog';
-import { SheetHandle } from '../../ui/SheetHandle';
 import { colors, layout } from '../../ui/theme';
-import { ConceptLookupPanel } from '../concepts/ConceptLookupPanel';
 import {
-  CANVAS_SHEET_SNAPS,
   FloatingToolbar,
-  useCanvasSheetBottomInset,
   type FloatingAction,
   type FloatingTool,
   type ToolId,
@@ -56,12 +51,10 @@ export function canvasAction(
   };
 }
 
-// 개념 검색 bottom sheet: 내용(과목·단원·개념 칩)이 flex라 동적 크기 대신 CANVAS_SHEET_SNAPS 두 단계, 넓게(70%)로 연다
-
 /**
  * 캔버스 화면 위 오버레이(design-spec P2-1·P2-5): 하단 가운데 FloatingToolbar, 가로 모드 안내 배너, 펜 속성 팝오버(children).
  * 캔버스 컨테이너를 가득 덮는 box-none View라 그 크기로 가로 여부를 재고, 버튼·배너·팝오버 밖의 터치는 캔버스로 간다.
- * 툴바 화면 버튼 맨 끝의 검색 버튼은 개념 검색 패널(ConceptLookupPanel)을 bottom sheet로 연다.
+ * 개념 조회는 각 화면의 '개념·해답' 시트(CanvasStudySheet)가 맡는다.
  */
 export function CanvasChrome({
   actions,
@@ -79,9 +72,6 @@ export function CanvasChrome({
 }) {
   const { onLayout, restricted, noticeActive, ping, onRestrictedPress } = useCanvasLandscape();
   const [clearConfirmVisible, setClearConfirmVisible] = useState(false);
-  const conceptSheet = useRef<BottomSheetModal>(null);
-  const sheetBottomInset = useCanvasSheetBottomInset();
-  const search = canvasAction('conceptSearch', '개념', 'search-outline', () => conceptSheet.current?.present());
 
   const handleSelectTool = (id: ToolId) => {
     if (id === 'clearBoard') {
@@ -101,7 +91,7 @@ export function CanvasChrome({
       <LandscapeNotice active={noticeActive} ping={ping} />
       <FloatingToolbar
         mode="draw"
-        actions={[...(actions ?? []), search]}
+        actions={actions ?? []}
         tools={tools}
         onSelectTool={handleSelectTool}
         strokeColor={strokeColor}
@@ -118,24 +108,6 @@ export function CanvasChrome({
         cancel={{}}
         confirm={{ title: '확인', variant: 'danger', onPress: handleConfirmClear }}
       />
-      {/* 시트 안 스크롤(칩 목록)이 시트 끌기와 다투지 않게 끌기는 손잡이로만 */}
-      <BottomSheetModal
-        ref={conceptSheet}
-        snapPoints={CANVAS_SHEET_SNAPS}
-        index={1}
-        bottomInset={sheetBottomInset}
-        enableDynamicSizing={false}
-        enableContentPanningGesture={false}
-        handleComponent={SheetHandle}
-      >
-        <BottomSheetView style={styles.sheet}>
-          <ConceptLookupPanel />
-        </BottomSheetView>
-      </BottomSheetModal>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  sheet: { flex: 1 },
-});
