@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ADD_BOOKMARK } from '../src/api/graphql/mutations';
+import { layout } from '../src/ui/theme';
 
 const mockAddBookmark = jest.fn().mockResolvedValue({ data: { addBookmark: true } });
 const mockCreateRecord = jest.fn().mockResolvedValue({ data: { createRecord: { id: 1 } } });
@@ -23,10 +24,22 @@ jest.mock('expo-router', () => ({
   router: { back: jest.fn(), replace: jest.fn(), canGoBack: () => true },
 }));
 
+const mockSheetProps: any[] = [];
 jest.mock('@gorhom/bottom-sheet', () => ({
-  BottomSheetModal: () => null,
+  BottomSheetModal: (p: any) => {
+    mockSheetProps.push(p);
+    return null;
+  },
   BottomSheetView: ({ children }: any) => children,
 }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const actual = jest.requireActual('react-native-safe-area-context');
+  return { ...actual, useSafeAreaInsets: () => ({ top: 0, bottom: 20, left: 0, right: 0 }) };
+});
+
+/** 마지막 렌더의 시트 props(같은 ref 순서대로 렌더된다) */
+const lastSheets = (n: number) => mockSheetProps.slice(-n);
 
 jest.mock('@openspacelabs/react-native-zoomable-view', () => ({
   ReactNativeZoomableView: ({ children }: any) => children,
@@ -158,5 +171,18 @@ describe('NotebookScreen - Problem List Modal', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('mock-webview')).toBeNull();
     });
+  });
+});
+
+describe('NotebookScreen - canvas sheets (Gate B Q4)', () => {
+  it('answer and workouts sheets open at 보기 50% with 넓게 70% and stop above the toolbar', async () => {
+    await render(<NotebookScreen />);
+    for (const p of lastSheets(2)) {
+      expect(p.snapPoints).toEqual(['50%', '70%']);
+      expect(p.index).toBe(0);
+      expect(p.bottomInset).toBe(layout.toolbarH + 20);
+      expect(p.enableDynamicSizing).toBe(false);
+      expect(p.enableContentPanningGesture).toBe(false);
+    }
   });
 });

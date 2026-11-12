@@ -6,7 +6,14 @@ import { SheetHandle } from '../../ui/SheetHandle';
 import { colors, layout, radius, space, type } from '../../ui/theme';
 import GoButton from '../ui/go-button';
 import { ConceptLookupPanel } from '../concepts/ConceptLookupPanel';
-import { FloatingToolbar, type FloatingAction, type FloatingTool, type ToolId } from './FloatingToolbar';
+import {
+  CANVAS_SHEET_SNAPS,
+  FloatingToolbar,
+  useCanvasSheetBottomInset,
+  type FloatingAction,
+  type FloatingTool,
+  type ToolId,
+} from './FloatingToolbar';
 import { LandscapeNotice } from './LandscapeNotice';
 import { useCanvasLandscape } from './useCanvasLandscape';
 
@@ -49,8 +56,7 @@ export function canvasAction(
   };
 }
 
-// 개념 검색 bottom sheet 높이. 내용(과목·단원·개념 칩)이 flex라 동적 크기 대신 고정 비율로 연다
-const CONCEPT_SHEET_SNAPS = ['70%'];
+// 개념 검색 bottom sheet: 내용(과목·단원·개념 칩)이 flex라 동적 크기 대신 CANVAS_SHEET_SNAPS 두 단계, 넓게(70%)로 연다
 
 /**
  * 캔버스 화면 위 오버레이(design-spec P2-1·P2-5): 하단 가운데 FloatingToolbar, 가로 모드 안내 배너, 펜 속성 팝오버(children).
@@ -74,6 +80,7 @@ export function CanvasChrome({
   const { onLayout, restricted, noticeActive, ping, onRestrictedPress } = useCanvasLandscape();
   const [clearConfirmVisible, setClearConfirmVisible] = useState(false);
   const conceptSheet = useRef<BottomSheetModal>(null);
+  const sheetBottomInset = useCanvasSheetBottomInset();
   const search = canvasAction('conceptSearch', '개념', 'search-outline', () => conceptSheet.current?.present());
 
   const handleSelectTool = (id: ToolId) => {
@@ -132,7 +139,15 @@ export function CanvasChrome({
         </View>
       </Modal>
       {/* 시트 안 스크롤(칩 목록)이 시트 끌기와 다투지 않게 끌기는 손잡이로만 */}
-      <BottomSheetModal ref={conceptSheet} snapPoints={CONCEPT_SHEET_SNAPS} enableDynamicSizing={false} enableContentPanningGesture={false} handleComponent={SheetHandle}>
+      <BottomSheetModal
+        ref={conceptSheet}
+        snapPoints={CANVAS_SHEET_SNAPS}
+        index={1}
+        bottomInset={sheetBottomInset}
+        enableDynamicSizing={false}
+        enableContentPanningGesture={false}
+        handleComponent={SheetHandle}
+      >
         <BottomSheetView style={styles.sheet}>
           <ConceptLookupPanel />
         </BottomSheetView>

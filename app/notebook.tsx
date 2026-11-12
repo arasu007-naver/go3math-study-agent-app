@@ -10,7 +10,7 @@ import { CREATE_RECORD, SEND_REQUEST_MESSAGE, ADD_BOOKMARK } from '@/src/api/gra
 import { UNIT_TRIES } from '@/src/api/graphql/queries';
 import { UNITANSWER } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
-import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
+import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import GoButton from '@/src/kit/ui/go-button';
@@ -42,6 +42,7 @@ export default function NotebookScreen() {
   const { countSolved } = useSolveFinished({ taskId: session?.taskId || undefined, kind: 'self' });
   const panelRef = useRef<PanelHandle | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
+  const sheetBottomInset = useCanvasSheetBottomInset();
   const workoutSheetListRef = useRef<BottomSheetModal>(null);
   const [currentSheet, setCurrentSheet] = useState<SolveProblem | undefined>(session?.problems[session.index]);
   const [sheetListVisible, setSheetListVisible] = useState(false);
@@ -249,10 +250,18 @@ export default function NotebookScreen() {
           canvasAction('workouts', '내 풀이', 'layers-outline', handlePresentWorkoutSheetListModalPress),
         ]}
       />
-      <BottomSheetModal ref={sheetRef} handleComponent={SheetHandle}>
-        <BottomSheetView>
+      <BottomSheetModal
+        ref={sheetRef}
+        snapPoints={CANVAS_SHEET_SNAPS}
+        index={0}
+        bottomInset={sheetBottomInset}
+        enableDynamicSizing={false}
+        enableContentPanningGesture={false}
+        handleComponent={SheetHandle}
+      >
+        <BottomSheetView style={styles.sheetBody}>
           <View style={styles.bottomContainerStyle}>
-            <View style={{ flex: 1, height: height / 2 - 64, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
+            <View style={{ flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
               {answerUrl && (
                 <WebView
                   originWhitelist={['*']}
@@ -269,10 +278,18 @@ export default function NotebookScreen() {
           </View>
         </BottomSheetView>
       </BottomSheetModal>
-      <BottomSheetModal ref={workoutSheetListRef} handleComponent={SheetHandle}>
-        <BottomSheetView>
+      <BottomSheetModal
+        ref={workoutSheetListRef}
+        snapPoints={CANVAS_SHEET_SNAPS}
+        index={0}
+        bottomInset={sheetBottomInset}
+        enableDynamicSizing={false}
+        enableContentPanningGesture={false}
+        handleComponent={SheetHandle}
+      >
+        <BottomSheetView style={styles.sheetBody}>
           <View style={styles.workoutSheetContainerStyle}>
-            <View style={{ flex: 1, height: height / 2 - 108, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card, width: width - 12 }}>
+            <View style={{ flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card, width: width - 12 }}>
               <FlatList
                 data={workoutNotes}
                 keyExtractor={(_, index) => 'workout-sheet-' + index}
@@ -365,8 +382,10 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   buttonContainerStyle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: 44, marginTop: 6 },
-  bottomContainerStyle: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-end', width: '100%', height: height / 2 },
+  // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
+  sheetBody: { flex: 1 },
+  bottomContainerStyle: { flex: 1, flexDirection: 'row', width: '100%' },
   tryContainer: { width: width / 3 + 18 },
   tryImageContainer: { alignItems: 'flex-start', justifyContent: 'flex-start', width: width / 3 + 12 },
-  workoutSheetContainerStyle: { flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-end', width: '100%', height: height / 2 },
+  workoutSheetContainerStyle: { flex: 1, flexDirection: 'column', alignItems: 'flex-start', width: '100%' },
 });

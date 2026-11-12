@@ -13,7 +13,7 @@ import { LAST_ONLINE_CLASS_MESSAGE, ONLINE_CLASS_OF_TUTOR } from '@/src/api/grap
 import { ONLINE_TUTOR_CLASS_MESSAGE_ADDED } from '@/src/api/graphql/subscriptions';
 import { UNITANSWER, UNITIMAGE } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
-import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
+import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import LegacyHotlineClassCanvasPanel from '@/src/kit/canvas/note-canvas/hotline-class-canvas';
 import { storage } from '@/src/kit/canvas/note-canvas/legacy';
 import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
@@ -53,6 +53,7 @@ export default function HotlineClassScreen() {
   const isFocused = useIsFocused();
   const panelRef = useRef<PanelHandle | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
+  const sheetBottomInset = useCanvasSheetBottomInset();
 
   const [topicUnits, setTopicUnits] = useState<Unit[]>([]);
   const [currentSheet, setCurrentSheet] = useState<Unit | null>(null);
@@ -222,13 +223,21 @@ export default function HotlineClassScreen() {
         onSubmitted={() => showToast('답안을 보냈습니다.')}
         onError={(msg) => showToast(msg)}
       />
-      <BottomSheetModal ref={sheetRef} handleComponent={SheetHandle}>
-        <BottomSheetView>
-          <View style={[styles.answerRow, { height: height / 2 }]}>
-            <View style={[styles.answerPane, { height: height / 2 - 64 }]}>
+      <BottomSheetModal
+        ref={sheetRef}
+        snapPoints={CANVAS_SHEET_SNAPS}
+        index={0}
+        bottomInset={sheetBottomInset}
+        enableDynamicSizing={false}
+        enableContentPanningGesture={false}
+        handleComponent={SheetHandle}
+      >
+        <BottomSheetView style={styles.sheetBody}>
+          <View style={styles.answerRow}>
+            <View style={styles.answerPane}>
               {problemUrl && <DynamicDimensionsImage source={{ uri: problemUrl }} width={360} />}
             </View>
-            <View style={[styles.answerPane, { height: height / 2 - 64 }]}>
+            <View style={styles.answerPane}>
               {answerUrl && (
                 <WebView
                   originWhitelist={['*']}
@@ -268,6 +277,8 @@ const styles = StyleSheet.create({
   modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   listContainer: { position: 'absolute', backgroundColor: '#FFF', padding: 20, borderRadius: 12, elevation: 5 },
   listItem: { marginRight: 16 },
-  answerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 6 },
+  // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
+  sheetBody: { flex: 1 },
+  answerRow: { flex: 1, flexDirection: 'row', gap: 6, paddingHorizontal: 6 },
   answerPane: { flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card },
 });
