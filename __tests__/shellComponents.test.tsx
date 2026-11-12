@@ -82,6 +82,14 @@ describe('Stage', () => {
     expect(session.showLocalComponent).toHaveBeenCalledWith('problem_list', { source: { kind: 'bookmarks' } });
   });
 
+  it('header background is the light gray behind the canvas toolbar (colors.bg)', async () => {
+    const session = { showLocalComponent: jest.fn(), restoreStage: jest.fn() } as unknown as AgentSession;
+    await render(<Stage state={snapshot(null)} session={session} />);
+    expect(StyleSheet.flatten(screen.getByTestId('stage-header').props.style).backgroundColor).toBe(colors.bg);
+    // 로고도 흰 상자가 보이지 않게 회색 바탕 판을 쓴다
+    expect(screen.getAllByLabelText('Go3Math')[0].props.source).toBe(require('../assets/images/welcome/go3math-one-line-logo-gray.png'));
+  });
+
   it('in the bookmarks view the toggle restores the stage', async () => {
     const session = { showLocalComponent: jest.fn(), restoreStage: jest.fn() } as unknown as AgentSession & { restoreStage: jest.Mock };
     await render(<Stage state={snapshot({ componentId: 'problem_list', props: { source: { kind: 'bookmarks' } } } as never)} session={session} />);
