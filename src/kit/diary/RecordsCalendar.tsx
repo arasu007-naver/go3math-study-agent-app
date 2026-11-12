@@ -134,7 +134,7 @@ export function RecordsCalendar({
                   <Text style={[styles.dayText, !inMonth && styles.dayOther, !!cnt && styles.dayTextMarked]}>{d.date()}</Text>
                   {!!cnt && (
                     <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{cnt}</Text>
+                      <Text numberOfLines={1} style={styles.badgeText}>{cnt}</Text>
                     </View>
                   )}
                 </Pressable>
@@ -180,8 +180,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: -4,
     top: -4,
+    // 좌우 둥근 한 줄(pill): 높이 고정, 폭은 숫자 길이만큼(row라 글자가 줄바꿈되지 않는다)
+    flexDirection: 'row',
+    height: 18,
     minWidth: 18,
-    paddingHorizontal: 3,
+    paddingHorizontal: 5,
     borderRadius: 9,
     backgroundColor: 'tomato',
     alignItems: 'center',
