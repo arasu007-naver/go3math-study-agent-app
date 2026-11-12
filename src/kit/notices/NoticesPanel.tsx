@@ -8,6 +8,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View, useWindowDimension
 import moment from 'moment';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { SkeletonCards } from '../ui/SkeletonCards';
+import { colors, type } from '../../ui/theme';
 
 export type Notice = {
   id: number | string;
@@ -131,21 +132,21 @@ export function NoticesPanel({
       onEndReachedThreshold={0.5}
       ItemSeparatorComponent={() => <View style={styles.divider} />}
       ListEmptyComponent={<Text style={styles.empty}>공지 사항이 없습니다.</Text>}
-      ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footer} color="orange" /> : null}
+      ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footer} color={colors.accent} /> : null}
       renderItem={({ item }) => renderNotice(item)}
     />
   );
 }
 
 const styles = StyleSheet.create({
-  card: { paddingHorizontal: 16, paddingVertical: 8, gap: 8, backgroundColor: '#FFFFFF' },
-  title: { fontSize: 18, fontWeight: '700', color: 'orange' },
+  card: { paddingHorizontal: 16, paddingVertical: 8, gap: 8, backgroundColor: colors.card },
+  title: { ...type.title, color: colors.accentText },
   imageWrap: { alignItems: 'center' },
-  body: { fontSize: 14, lineHeight: 21, color: '#18181B' },
-  classDate: { fontSize: 16, fontWeight: '700', color: '#212121' },
-  date: { fontSize: 12, color: '#52525B' },
-  // 기존 cardDivider
-  divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },
-  empty: { padding: 24, fontSize: 14, color: '#52525B' },
+  body: { ...type.body, color: colors.text },
+  classDate: { ...type.bodyStrong, color: colors.text },
+  date: { ...type.caption, color: colors.subtle },
+  // 단계 4b: 타임라인(D1)과 같은 얇은 구분선
+  divider: { height: StyleSheet.hairlineWidth * 2, backgroundColor: colors.line, marginVertical: 12, marginHorizontal: 16 },
+  empty: { padding: 24, ...type.body, color: colors.subtle },
   footer: { padding: 12 },
 });

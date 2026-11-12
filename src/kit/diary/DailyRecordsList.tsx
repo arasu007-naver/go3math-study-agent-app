@@ -11,8 +11,8 @@ import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-vi
 import { Fragment, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { UNITIMAGE } from '../../config/api.constants';
-import { colors, palette, radius, shadow } from '../../ui/theme';
-import GoButton from '../ui/go-button';
+import { Button } from '../../ui/Button';
+import { colors, palette, radius, shadow, space } from '../../ui/theme';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 
 export type DailyRecord = {
@@ -112,8 +112,8 @@ export function DailyRecordsList({
           </View>
         )}
         <View style={styles.buttons}>
-          <GoButton title="책갈피 추가" onPress={() => addBookmark(g.first)} />
-          {onShowAnswer && <GoButton title="답안 예시" onPress={() => onShowAnswer(g.first)} />}
+          <Button variant="secondary" size="sm" title="책갈피 추가" onPress={() => addBookmark(g.first)} />
+          {onShowAnswer && <Button variant="secondary" size="sm" title="답안 예시" onPress={() => onShowAnswer(g.first)} />}
         </View>
         {g.records.map((r, n) => {
           // 선생님 첨삭이 있으면 첨삭, 없으면 학생 풀이(기존 그대로)
@@ -130,9 +130,10 @@ export function DailyRecordsList({
         })}
         {onSolve && (
           <View style={styles.buttons}>
-            <GoButton
+            <Button
+              variant="primary"
+              size="sm"
               title="가자!!!"
-              variant="filled"
               onPress={() =>
                 onSolve({
                   sourceType: g.first.sourceType,
@@ -195,12 +196,12 @@ const PROBLEM_MARGIN = 8;
 const PROBLEM_PAD_X = 32;
 
 function Divider() {
-  return <View style={styles.divider} />;
+  return <View testID="problem-divider" style={styles.divider} />;
 }
 
 const styles = StyleSheet.create({
-  list: { flex: 1, backgroundColor: '#FFFFFF' },
-  record: { padding: 3, backgroundColor: '#FFFFFF', alignItems: 'center' },
+  list: { flex: 1, backgroundColor: colors.card },
+  record: { padding: 3, backgroundColor: colors.card, alignItems: 'center' },
   // 문제 이미지 상자: 좌우 32 여백, 연한 주황 테두리, 그림자(배경색이 있어야 Android elevation이 보인다)
   problem: {
     alignSelf: 'stretch',
@@ -211,11 +212,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.brand[200],
     borderRadius: radius.md,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     ...shadow.card,
   },
-  buttons: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 6, paddingVertical: 8 },
-  divider: { height: 1, width: '100%', backgroundColor: '#607D8B' },
-  solutionDivider: { height: 1, alignSelf: 'stretch', marginVertical: 8, backgroundColor: '#607D8B' },
+  buttons: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'flex-end', gap: space.sm, paddingHorizontal: 6, paddingVertical: 8 },
+  // 단계 4b D6a: 문제 사이는 진하게, 같은 문제의 풀이 사이는 한 단계 옅게(풀이 수를 세는 선)
+  divider: { height: 1, width: '100%', backgroundColor: colors.lineStrong },
+  solutionDivider: { height: 1, alignSelf: 'stretch', marginVertical: 8, backgroundColor: colors.line },
   message: { margin: 24, textAlign: 'center', color: colors.muted },
 });

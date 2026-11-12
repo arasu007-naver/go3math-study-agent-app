@@ -6,6 +6,10 @@ const FILES = ['src/kit/timeline/TimelinePanel.tsx', 'src/kit/research/ResearchP
   'src/kit/profile/ProfileActions.tsx',
   'src/kit/profile/MyInfoPanel.tsx',
   'src/kit/profile/MessageBoxPanel.tsx',
+  'src/kit/diary/DiaryPanel.tsx',
+  'src/kit/diary/RecordsCalendar.tsx',
+  'src/kit/diary/DailyRecordsList.tsx',
+  'src/kit/notices/NoticesPanel.tsx',
 ];
 
 function findDrift(source: string): string[] {

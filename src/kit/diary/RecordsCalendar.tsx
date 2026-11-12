@@ -4,12 +4,13 @@
  * 바뀐 점: AppCtx·Apollo 대신 fetchers 주입. 머리글 양옆 화살표로 달을 넘긴다.
  * 기록 있는 날을 누르면 onSelectDay('YYYY-MM-DD') — 기존 onDayPress처럼 기록 없는 날은 반응하지 않는다(그날 기록 목록은 DailyRecordsList).
  */
-import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { KR_CALENDAR } from '../../config/ui.constants';
-import { colors, layout } from '../../ui/theme';
+import { IconButton } from '../../ui/IconButton';
+import { Tag } from '../../ui/Tag';
+import { colors, type } from '../../ui/theme';
 
 export type MonthRecord = { day: string; recordCnt: number };
 
@@ -82,26 +83,14 @@ export function RecordsCalendar({
   return (
     <View style={styles.root}>
       <View style={styles.headerRow}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="이전 달"
-          onPress={() => setMonth((m) => m.clone().subtract(1, 'month'))}
-          style={styles.arrow}>
-          <Ionicons name="chevron-back" size={22} color={colors.accent} />
-        </Pressable>
+        <IconButton icon="chevron-back" accessibilityLabel="이전 달" onPress={() => setMonth((m) => m.clone().subtract(1, 'month'))} />
         <View style={styles.header}>
           <Text style={styles.headerText}>
             {month.year()} {month.month() + 1}월 : 풀이 {total}문제
           </Text>
           {loading && <ActivityIndicator size="small" color={colors.accent} style={styles.spinner} />}
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="다음 달"
-          onPress={() => setMonth((m) => m.clone().add(1, 'month'))}
-          style={styles.arrow}>
-          <Ionicons name="chevron-forward" size={22} color={colors.accent} />
-        </Pressable>
+        <IconButton icon="chevron-forward" accessibilityLabel="다음 달" onPress={() => setMonth((m) => m.clone().add(1, 'month'))} />
       </View>
 
       <View style={styles.week}>
@@ -134,7 +123,7 @@ export function RecordsCalendar({
                   <Text style={[styles.dayText, !inMonth && styles.dayOther, !!cnt && styles.dayTextMarked]}>{d.date()}</Text>
                   {!!cnt && (
                     <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{cnt}</Text>
+                      <Tag label={cnt} tone="unread" />
                     </View>
                   )}
                 </Pressable>
@@ -150,10 +139,9 @@ export function RecordsCalendar({
 const DAY = 40;
 
 const styles = StyleSheet.create({
-  root: { paddingHorizontal: 12, paddingBottom: 8, backgroundColor: '#FFFFFF' },
+  root: { paddingHorizontal: 12, paddingBottom: 8, backgroundColor: colors.card },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
-  arrow: { width: layout.hit, height: layout.hit, alignItems: 'center', justifyContent: 'center' },
-  // 기존 renderHeader: 240×36, 주황 테두리, 둥근 끝
+  // 기존 renderHeader: 240×36, 주황 테두리, 둥근 끝(색만 토큰)
   header: {
     width: 240,
     height: 36,
@@ -161,31 +149,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'orange',
+    borderColor: colors.accent,
     borderRadius: 24,
   },
-  headerText: { fontSize: 15, color: '#000000' },
+  headerText: { ...type.body, color: colors.text },
   spinner: { position: 'absolute', right: 10 },
   week: { flexDirection: 'row', justifyContent: 'space-around' },
-  dayHeader: { flex: 1, textAlign: 'center', marginTop: 8, marginBottom: 6, fontSize: 16, fontWeight: 'bold', color: '#000000' },
+  dayHeader: { flex: 1, textAlign: 'center', marginTop: 8, marginBottom: 6, ...type.bodyStrong, color: colors.text },
   cell: { flex: 1, alignItems: 'center', paddingVertical: 2 },
   day: { width: DAY, height: DAY, justifyContent: 'flex-end', alignItems: 'flex-start', padding: 6, borderRadius: 6 },
-  dayMarked: { borderWidth: 1, borderColor: 'blue' },
+  dayMarked: { borderWidth: 1, borderColor: colors.accent },
   dayToday: { backgroundColor: colors.cardMuted },
   dayPressed: { opacity: 0.6 },
-  dayText: { fontSize: 14, color: '#000000' },
-  dayOther: { color: 'gray' },
-  dayTextMarked: { color: 'orange' },
-  badge: {
-    position: 'absolute',
-    right: -4,
-    top: -4,
-    minWidth: 18,
-    paddingHorizontal: 3,
-    borderRadius: 9,
-    backgroundColor: 'tomato',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: { fontSize: 11, lineHeight: 16, color: '#FFFFFF', fontWeight: 'bold' },
+  dayText: { ...type.body, color: colors.text },
+  dayOther: { color: colors.disabled },
+  dayTextMarked: { color: colors.accentText },
+  // 숫자 배지(공용 Tag unread)를 날 칸 오른쪽 위에 겹친다
+  badge: { position: 'absolute', right: -6, top: -6 },
 });

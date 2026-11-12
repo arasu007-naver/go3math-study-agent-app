@@ -5,12 +5,14 @@
  * 문제마다 마지막 풀이 아래 '가자!!!' 버튼으로 그 문제를 풀이 화면에서 다시 푼다(onSolveProblem).
  * 날 탭은 ✕로 닫는다. 달력·탭 바는 고정이고 탭 내용 영역만 스크롤해 문제·풀이 이미지를 끝까지 볼 수 있다.
  */
-import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { UNITANSWER } from '../../config/api.constants';
-import { colors, layout, space, type } from '../../ui/theme';
+import { Button } from '../../ui/Button';
+import { Chip } from '../../ui/Chip';
+import { IconButton } from '../../ui/IconButton';
+import { colors, space } from '../../ui/theme';
 import { NoticesPanel, type NoticeFetchers } from '../notices/NoticesPanel';
 import QoollaWebView from '../ui/web-view';
 import { DailyRecordsList, type DailyRecord, type DailyRecordsFetchers, type DiarySolveTarget } from './DailyRecordsList';
@@ -95,46 +97,26 @@ export function DiaryPanel({
 function AnswerView({ record, onBack }: { record: DailyRecord; onBack(): void }) {
   return (
     <View style={styles.body}>
-      <Pressable accessibilityRole="button" accessibilityLabel="풀이 목록으로" onPress={onBack} style={styles.back}>
-        <Ionicons name="chevron-back" size={18} color={colors.accentText} />
-        <Text style={styles.backText}>풀이 목록</Text>
-      </Pressable>
+      <Button variant="text" icon="chevron-back" title="풀이 목록" accessibilityLabel="풀이 목록으로" onPress={onBack} style={styles.back} />
       <QoollaWebView originWhitelist={['*']} source={{ uri: UNITANSWER(record.sourceType, record.sourceId)! }} />
     </View>
   );
 }
 
+/** 단계 4b D5: 탭 = 공용 Chip(role=tab). 날 탭은 옆에 닫기 IconButton. 밑줄은 없다 */
 function Tab({ label, on, onPress, onClose }: { label: string; on: boolean; onPress(): void; onClose?(): void }) {
   return (
-    <View style={[styles.tab, on && styles.tabOn]}>
-      <Pressable
-        accessibilityRole="tab"
-        accessibilityLabel={onClose ? `${label} 풀이` : label}
-        accessibilityState={{ selected: on }}
-        onPress={onPress}
-        style={styles.tabLabel}>
-        <Text style={[styles.tabText, on && styles.tabTextOn]}>{label}</Text>
-      </Pressable>
-      {onClose && (
-        <Pressable accessibilityRole="button" accessibilityLabel={`${label} 탭 닫기`} hitSlop={8} onPress={onClose} style={styles.close}>
-          <Ionicons name="close" size={14} color={on ? colors.accentText : colors.muted} />
-        </Pressable>
-      )}
+    <View style={styles.tab}>
+      <Chip label={label} accessibilityRole="tab" selected={on} onPress={onPress} />
+      {onClose && <IconButton size="sm" icon="close" accessibilityLabel={`${label} 탭 닫기`} onPress={onClose} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tabBar: { flexGrow: 0, backgroundColor: colors.card, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  tabBarContent: { paddingHorizontal: space.sm, gap: space.xs },
-  // 선택 탭은 아래 주황 밑줄
-  tab: { flexDirection: 'row', alignItems: 'center', height: layout.hit, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabOn: { borderBottomColor: colors.accent },
-  tabLabel: { height: '100%', justifyContent: 'center', paddingHorizontal: space.md },
-  tabText: { ...type.body, color: colors.muted },
-  tabTextOn: { color: colors.accentText, fontWeight: '700' },
-  close: { marginLeft: -space.sm, paddingRight: space.sm, height: '100%', justifyContent: 'center' },
+  tabBar: { flexGrow: 0, backgroundColor: colors.card, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.line },
+  tabBarContent: { paddingHorizontal: space.sm, paddingVertical: space.xs, gap: space.xs, alignItems: 'center' },
+  tab: { flexDirection: 'row', alignItems: 'center' },
   body: { flex: 1 },
-  back: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', height: layout.hit, paddingHorizontal: space.sm },
-  backText: { ...type.body, color: colors.accentText },
+  back: { alignSelf: 'flex-start' },
 });

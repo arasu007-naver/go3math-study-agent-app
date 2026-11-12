@@ -40,26 +40,66 @@ describe('DiaryPanel', () => {
     await waitFor(() => expect(screen.getByLabelText('5일 풀이 2문제')).toBeTruthy());
     await fireEvent.press(screen.getByLabelText('5일 풀이 2문제'));
     await waitFor(() => expect(recordFetchers.fetchDay).toHaveBeenCalledWith(day));
-    expect(screen.getByLabelText(`${dayLabel} 풀이`).props.accessibilityState).toEqual({ selected: true });
+    // 단계 4b D5: 날 탭은 공용 Chip(role=tab), 닫기는 옆의 IconButton
+    expect(screen.getByRole('tab', { name: dayLabel }).props.accessibilityState.selected).toBe(true);
+    expect(screen.getByRole('tab', { name: '공지' }).props.accessibilityState.selected).toBe(false);
 
     // '답안 예시' → 탭 안에서 해답, '풀이 목록'으로 복귀
     await waitFor(() => expect(screen.getByText('답안 예시')).toBeTruthy());
     await fireEvent.press(screen.getByText('답안 예시'));
     await waitFor(() => expect(screen.getByText(/^answer:/)).toBeTruthy());
-    await fireEvent.press(screen.getByLabelText('풀이 목록으로'));
+    await fireEvent.press(screen.getByRole('button', { name: '풀이 목록으로' }));
     await waitFor(() => expect(screen.getByText('답안 예시')).toBeTruthy());
 
     // 문제의 마지막 풀이 아래 '가자!!!' → 그 문제와 가장 최근 풀이의 task
-    await fireEvent.press(screen.getByText('가자!!!'));
+    await fireEvent.press(screen.getByRole('button', { name: '가자!!!' }));
+    expect(onSolveProblem).toHaveBeenCalledTimes(1);
     expect(onSolveProblem).toHaveBeenCalledWith(expect.objectContaining({ sourceType: 'unit', sourceId: 42, taskId: 9 }));
 
     // 같은 날을 다시 눌러도 탭은 하나
     await fireEvent.press(screen.getByLabelText('5일 풀이 2문제'));
-    expect(screen.getAllByLabelText(`${dayLabel} 풀이`)).toHaveLength(1);
+    expect(screen.getAllByRole('tab', { name: dayLabel })).toHaveLength(1);
 
     // 날 탭을 닫으면 공지 탭으로
-    await fireEvent.press(screen.getByLabelText(`${dayLabel} 탭 닫기`));
-    expect(screen.queryByLabelText(`${dayLabel} 풀이`)).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: `${dayLabel} 탭 닫기` }));
+    expect(screen.queryByRole('tab', { name: dayLabel })).toBeNull();
     await waitFor(() => expect(screen.getByText('이달 공지')).toBeTruthy());
+  });
+});
+
+describe('DiaryPanel look (spec 4b D5/D6/D6a)', () => {
+  const { StyleSheet } = jest.requireActual('react-native');
+  const { colors } = jest.requireActual('../src/ui/theme');
+
+  async function openDay(fetchDay: () => Promise<unknown[]>) {
+    const rf = { ...recordFetchers, fetchDay: jest.fn(fetchDay) };
+    await render(<DiaryPanel recordFetchers={rf as never} noticeFetchers={noticeFetchers} onSolveProblem={jest.fn()} />);
+    await fireEvent(screen.getByTestId('diary-tab-body'), 'layout', { nativeEvent: { layout: { width: 400, height: 600 } } });
+    await waitFor(() => expect(screen.getByLabelText('5일 풀이 2문제')).toBeTruthy());
+    await fireEvent.press(screen.getByLabelText('5일 풀이 2문제'));
+  }
+
+  it('dividers: problems lineStrong, solutions line', async () => {
+    await openDay(async () => [
+      { id: 7, sourceType: 'unit', sourceId: 42, taskId: 3 },
+      { id: 8, sourceType: 'unit', sourceId: 42, taskId: 9 },
+      { id: 9, sourceType: 'unit', sourceId: 43, taskId: 9 },
+    ]);
+    await waitFor(() => expect(screen.getAllByRole('button', { name: '가자!!!' })).toHaveLength(2));
+    expect(StyleSheet.flatten(screen.getByTestId('solution-divider').props.style).backgroundColor).toBe(colors.line);
+    expect(StyleSheet.flatten(screen.getByTestId('problem-divider').props.style).backgroundColor).toBe(colors.lineStrong);
+  });
+
+  it('calendar arrows change the month and day counts are unread Tags', async () => {
+    await render(<DiaryPanel recordFetchers={recordFetchers} noticeFetchers={noticeFetchers} />);
+    await waitFor(() => expect(screen.getByLabelText('5일 풀이 2문제')).toBeTruthy());
+    expect(StyleSheet.flatten(screen.getByTestId('tag').props.style).backgroundColor).toBe(colors.unread);
+    const now = moment();
+    const prev = now.clone().subtract(1, 'month');
+    expect(screen.getByText(new RegExp(`^${now.year()} ${now.month() + 1}월`))).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: '이전 달' }));
+    expect(screen.getByText(new RegExp(`^${prev.year()} ${prev.month() + 1}월`))).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: '다음 달' }));
+    expect(screen.getByText(new RegExp(`^${now.year()} ${now.month() + 1}월`))).toBeTruthy();
   });
 });
