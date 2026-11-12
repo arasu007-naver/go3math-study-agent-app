@@ -28,7 +28,7 @@
 - `npx jest`(리뷰 수정 뒤): 51 묶음 중 48 통과, 312 중 309 통과. 실패 3은 기존 baseline 그대로다(`canvasSize`, `notices`, `timeline`).
 - `npm run typecheck`: 오류 없음.
 - `node docs/ui-redesign/tools/check-inventory.mjs docs/ui-redesign/03-components-inventory.md .` → `OK rows=72`.
-- 손댄 파일의 hex·이름 색·숫자 `fontSize` 검색: 잉크 색·견본 글자, WebView 문자열(`QuizResponseModal`), `MathJaxWrapper` 색 3곳, 그리고 `FloatingToolbar` 라벨 `fontSize: 10`만 남았다(아래 결정 참고).
+- 손댄 파일의 hex·이름 색·숫자 `fontSize` 검색: 잉크 색·견본 글자, WebView 문자열(`QuizResponseModal`), `MathJaxWrapper` 색 3곳만 남았다. `FloatingToolbar` 라벨은 사용자 결정으로 `caption`이 됐다(아래 결정 참고).
 - 이 검증은 모두 jest·정적 검사다. 실기기에서 본 것은 아직 없다.
 
 ## 3. 실행 중 내린 결정
@@ -42,11 +42,10 @@
 - 퀴즈 제목은 `type.heading` + `accentText`, 테두리는 `cardMuted`·`lineStrong`, 그림자는 `shadow.float`.
 - 학습장 "다음 목표" 펼치기의 접근성 expanded 상태를 지키려고 `Button`에 선택 prop `expanded`를 더했다.
 - 학습장 시트 닫기: 세션이 시트를 비워서 닫힐 때는 아무 이벤트도 보내지 않고, 사용자가 끌어 내리거나 뒤로 가기로 닫을 때만 위젯의 닫기(`study_note_dismissed`)로 보낸다. 뒤로 가기는 시트가 떠 있을 때만 받는다.
-- `FloatingToolbar` 라벨 `fontSize: 10`은 그대로 둔다. 설계가 "툴바 자체는 바뀌지 않는다"고 정했고, 이 파일은 시트 상수를 export하려고만 열었다. 단계 5에서 `caption`(12)으로 옮길 때 툴바 높이와 함께 본다.
+- `FloatingToolbar` 라벨: 사용자 결정(2026-11-12)으로 `fontSize: 10` → `type.caption`(12/16), 굵기는 semibold 유지. 버튼 높이 44 안에 아이콘 22 + 간격 1 + 16 + 위아래 2씩 = 43이 들어간다. 라벨이 넓어진 만큼 툴바 폭이 늘고, 좁으면 가로 스크롤된다. 실기기에서 확인한다.
 
 ## 4. 남은 것
 
-- **사용자 결정 필요**: `FloatingToolbar` 라벨 `fontSize: 10`(설계 기준 3과 "툴바는 바뀌지 않는다"가 부딪친다).
 - **접근성 변화**: backdrop 없는 시트라 VoiceOver·TalkBack이 학습장 시트 뒤 화면에도 닿는다(전의 `Modal`은 시트 안에 가뒀다). Gate B Q5의 선택에 따른 것이다.
 - **실기기 확인이 필요한 위험**: 학습장 시트(최대 90%)에서 긴 메모와 키보드가 올라온 상태에서 저장까지 스크롤되는지. 캔버스 시트가 툴바 위에서 멈추는지. 키보드가 올라올 때 학습장 입력이 가려지지 않는지.
 - **D-02**는 부분 해결로 열어 둔다(셸·시트·캔버스 모달은 옮겼고, dock 패널은 4b).

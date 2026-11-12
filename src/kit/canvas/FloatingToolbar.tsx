@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlaybackControls } from '../script-player/PlaybackToolbar';
-import { colors, fontFamily, layout, motion, radius, shadow, space, z } from '../../ui/theme';
+import { colors, fontFamily, layout, motion, radius, shadow, space, type, z } from '../../ui/theme';
 
 // 캔버스 하단 가운데에 떠 있는 pill 툴바(design-spec P2-1). 펜 속성 버튼·보드 지우기·저장 등 캔버스에 원래 있던 도구만 노출하고,
 // 각 버튼은 기존 GoButton이 부르던 함수를 그대로 부른다. 재생 모드는 PlaybackToolbar의 버튼(PlaybackControls)을 담는다.
@@ -159,9 +159,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // caption(12/16) 크기에 굵기만 semibold로 둔다. 버튼 높이 toolbarH-8 = 44 안에 아이콘 22 + 1 + 16 + 위아래 2씩이 들어간다
   btnLabel: {
-    fontSize: 10,
-    lineHeight: 13,
+    ...type.caption,
     fontFamily: fontFamily.semibold,
     fontWeight: '600',
     color: colors.subtle,

@@ -43,4 +43,23 @@ describe('FloatingToolbar', () => {
         expect(screen.getByText('전체 지우기')).toBeTruthy();
         expect(screen.getByText('저장')).toBeTruthy();
     });
+
+    it('labels use the caption size (12) and stay semibold', async () => {
+        const { StyleSheet } = require('react-native');
+        const { type, fontFamily } = require('../src/ui/theme');
+        await render(
+            <FloatingToolbar
+                mode="draw"
+                actions={[canvasAction('list', '목록', 'albums-outline', () => {})]}
+                tools={[canvasTool('save', '저장')]}
+                strokeColor="orange"
+            />
+        );
+        for (const label of ['목록', '저장']) {
+            const s = StyleSheet.flatten(screen.getByText(label).props.style);
+            expect(s.fontSize).toBe(type.caption.fontSize);
+            expect(s.lineHeight).toBe(type.caption.lineHeight);
+            expect(s.fontFamily).toBe(fontFamily.semibold);
+        }
+    });
 });
