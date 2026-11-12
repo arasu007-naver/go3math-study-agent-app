@@ -1,4 +1,5 @@
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import type { MathConcept } from '@qoolla/script-parser';
 import { useState, type ReactNode, type RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Chip } from '../../ui/Chip';
@@ -27,6 +28,8 @@ export function CanvasStudySheet({
   const [tab, setTab] = useState<Tab>('answer');
   // 여는 높이는 닫힐 때만 정한다 — index prop이 열린 동안 바뀌면 시트가 움직인다(실기기 확인)
   const [openIndex, setOpenIndex] = useState(0);
+  // 고른 개념은 여기 둔다 — 시트를 닫으면 패널은 사라지지만 캔버스를 나갈 때까지 남는다
+  const [pickedConcepts, setPickedConcepts] = useState<MathConcept[]>([]);
   const bottomInset = useCanvasSheetBottomInset();
 
   return (
@@ -48,7 +51,7 @@ export function CanvasStudySheet({
           <Chip label={answerLabel} accessibilityRole="tab" selected={tab === 'answer'} onPress={() => setTab('answer')} />
         </View>
         <View testID="study-tab-concept" style={[styles.body, tab !== 'concept' && styles.hidden]}>
-          <ConceptLookupPanel />
+          <ConceptLookupPanel picked={pickedConcepts} onPickedChange={setPickedConcepts} />
         </View>
         <View testID="study-tab-answer" style={[styles.body, tab !== 'answer' && styles.hidden]}>
           {answer}
