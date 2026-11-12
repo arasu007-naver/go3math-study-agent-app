@@ -5,7 +5,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { IconButton } from '../../ui/IconButton';
 import { StudyLogIcon } from '../../ui/StudyLogIcon';
-import { colors, layout, radius, space, z } from '../../ui/theme';
+import { colors, layout, radius, shadow, space, z } from '../../ui/theme';
 import { NOT_READY_HINT, type DockKind, type FooterKind } from './DrawerFooter';
 
 /** 툴바 항목(위→아래). 드래그 손잡이 다음, 맨 아래 채팅 버튼 앞에 놓인다. */
@@ -160,12 +160,13 @@ const styles = StyleSheet.create({
     height: RAIL_H,
     paddingVertical: space.xs,
     alignItems: 'center',
-    // 회색 반투명 바탕 + 흰 테두리. 그림자는 반투명 바탕에 비쳐 보여서 쓰지 않는다
-    backgroundColor: colors.glass,
+    // 회색 바탕 + 흰 테두리
+    backgroundColor: colors.rail,
     borderWidth: BORDER_W,
     borderColor: colors.card,
     borderRadius: radius.pill,
     zIndex: z.drawer,
+    ...shadow.float,
   },
   railH: { flexDirection: 'row', width: RAIL_H, height: RAIL_W, paddingVertical: 0, paddingHorizontal: space.xs },
   item: { width: layout.hit, height: layout.hit, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },

@@ -165,5 +165,6 @@ const styles = StyleSheet.create({
   dayOther: { color: colors.disabled },
   dayTextMarked: { color: colors.accentText },
   // 숫자 배지(공용 Tag unread, 한 줄 pill)를 날 칸 오른쪽 위에 겹친다
-  badge: { position: 'absolute', right: -6, top: -6 },
+  // 폭을 정하지 않으면 날 칸 안쪽 폭(약 26)에 갇혀 두 자리 숫자가 줄바꿈된다 → 넉넉한 폭을 주고 오른쪽으로 붙인다
+  badge: { position: 'absolute', right: -6, top: -6, width: DAY * 2, flexDirection: 'row', justifyContent: 'flex-end' },
 });
