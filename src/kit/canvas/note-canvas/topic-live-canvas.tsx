@@ -530,10 +530,23 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 textColor={canvasStrokeColor == color ? 'white' : 'black'}
                 rippleColor={color}
             />
-        })
+        }).concat(
+            // 지우개: 펜 색을 흰색으로 바꿔 덧칠해 지운다.
+            <GoButton onPress={() => {
+                setCanvasStrokeColor('white');
+                storage.set('canvasStrokeColor', 'white');
+            }} title="지우개" key="pencil-color-eraser"
+                variant={canvasStrokeColor == 'white' ? 'filled' : 'outline'}
+                color="gray"
+                textColor={canvasStrokeColor == 'white' ? 'white' : 'black'}
+                rippleColor="gray"
+            />
+        )
     }
 
     const drawPencilWidthOptions = () => {
+        // 지우개(흰색)일 때 굵기 버튼이 흰 바탕에 묻히지 않게 회색으로 그린다.
+        const chipColor = canvasStrokeColor == 'white' ? 'gray' : canvasStrokeColor;
         return strokeWidths.map((strokeWidth, index) => {
             return <GoButton onPress={() => {
                 setCanvasStrokeWidth(strokeWidth);
@@ -542,9 +555,9 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 title={String(strokeWidth)}
                 key={'pencil-width-' + index}
                 variant={canvasStrokeWidth == strokeWidth ? 'filled' : 'outline'}
-                color={canvasStrokeWidth == strokeWidth ? canvasStrokeColor : 'orange'}
-                textColor={canvasStrokeWidth == strokeWidth ? 'white' : canvasStrokeColor}
-                rippleColor={canvasStrokeColor}
+                color={canvasStrokeWidth == strokeWidth ? chipColor : 'orange'}
+                textColor={canvasStrokeWidth == strokeWidth ? 'white' : chipColor}
+                rippleColor={chipColor}
             />
         })
     }
