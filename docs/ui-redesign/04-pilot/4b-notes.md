@@ -48,6 +48,18 @@
 - **D-02**는 dock 패널까지 옮겨 단계 4 범위에서는 닫는다. 문제 목록(`ProblemListPanel`·`ProblemActionRow`)·`ConceptLookupPanel`·`PlaybackToolbar`는 단계 5.
 - 다른 세션이 main 체크아웃에 남긴 미커밋 변경(`ProblemListPanel`의 AnswerBubble 등)은 이 브랜치에 없다.
 
+## 개념·해답 통합 시트 (2026-11-12)
+
+설계 `docs/superpowers/specs/2026-11-12-canvas-concept-answer-sheet-design.md`, 계획 `docs/superpowers/plans/2026-11-12-canvas-concept-answer-sheet.md`. 단계 4의 "모양만 바꾼다" 밖의 동작 변경(사용자 결정). D2의 "개념 검색은 캔버스 개념 시트(`CanvasChrome`)" 자리는 이제 `CanvasStudySheet`의 개념 탭이다.
+
+- 실기기(태블릿 HA1V33DF, notebook): 툴바 '개념·해답' 하나(목록과 내 풀이 사이) → 해답 탭 50%, 해답 보임 → 개념 탭: 칩과 안내 문구 → 칩 선택 시 설명이 칩 아래에(모달 없음) → 해답 탭으로 돌아오면 다시 불러오지 않고 바로 보임 → 개념 탭에서 닫고 다시 열면 개념 탭 70%.
+- 위험 1(숨긴 해답 WebView가 비는 것): 나지 않았다.
+- 위험 2(탭 전환 때 열린 시트가 움직이는 것): 났다. 여는 높이를 `onDismiss`에서만 정하도록 고쳤다(테스트 "switching tabs does not move the open sheet…"). 실기기에서 탭을 바꿔도 시트가 그대로인 것을 다시 봤다.
+- 시트를 닫으면 고른 개념은 지워진다(시트가 닫힐 때 내용을 언마운트한다). 탭 전환 동안은 남는다.
+- 단원을 바꾸면 설명이 지워지는 것은 jest로만 확인했다.
+- hotline-class·topic-live-class: 실기기 미확인 (라이브 수업 필요).
+- `npx jest`: 346 중 345 통과, 실패는 기존 `canvasSize` 하나. 타입 검사 오류 없음.
+
 ## 6. Gate D 요청
 
 단계 4 전체(4a + 4b)의 "후" 캡처를 실기기에서 이 브랜치 빌드로 찍어 주기를 요청한다: `shot-list.md`의 1–14(4a)와 15–22(4b). 데이터가 필요한 화면은 사용자가 테스트 계정으로 로그인한다. 개인정보가 보이는 캡처는 커밋하지 않는다. 시뮬레이터 캡처는 근거로 쓰지 않는다.
