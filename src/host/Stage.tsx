@@ -29,8 +29,8 @@ export function Stage({ state, session }: { state: SessionSnapshot; session: Age
           onPress={() =>
             showingBookmarks ? session.restoreStage() : session.showLocalComponent('problem_list', { source: { kind: 'bookmarks' } })
           }
-          style={({ pressed }) => pressed && styles.pressed}>
-          <Ionicons name={showingBookmarks ? 'documents-outline' : 'bookmark-outline'} size={24} color={colors.text} />
+          style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+          <Ionicons name={showingBookmarks ? 'documents-outline' : 'bookmark-outline'} size={20} color={colors.text} />
         </Pressable>
         <View style={[styles.status, { backgroundColor: state.connected ? colors.online : colors.offline }]} />
       </View>
@@ -53,6 +53,8 @@ const styles = StyleSheet.create({
   header: { height: layout.headerH, flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.md, backgroundColor: 'transparent' },
   title: { flex: 1, paddingLeft: 4 },
   logo: { height: 32, width: 32 * (987 / 242) },
+  // 책갈피 ↔ 문제 목록 전환 버튼: 회색 원 + 흰 테두리 2px
+  iconButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.lineStrong, borderWidth: 2, borderColor: colors.card },
   pressed: { opacity: 0.6 },
   status: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   fallback: { margin: space.md, padding: space.md, borderRadius: radius.sm, backgroundColor: colors.warnSoft, color: colors.text, ...type.body },
