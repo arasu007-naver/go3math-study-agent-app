@@ -224,6 +224,48 @@ describe('ProblemListPanel selection border and buttons', () => {
     expect(screen.getAllByText('해답').length).toBe(2);
   });
 
+  it('closes the answer bubble when another problem becomes the selected one (책갈피)', async () => {
+    const fetchers: ProblemListFetchers = {
+      fetchProblems: jest.fn(async () => ({ title: '📝 문제 목록', problems })),
+      addBookmark: jest.fn(async () => {}),
+    };
+    await render(<ProblemListPanel fetchers={fetchers} source={{ kind: 'task', taskId: 1 }} onSelectProblem={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('📝 문제 목록')).toBeTruthy());
+
+    fireEvent.press(screen.getAllByText('해답')[0]);
+    await waitFor(() => expect(screen.getByTestId('answer-bubble')).toBeTruthy());
+
+    // 2번 '책갈피' -> 2번이 현재 문제가 되므로 1번 해답 말풍선은 닫힌다
+    fireEvent.press(screen.getAllByText('책갈피')[1]);
+    await waitFor(() => expect(screen.getByLabelText('2번 문제').props.accessibilityState.selected).toBe(true));
+    expect(screen.queryByTestId('answer-bubble')).toBeNull();
+  });
+
+  it('closes the answer bubble when a refetch puts a different problem at the selected place', async () => {
+    let onChange = () => {};
+    const fetchProblems = jest
+      .fn()
+      .mockResolvedValueOnce({ title: '수업', problems })
+      .mockResolvedValueOnce({ title: '수업', problems: [problems[1]] });
+    const fetchers: ProblemListFetchers = {
+      fetchProblems,
+      subscribe: (_src, cb) => {
+        onChange = cb;
+        return () => {};
+      },
+    };
+    await render(<ProblemListPanel fetchers={fetchers} source={{ kind: 'hotline', tutorId: 't', title: '수업' }} onSelectProblem={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('수업')).toBeTruthy());
+
+    fireEvent.press(screen.getAllByText('해답')[0]);
+    await waitFor(() => expect(screen.getByTestId('answer-bubble')).toBeTruthy());
+
+    // 선생님이 1번을 빼서 1번 자리에 다른 문제가 온다 -> 이전 해답 말풍선은 닫힌다
+    onChange();
+    await waitFor(() => expect(screen.queryByLabelText('2번 문제')).toBeNull());
+    expect(screen.queryByTestId('answer-bubble')).toBeNull();
+  });
+
   it('renders "해답" and "책갈피 해제" buttons on right for BookmarksPanel and handles removal', async () => {
     const removeBookmark = jest.fn(async () => {});
     const fetchers: ProblemListFetchers = {

@@ -32,6 +32,8 @@ export type ProblemSource =
 export type Problem = { sourceType: string; sourceId: number; image: string };
 export type ProblemSet = { title: string; subtitle?: string | null; problems: Problem[] };
 
+const itemKeyOf = (problem: Problem, index: number) => `${problem.sourceType}-${problem.sourceId}-${index}`;
+
 export interface ProblemListFetchers {
   fetchProblems(source: ProblemSource): Promise<ProblemSet>;
   addBookmark?(sourceType: string, sourceId: number): Promise<void>;
@@ -109,6 +111,12 @@ export function ProblemListPanel({
       unsubscribe?.();
     };
   }, [fetchers, key]);
+
+  // 현재 문제가 바뀌면(다른 문항의 책갈피, 수업 중 문제 변경 등) 그 문제의 것이 아닌 해답 말풍선은 닫는다
+  const selectedKey = set && selected !== null && set.problems[selected] ? itemKeyOf(set.problems[selected], selected) : null;
+  useEffect(() => {
+    setAnswer((prev) => (prev && prev.itemKey !== selectedKey ? null : prev));
+  }, [selectedKey]);
 
   const isBookmarkList =
     source.kind === 'bookmarks' ||
@@ -215,7 +223,7 @@ export function ProblemListPanel({
         }}>
         {set.problems.length === 0 && <Text style={styles.empty}>문제가 없어요.</Text>}
         {set.problems.map((problem, index) => {
-          const itemKey = `${problem.sourceType}-${problem.sourceId}-${index}`;
+          const itemKey = itemKeyOf(problem, index);
           const isShowingAnswer = answer?.itemKey === itemKey;
           const itemAnswerUrl = UNITANSWER(problem.sourceType, problem.sourceId);
           const isBookmarked = bookmarkedKeys.has(itemKey);
