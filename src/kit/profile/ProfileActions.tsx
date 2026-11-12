@@ -57,6 +57,7 @@ export function ProfileActions({ name, editors, onLogout }: { name?: string | nu
         {busy && <ActivityIndicator color={colors.accent} />}
         <Button
           variant="text"
+          size="sm"
           title="이름 변경"
           disabled={busy}
           debounceMs={0}
@@ -67,13 +68,14 @@ export function ProfileActions({ name, editors, onLogout }: { name?: string | nu
         />
         <Button
           variant="text"
+          size="sm"
           title="프로필 이미지 변경"
           disabled={busy}
           debounceMs={0}
           onPress={() => void run(editors.changeImage, '프로필 이미지를 변경했어요.')}
         />
         <View testID="profile-actions-divider" style={styles.divider} />
-        <Button variant="text" tone="danger" title="로그아웃" debounceMs={0} onPress={onLogout} />
+        <Button variant="text" size="sm" tone="danger" title="로그아웃" debounceMs={0} onPress={onLogout} />
       </View>
 
       <Dialog

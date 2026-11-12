@@ -22,6 +22,15 @@ describe('ProfileActions', () => {
     expect(screen.getByTestId('profile-actions-divider')).toBeTruthy();
   });
 
+  it('uses the small button size so the row fits a narrow phone (final review)', async () => {
+    const { StyleSheet } = require('react-native');
+    const { type } = require('../src/ui/theme');
+    await render(<ProfileActions name="길동" editors={editors()} onLogout={() => {}} />);
+    for (const n of ['이름 변경', '프로필 이미지 변경', '로그아웃']) {
+      expect(StyleSheet.flatten(screen.getByText(n).props.style).fontSize).toBe(type.bodyStrong.fontSize);
+    }
+  });
+
   it('name dialog disables save for unchanged or blank names', async () => {
     const e = editors();
     await render(<ProfileActions name="길동" editors={e} onLogout={() => {}} />);
