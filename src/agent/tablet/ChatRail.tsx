@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { IconButton } from '../../ui/IconButton';
 import { StudyLogIcon } from '../../ui/StudyLogIcon';
 import { colors, layout, radius, shadow, space, z } from '../../ui/theme';
 import { NOT_READY_HINT, type DockKind, type FooterKind } from './DrawerFooter';
@@ -16,7 +17,14 @@ export const RAIL_ITEMS: { kind: FooterKind; label: string; icon: keyof typeof I
   { kind: 'profile', label: '내 정보', icon: 'person-circle-outline' },
 ];
 
-export const RAIL_W = layout.hit + space.sm;
+/** '#RRGGBB' + 투명도 → rgba. rail은 바탕색만 비치고 아이콘·그림자는 불투명하다(Gate B Q3). */
+function hexToRgba(hex: string, alpha: number) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+export const RAIL_BG = hexToRgba(colors.card, layout.railOpacity);
+
+export const RAIL_W =layout.hit + space.sm;
 const DIVIDER_H = 2;
 // 드래그 손잡이 + 구분선(위아래 여백 포함) + 항목 + 채팅 버튼, 위아래 padding
 export const RAIL_H = layout.hit * (RAIL_ITEMS.length + 2) + DIVIDER_H + space.xs * 4;
@@ -117,17 +125,15 @@ export function ChatRail({
         {RAIL_ITEMS.map((it) => {
           const on = it.kind === active;
           return (
-            <Pressable
+            <IconButton
               key={it.kind}
-              disabled={it.disabled}
-              onPress={() => onItem(it.kind as DockKind)}
-              accessibilityRole="button"
+              icon={it.icon}
               accessibilityLabel={it.label}
               accessibilityHint={it.disabled ? NOT_READY_HINT : undefined}
-              accessibilityState={{ selected: on, disabled: !!it.disabled }}
-              style={({ pressed }) => [styles.item, on && styles.on, pressed && styles.pressed]}>
-              <Ionicons name={it.icon} size={layout.footerIcon} color={it.disabled ? colors.disabled : on ? colors.accentText : colors.muted} />
-            </Pressable>
+              selected={on}
+              disabled={!!it.disabled}
+              onPress={() => onItem(it.kind as DockKind)}
+            />
           );
         })}
         <Pressable
@@ -153,7 +159,7 @@ const styles = StyleSheet.create({
     height: RAIL_H,
     paddingVertical: space.xs,
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: RAIL_BG,
     borderRadius: radius.pill,
     zIndex: z.drawer,
     ...shadow.float,
@@ -163,8 +169,6 @@ const styles = StyleSheet.create({
   // 드래그 손잡이와 항목 사이 주황 구분선
   divider: { width: layout.hit - space.md, height: DIVIDER_H, marginVertical: space.xs, borderRadius: radius.pill, backgroundColor: colors.accent },
   dividerH: { width: DIVIDER_H, height: layout.hit - space.md, marginVertical: 0, marginHorizontal: space.xs },
-  on: { backgroundColor: colors.accentSoft },
-  pressed: { backgroundColor: colors.accentSoftPress },
   chat: { backgroundColor: colors.accentSoft },
   chatPressed: { backgroundColor: colors.accentSoftPress },
   dot: {

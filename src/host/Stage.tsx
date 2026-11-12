@@ -1,5 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { IconButton } from '../ui/IconButton';
 import type { AgentSession, SessionSnapshot } from '../agent/session';
 import { widgets } from './widgets';
 import { colors, layout, radius, space, type } from '../ui/theme';
@@ -22,16 +22,13 @@ export function Stage({ state, session }: { state: SessionSnapshot; session: Age
         <View style={styles.title}>
           <Image source={logo} resizeMode="contain" style={styles.logo} accessibilityLabel="Go3Math" />
         </View>
-        <Pressable
-          accessibilityRole="button"
+        <IconButton
+          icon={showingBookmarks ? 'documents-outline' : 'bookmark-outline'}
           accessibilityLabel={showingBookmarks ? '문제 목록' : '내 책갈피'}
-          hitSlop={8}
           onPress={() =>
             showingBookmarks ? session.restoreStage() : session.showLocalComponent('problem_list', { source: { kind: 'bookmarks' } })
           }
-          style={({ pressed }) => pressed && styles.pressed}>
-          <Ionicons name={showingBookmarks ? 'documents-outline' : 'bookmark-outline'} size={24} color={colors.text} />
-        </Pressable>
+        />
         <View style={[styles.status, { backgroundColor: state.connected ? colors.online : colors.offline }]} />
       </View>
       {state.fallbackText && <Text style={styles.fallback}>{state.fallbackText}</Text>}
@@ -53,7 +50,6 @@ const styles = StyleSheet.create({
   header: { height: layout.headerH, flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.md, backgroundColor: 'transparent' },
   title: { flex: 1, paddingLeft: 4 },
   logo: { height: 32, width: 32 * (987 / 242) },
-  pressed: { opacity: 0.6 },
   status: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   fallback: { margin: space.md, padding: space.md, borderRadius: radius.sm, backgroundColor: colors.warnSoft, color: colors.text, ...type.body },
   body: { flex: 1 },

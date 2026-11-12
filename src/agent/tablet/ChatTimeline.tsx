@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { TimelineItem } from '../../protocol';
+import { Tag } from '../../ui/Tag';
 import { colors, radius, space, type } from '../../ui/theme';
 import type { Instruction } from '../commandRouter';
 import { InstructionCard } from '../InstructionCard';
@@ -71,7 +72,7 @@ function Bubble({ message }: { message: Instruction }) {
   );
 }
 
-function TimelineCard({ item, session }: { item: TimelineItem; session: AgentSession }) {
+export function TimelineCard({ item, session }: { item: TimelineItem; session: AgentSession }) {
   const badge = SUMMARY_BADGE[item.kind];
   const content = (
     <>
@@ -80,7 +81,7 @@ function TimelineCard({ item, session }: { item: TimelineItem; session: AgentSes
         <Text style={styles.cardTitle} numberOfLines={2}>
           {item.title}
         </Text>
-        {badge && <Text style={styles.badge}>{badge}</Text>}
+        {badge && <Tag tone="accent" label={badge} />}
       </View>
       {!!item.body && <Text style={styles.body}>{item.body}</Text>}
       <View style={styles.cardFoot}>
@@ -123,7 +124,6 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: colors.cardMuted },
   cardHead: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   cardTitle: { ...type.bodyStrong, color: colors.text, flex: 1 },
-  badge: { ...type.caption, color: colors.accentText, backgroundColor: colors.accentSoft, paddingHorizontal: space.sm, paddingVertical: space.xxs, borderRadius: radius.pill, overflow: 'hidden' },
   cardFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   reopen: { flexDirection: 'row', alignItems: 'center', gap: space.xxs },
   reopenText: { ...type.caption, color: colors.accentText },
