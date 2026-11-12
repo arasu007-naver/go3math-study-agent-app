@@ -56,7 +56,7 @@ docs/ui-redesign/1794280544402-contituous-guide.md 를 읽고 그 지점부터 �
 | 1 현황 진단 | **완료** (2026-11-10 Gate A 조건부 승인, 조건 3건 유지) | `docs/ui-structure/ui-structure.{md,json,html}`, `docs/ui-redesign/captures/01/`, `docs/ui-redesign/01-buttons-chips-survey.md`, `docs/ui-redesign/01-diagnosis.md` |
 | 2 역할·정보구조 | **완료** (2026-11-10 Gate B 승인, 결정은 `02-ia-overlay-roles.md` §9) | `docs/ui-redesign/02-ia-overlay-roles.md`, `docs/ui-redesign/02-roles.json`, `docs/ui-redesign/tools/check-roles.mjs` |
 | 3 토큰·공통 컴포넌트 | **완료** (Gate C 승인) | `docs/ui-redesign/03-tokens-components.md`, `docs/ui-redesign/03-components-inventory.md`, `src/ui/{Button,Chip,StateView,Dialog}.tsx`, `docs/ui-redesign/tools/check-inventory.mjs` |
-| 4 파일럿 화면 | **진행** (4a 셸·공용 부품 완료, 4b dock 패널 미착수. Gate D는 4b 뒤 실기기 캡처로 한 번) | `docs/superpowers/specs/2026-11-10-ui-redesign-stage4a-design.md`, `docs/superpowers/plans/2026-11-10-ui-redesign-stage4a.md`, `docs/ui-redesign/04-pilot/{shot-list,4a-notes}.md`, `src/ui/{IconButton,Tag}.tsx`, 브랜치 `design/ui-redesign-stage4` |
+| 4 파일럿 화면 | **승인대기** (4a 셸·공용 부품, 4b dock 패널 완료. Gate D를 실기기 캡처로 요청) | `docs/superpowers/specs/2026-11-10-ui-redesign-stage4a-design.md`, `docs/superpowers/specs/2026-11-12-ui-redesign-stage4b-design.md`, `docs/superpowers/plans/2026-11-10-ui-redesign-stage4a.md`, `docs/superpowers/plans/2026-11-12-ui-redesign-stage4b.md`, `docs/ui-redesign/04-pilot/{shot-list,4a-notes,4b-notes}.md`, `src/ui/{IconButton,Tag}.tsx`, 브랜치 `design/ui-redesign-stage4` |
 | 5~6 | 미착수 | — |
 
 읽는 순서:
