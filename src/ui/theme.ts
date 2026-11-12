@@ -35,7 +35,7 @@ export const colors = {
   card: palette.gray[0], // 카드/패널/툴바
   cardMuted: palette.gray[100], // 카드 안 보조 면(세그먼트 바탕, 튜터 말풍선)
   scrim: 'rgba(24,24,27,0.32)', // Phone 모달 뒤 딤
-  glass: 'rgba(228,228,231,0.72)', // 떠 있는 pill 툴바(ChatRail) 바탕: 회색(gray 200) 반투명
+  glass: 'rgba(228,228,231,0.45)', // 떠 있는 pill 툴바(ChatRail) 바탕: 회색(gray 200) 반투명
   // 글자
   text: palette.gray[900],
   subtle: palette.gray[700],
