@@ -41,3 +41,10 @@
 | 20 | 이름 변경 대화상자 | 19에서 "이름 변경"을 눌러 대화상자가 뜬 상태 | `name-dialog` |
 | 21 | Diary dock · 공지 | 달력(개수 배지)과 공지 탭 | `dock-diary-notice` |
 | 22 | Diary dock · 날 탭 | 풀이가 2번 이상인 날을 눌러 날 탭이 열리고, 풀이 구분선과 문제별 "가자!!!"가 보이게 | `dock-diary-day` |
+
+## 찍은 캡처 (Android 태블릿 HA1V33DF, 2026-11-12)
+
+- `captures/04/android-*-after.png` 18장. 실기기 캡처다.
+- 안 찍음: 2, 6, 10–13 (사용자가 나중으로 미룸).
+- 커밋하지 않음: 19 `dock-profile`, 20 `name-dialog` — 이름·이메일이 보여 지웠다.
+- **개념·해답 통합 전**: 3 `canvas-toolbar`, 5 `answer-sheet-view`, 8 `concept-sheet`는 툴바에 해답·개념 버튼이 따로 있던 빌드다. 지금 빌드는 '개념·해답' 버튼 하나와 탭 시트다(`4b-notes.md`의 "개념·해답 통합 시트").
