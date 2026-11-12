@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { layout } from '../src/ui/theme';
+import { StyleSheet } from 'react-native';
+import { colors, layout } from '../src/ui/theme';
 
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 const mockSheetProps: any[] = [];
@@ -40,7 +41,7 @@ describe('CanvasChrome - 전체 지우기 Confirmation Modal', () => {
     );
 
     // Click '전체 지우기' button in toolbar
-    fireEvent.press(screen.getByLabelText('전체 지우기'));
+    await fireEvent.press(screen.getByLabelText('전체 지우기'));
 
     // Should NOT call onSelectTool yet
     expect(onSelectTool).not.toHaveBeenCalled();
@@ -65,13 +66,13 @@ describe('CanvasChrome - 전체 지우기 Confirmation Modal', () => {
       />
     );
 
-    fireEvent.press(screen.getByLabelText('전체 지우기'));
+    await fireEvent.press(screen.getByLabelText('전체 지우기'));
     await waitFor(() => {
       expect(screen.getByText("'문제' 외의 나머지 사용자의 풀이는 모두 지워집니다. 진행하시겠습니까?")).toBeTruthy();
     });
 
     // Click '취소'
-    fireEvent.press(screen.getByText('취소'));
+    await fireEvent.press(screen.getByText('취소'));
 
     // Modal should close and onSelectTool should not be called
     await waitFor(() => {
@@ -92,13 +93,13 @@ describe('CanvasChrome - 전체 지우기 Confirmation Modal', () => {
       />
     );
 
-    fireEvent.press(screen.getByLabelText('전체 지우기'));
+    await fireEvent.press(screen.getByLabelText('전체 지우기'));
     await waitFor(() => {
       expect(screen.getByText("'문제' 외의 나머지 사용자의 풀이는 모두 지워집니다. 진행하시겠습니까?")).toBeTruthy();
     });
 
     // Click '확인'
-    fireEvent.press(screen.getByText('확인'));
+    await fireEvent.press(screen.getByText('확인'));
 
     // onSelectTool('clearBoard') should be called
     expect(onSelectTool).toHaveBeenCalledWith('clearBoard');
@@ -121,16 +122,43 @@ describe('CanvasChrome - 전체 지우기 Confirmation Modal', () => {
       />
     );
 
-    fireEvent.press(screen.getByLabelText('저장'));
+    await fireEvent.press(screen.getByLabelText('저장'));
     expect(onSelectTool).toHaveBeenCalledWith('save');
 
-    fireEvent.press(screen.getByLabelText('Options'));
+    await fireEvent.press(screen.getByLabelText('Options'));
     expect(onSelectTool).toHaveBeenCalledWith('color');
 
     // Modal should not appear
     expect(
       screen.queryByText("'문제' 외의 나머지 사용자의 풀이는 모두 지워집니다. 진행하시겠습니까?")
     ).toBeNull();
+  });
+});
+
+describe('CanvasChrome - 전체 지우기 uses the shared Dialog', () => {
+  const tools = [canvasTool('color', 'Options'), canvasTool('clearBoard', '전체 지우기'), canvasTool('save', '저장')];
+  const open = async (onSelectTool: jest.Mock) => {
+    await render(<CanvasChrome tools={tools} onSelectTool={onSelectTool} />);
+    await fireEvent.press(screen.getByLabelText('전체 지우기'));
+    await waitFor(() => expect(screen.getByRole('header', { name: '전체 지우기' })).toBeTruthy());
+  };
+
+  it('confirm is a danger button and clears once', async () => {
+    const onSelectTool = jest.fn();
+    await open(onSelectTool);
+    const confirm = screen.getByRole('button', { name: '확인' });
+    expect(StyleSheet.flatten(confirm.props.style).backgroundColor).toBe(colors.danger);
+    await fireEvent.press(confirm);
+    expect(onSelectTool).toHaveBeenCalledTimes(1);
+    expect(onSelectTool).toHaveBeenCalledWith('clearBoard');
+  });
+
+  it('the scrim closes without clearing', async () => {
+    const onSelectTool = jest.fn();
+    await open(onSelectTool);
+    await fireEvent.press(screen.getByLabelText('닫기'));
+    expect(onSelectTool).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByRole('header', { name: '전체 지우기' })).toBeNull());
   });
 });
 

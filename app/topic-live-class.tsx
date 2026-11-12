@@ -23,7 +23,7 @@ import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { authStore } from '@/src/state/auth';
 import { SheetHandle } from '@/src/ui/SheetHandle';
-import { colors, radius } from '@/src/ui/theme';
+import { colors, radius, type } from '@/src/ui/theme';
 
 // 주제 실황 수업 화면: 기존 qoolla-student-app `pages/notebook/topic-live-class.tsx`를 옮김. 패널은 note-canvas/topic-live-canvas.tsx 그대로.
 // 실황 수업 dock에서 주제를 누르면 Stage에 그 주제 문제 목록(ProblemListPanel)을 띄우고 이 화면으로 온다. 나가면 문제 목록이 그대로 남는다.
@@ -269,7 +269,7 @@ export default function TopicLiveClassScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   fullSize: { flex: 1, width: '100%', height: '100%' },
-  savedMessage: { position: 'absolute', top: 8, left: 12, zIndex: 10, fontSize: 12, color: colors.danger },
+  savedMessage: { position: 'absolute', top: 8, left: 12, zIndex: 10, ...type.caption, color: colors.danger },
   toast: {
     position: 'absolute',
     top: 40,
@@ -281,9 +281,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 5,
   },
-  toastText: { color: 'white', fontSize: 14, fontWeight: 'bold' },
-  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  listContainer: { position: 'absolute', backgroundColor: '#FFF', padding: 20, borderRadius: 12, elevation: 5 },
+  toastText: { ...type.bodyStrong, color: colors.onAccent },
+  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: colors.scrim },
+  listContainer: { position: 'absolute', backgroundColor: colors.card, padding: 20, borderRadius: 12, elevation: 5 },
   listItem: { marginRight: 16 },
   // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
   sheetBody: { flex: 1 },

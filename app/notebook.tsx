@@ -13,12 +13,13 @@ import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
 import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
-import GoButton from '@/src/kit/ui/go-button';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
+import { Button } from '@/src/ui/Button';
+import { Chip } from '@/src/ui/Chip';
 import { SheetHandle } from '@/src/ui/SheetHandle';
-import { colors, radius } from '@/src/ui/theme';
+import { colors, radius, shadow, space } from '@/src/ui/theme';
 
 // 문제 풀이 화면: 기존 pages/notebook/index.tsx를 옮김. 패널은 note-canvas/notebook.tsx 그대로,
 // 하단 버튼 줄(나가기·목록·답안 예시·내 이전 풀이)은 아이콘 버튼으로 캔버스 하단 가운데 툴바(펜 설정 등)에 합쳤다. 모달·바텀시트는 기존 그대로다.
@@ -212,21 +213,16 @@ export default function NotebookScreen() {
 
                   {/* 아래 한 줄 버튼 그룹 */}
                   <View style={styles.cardButtonGroup}>
-                    <GoButton title="교체" size="small" onPress={() => setCurrentSheet(item)} />
+                    <Button variant="secondary" size="sm" title="교체" onPress={() => setCurrentSheet(item)} />
                     <View style={styles.cardButtonGroupRight}>
-                      <GoButton
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         title={isBookmarked ? '책갈피됨' : '책갈피'}
-                        size="small"
-                        variant={isBookmarked ? 'filled' : 'outline'}
                         disabled={isBookmarked}
                         onPress={() => handleBookmark(item)}
                       />
-                      <GoButton
-                        title={isShowingAnswer ? '문제' : '해답'}
-                        size="small"
-                        variant={isShowingAnswer ? 'filled' : 'outline'}
-                        onPress={() => toggleAnswer(itemKey)}
-                      />
+                      <Chip label={isShowingAnswer ? '문제' : '해답'} selected={isShowingAnswer} onPress={() => toggleAnswer(itemKey)} />
                     </View>
                   </View>
                 </View>
@@ -234,7 +230,7 @@ export default function NotebookScreen() {
             }}
           />
           <View style={styles.buttonContainerStyle}>
-            <GoButton title={'닫기'} onPress={() => setSheetListVisible(false)} />
+            <Button variant="secondary" size="sm" title="닫기" onPress={() => setSheetListVisible(false)} />
           </View>
         </View>
       </Modal>
@@ -314,16 +310,12 @@ export default function NotebookScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg }, // 흰 캔버스 카드가 보이도록 옅은 회색 바닥(좌우 6px 여백)
-  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: colors.scrim },
   listContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.card,
     padding: 20,
     borderRadius: 12,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    ...shadow.float,
   },
   listContent: {
     alignItems: 'flex-start',
@@ -376,6 +368,7 @@ const styles = StyleSheet.create({
   cardButtonGroupRight: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: space.sm,
   },
   fullSize: {
     width: '100%',

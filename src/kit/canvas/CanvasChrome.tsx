@@ -1,10 +1,10 @@
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState, type ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Dialog } from '../../ui/Dialog';
 import { SheetHandle } from '../../ui/SheetHandle';
-import { colors, layout, radius, space, type } from '../../ui/theme';
-import GoButton from '../ui/go-button';
+import { colors, layout } from '../../ui/theme';
 import { ConceptLookupPanel } from '../concepts/ConceptLookupPanel';
 import {
   CANVAS_SHEET_SNAPS,
@@ -110,34 +110,14 @@ export function CanvasChrome({
       />
       {children}
       {/* 전체 지우기 확인 모달 */}
-      <Modal
+      <Dialog
         visible={clearConfirmVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setClearConfirmVisible(false)}
-      >
-        <View style={styles.backdrop}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setClearConfirmVisible(false)} />
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>전체 지우기</Text>
-            <Text style={styles.dialogMessage}>'문제' 외의 나머지 사용자의 풀이는 모두 지워집니다. 진행하시겠습니까?</Text>
-            <View style={styles.dialogActions}>
-              <GoButton
-                title="취소"
-                variant="outline"
-                size="small"
-                onPress={() => setClearConfirmVisible(false)}
-              />
-              <GoButton
-                title="확인"
-                variant="filled"
-                size="small"
-                onPress={handleConfirmClear}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
+        title="전체 지우기"
+        message="'문제' 외의 나머지 사용자의 풀이는 모두 지워집니다. 진행하시겠습니까?"
+        onDismiss={() => setClearConfirmVisible(false)}
+        cancel={{}}
+        confirm={{ title: '확인', variant: 'danger', onPress: handleConfirmClear }}
+      />
       {/* 시트 안 스크롤(칩 목록)이 시트 끌기와 다투지 않게 끌기는 손잡이로만 */}
       <BottomSheetModal
         ref={conceptSheet}
@@ -158,39 +138,4 @@ export function CanvasChrome({
 
 const styles = StyleSheet.create({
   sheet: { flex: 1 },
-  backdrop: {
-    flex: 1,
-    backgroundColor: colors.scrim,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: space.lg,
-  },
-  dialog: {
-    width: '100%',
-    maxWidth: 380,
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
-    padding: space.xl,
-    gap: space.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  dialogTitle: {
-    ...type.title,
-    color: colors.text,
-  },
-  dialogMessage: {
-    ...type.body,
-    color: colors.subtle,
-    lineHeight: 22,
-  },
-  dialogActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginTop: space.xs,
-  },
 });

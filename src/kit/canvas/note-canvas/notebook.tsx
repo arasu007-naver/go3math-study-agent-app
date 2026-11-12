@@ -24,6 +24,7 @@ import { storage } from './legacy';
 import {
     strokeWidths,
     strokeColors,
+    INK_LABELS,
     sendBoardAction as sendAction,
     uploadWorkoutToStorage,
     uploadSnapshotToStorage,
@@ -101,7 +102,7 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
 
     const drawPencilColorOptions = () => {
         return strokeColors.map((color, index) => (
-            <GoButton onPress={() => setCanvasStrokeColor(color)} title={color} key={'pencil-color-' + index}
+            <GoButton onPress={() => setCanvasStrokeColor(color)} title={INK_LABELS[color]} key={'pencil-color-' + index}
                 variant={canvasStrokeColor === color ? 'filled' : 'outline'}
                 color={color}
                 textColor={canvasStrokeColor === color ? 'white' : 'black'}

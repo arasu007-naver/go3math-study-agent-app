@@ -1,7 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ADD_BOOKMARK } from '../src/api/graphql/mutations';
-import { layout } from '../src/ui/theme';
+import { StyleSheet } from 'react-native';
+import { colors, layout } from '../src/ui/theme';
 
 const mockAddBookmark = jest.fn().mockResolvedValue({ data: { addBookmark: true } });
 const mockCreateRecord = jest.fn().mockResolvedValue({ data: { createRecord: { id: 1 } } });
@@ -171,6 +172,43 @@ describe('NotebookScreen - Problem List Modal', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('mock-webview')).toBeNull();
     });
+  });
+});
+
+describe('NotebookScreen - list modal uses shared Button and Chip', () => {
+  beforeEach(() => jest.clearAllMocks());
+  const openList = async () => {
+    await render(<NotebookScreen />);
+    await fireEvent.press(screen.getByText('목록'));
+    await waitFor(() => expect(screen.getAllByRole('button', { name: '교체' }).length).toBe(2));
+  };
+  const flat = (node: any) => StyleSheet.flatten(node.props.style);
+
+  it('교체 and 책갈피 are small secondary buttons and 닫기 is a secondary button', async () => {
+    await openList();
+    for (const name of ['교체', '책갈피']) {
+      const node = screen.getAllByRole('button', { name })[0];
+      expect(flat(node)).toMatchObject({ minHeight: layout.controlSm, backgroundColor: colors.card });
+    }
+    expect(flat(screen.getByRole('button', { name: '닫기' }))).toMatchObject({ backgroundColor: colors.card });
+  });
+
+  it('해답/문제 is a Chip that reports its selection', async () => {
+    await openList();
+    const chip = screen.getAllByRole('button', { name: '해답' })[0];
+    expect(chip.props.accessibilityState).toMatchObject({ selected: false });
+    await fireEvent.press(chip);
+    await waitFor(() => expect(screen.getByRole('button', { name: '문제' }).props.accessibilityState).toMatchObject({ selected: true }));
+  });
+
+  it('a bookmarked problem shows a disabled 책갈피됨 that does not bookmark again', async () => {
+    await openList();
+    await fireEvent.press(screen.getAllByRole('button', { name: '책갈피' })[0]);
+    await waitFor(() => expect(screen.getByRole('button', { name: '책갈피됨' })).toBeTruthy());
+    const done = screen.getByRole('button', { name: '책갈피됨' });
+    expect(done.props.accessibilityState).toMatchObject({ disabled: true });
+    await fireEvent.press(done);
+    expect(mockAddBookmark).toHaveBeenCalledTimes(1);
   });
 });
 
