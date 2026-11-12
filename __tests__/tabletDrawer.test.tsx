@@ -15,6 +15,13 @@ const say = (messageId: string) => ({ messageId, text: '안내', choices: [], so
 const chatOpen = () => screen.queryByLabelText('Study Log dock') !== null;
 
 describe('TabletAgentLayer dock', () => {
+  it('profile dock shows card, actions, then mailbox (spec 4b D7)', async () => {
+    await render(<TabletAgentLayer state={base} session={session} />);
+    await fireEvent.press(screen.getByLabelText('내 정보'));
+    const order = screen.getAllByText(/^(이름 없음|이름 변경|개인 사서함)$/).map((t) => t.props.children);
+    expect(order).toEqual(['이름 없음', '이름 변경', '개인 사서함']);
+  });
+
   it('closes the dock with its edge button', async () => {
     await render(<TabletAgentLayer state={base} session={session} />);
     expect(screen.getByLabelText('Study dock')).toBeTruthy(); // 홈 진입 시 타임라인 dock

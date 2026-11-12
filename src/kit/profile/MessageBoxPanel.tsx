@@ -12,7 +12,7 @@ import { UNITIMAGE } from '../../config/api.constants';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { PdfViewerModal, type PdfDoc } from '../ui/PdfViewerModal';
 import { SkeletonCards } from '../ui/SkeletonCards';
-import { colors } from '../../ui/theme';
+import { colors, type } from '../../ui/theme';
 
 export type PrivateMessage = {
   id: number | string;
@@ -138,7 +138,7 @@ export function MessageBoxPanel({ fetchers, pageSize = MESSAGE_PAGE_SIZE }: { fe
           onEndReachedThreshold={0.5}
           ItemSeparatorComponent={() => <View style={styles.divider} />}
           ListEmptyComponent={<Text style={styles.empty}>받은 쪽지가 없습니다.</Text>}
-          ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footer} color="orange" /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footer} color={colors.accent} /> : null}
           renderItem={({ item }) => {
             const d = describeMessage(item);
             const fileLink = item.response?.fileLink;
@@ -166,19 +166,19 @@ export function MessageBoxPanel({ fetchers, pageSize = MESSAGE_PAGE_SIZE }: { fe
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { paddingHorizontal: 16, paddingBottom: 8, fontSize: 16, fontWeight: '700', color: '#18181B' },
-  card: { paddingHorizontal: 16, paddingVertical: 8, gap: 6, backgroundColor: '#FFFFFF' },
-  title: { fontSize: 18, fontWeight: '700', color: 'orange' },
-  subtitle: { fontSize: 14, color: '#000000' },
-  response: { fontSize: 14, color: 'red' },
+  root: { flex: 1, backgroundColor: colors.card },
+  header: { paddingHorizontal: 16, paddingBottom: 8, ...type.title, color: colors.text },
+  card: { paddingHorizontal: 16, paddingVertical: 8, gap: 6, backgroundColor: colors.card },
+  title: { ...type.title, color: colors.accentText },
+  subtitle: { ...type.body, color: colors.text },
+  response: { ...type.body, color: colors.danger },
   pressed: { opacity: 0.6 },
   actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  date: { fontSize: 11, color: '#000000' },
+  date: { ...type.caption, color: colors.muted },
   // 기존 GoButton('가자 !!!')
   go: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: colors.accent, color: colors.accentText, fontWeight: '700', overflow: 'hidden' },
   // 기존 cardDivider
-  divider: { height: 9, backgroundColor: '#FFE5CC', borderRadius: 4.5, marginVertical: 12, marginHorizontal: 16 },
-  empty: { padding: 24, fontSize: 14, color: '#52525B' },
+  divider: { height: StyleSheet.hairlineWidth * 2, backgroundColor: colors.line, marginVertical: 12, marginHorizontal: 16 },
+  empty: { padding: 24, ...type.body, color: colors.subtle },
   footer: { padding: 12 },
 });
