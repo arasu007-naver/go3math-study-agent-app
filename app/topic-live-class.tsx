@@ -20,7 +20,9 @@ import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
 import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizResponseModal';
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
+import { ensureTaskId } from '@/src/adapters/ensureTask';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
+import { topicLiveSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
 import { SheetHandle } from '@/src/ui/SheetHandle';
 import { colors, radius, type } from '@/src/ui/theme';
@@ -163,10 +165,12 @@ export default function TopicLiveClassScreen() {
 
   if (!topicId) return <Redirect href="/" />;
 
-  const onSave = (imageUrl: string, sourceType: string, sourceId: number) => {
+  // 캔버스를 열 때 task 생성이 늦었으면(taskId 0) 저장할 때 다시 확보한다
+  const onSave = async (imageUrl: string, sourceType: string, sourceId: number) => {
     countSolved();
+    const recordTaskId = (await ensureTaskId(taskId || undefined, topicLiveSpec(topicId))) ?? 0;
     void createNewRecord({
-      variables: { sourceType, sourceId: Number(sourceId), taskId, fileName: imageUrl, photoUnitId: 0, topicId },
+      variables: { sourceType, sourceId: Number(sourceId), taskId: recordTaskId, fileName: imageUrl, photoUnitId: 0, topicId },
     });
   };
 

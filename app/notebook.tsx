@@ -14,6 +14,7 @@ import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } fr
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
+import { ensureTaskId } from '@/src/adapters/ensureTask';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
 import { Button } from '@/src/ui/Button';
@@ -116,16 +117,20 @@ export default function NotebookScreen() {
   const units = session.problems;
   const answerUrl = UNITANSWER(currentSheet.sourceType, currentSheet.sourceId);
 
-  const recordOf = (imageUrl: string) =>
-    createNewRecord({
+  // taskId 없이 열렸으면(책갈피는 첫 풀이 때 발급, 그 밖은 task 생성 지연) 저장할 때 발급받고, 그 뒤로는 그 task에 붙인다
+  const recordOf = async (imageUrl: string) => {
+    const taskId = session.spec ? await ensureTaskId(session.taskId, session.spec) : session.taskId;
+    if (taskId && taskId !== session.taskId) solveStore.dispatch({ ...session, taskId });
+    return createNewRecord({
       variables: {
         sourceType: currentSheet.sourceType,
         sourceId: Number(currentSheet.sourceId),
-        taskId: Number(session.taskId ?? 0),
+        taskId: Number(taskId ?? 0),
         fileName: imageUrl,
         photoUnitId: 0,
       },
     });
+  };
 
   const onSave = (imageUrl: string) => {
     countSolved();

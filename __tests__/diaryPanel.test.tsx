@@ -16,7 +16,10 @@ const day = `${month}-05`;
 
 const recordFetchers = {
   fetchMonth: jest.fn(async () => [{ day, recordCnt: 2 }]),
-  fetchDay: jest.fn(async () => [{ id: 7, sourceType: 'unit', sourceId: 42 }]),
+  fetchDay: jest.fn(async () => [
+    { id: 7, sourceType: 'unit', sourceId: 42, taskId: 3 },
+    { id: 8, sourceType: 'unit', sourceId: 42, taskId: 9 },
+  ]),
   addBookmark: jest.fn(async () => {}),
 };
 const noticeFetchers = {
@@ -26,8 +29,8 @@ const noticeFetchers = {
 
 describe('DiaryPanel', () => {
   it('keeps the notice tab fixed and opens a day tab with that day records', async () => {
-    const onSolveDay = jest.fn();
-    await render(<DiaryPanel recordFetchers={recordFetchers} noticeFetchers={noticeFetchers} onSolveDay={onSolveDay} />);
+    const onSolveProblem = jest.fn();
+    await render(<DiaryPanel recordFetchers={recordFetchers} noticeFetchers={noticeFetchers} onSolveProblem={onSolveProblem} />);
     await waitFor(() => expect(screen.getByText('이달 공지')).toBeTruthy());
     expect(noticeFetchers.fetchMonthNotices).toHaveBeenCalledWith(month);
 
@@ -46,9 +49,9 @@ describe('DiaryPanel', () => {
     await fireEvent.press(screen.getByLabelText('풀이 목록으로'));
     await waitFor(() => expect(screen.getByText('답안 예시')).toBeTruthy());
 
-    // 탭 오른쪽 아래 '가자!!!' FAB → 그날 문제(문제별 1개)로 풀이 화면
+    // 문제의 마지막 풀이 아래 '가자!!!' → 그 문제와 가장 최근 풀이의 task
     await fireEvent.press(screen.getByText('가자!!!'));
-    expect(onSolveDay).toHaveBeenCalledWith(day, [expect.objectContaining({ sourceType: 'unit', sourceId: 42 })]);
+    expect(onSolveProblem).toHaveBeenCalledWith(expect.objectContaining({ sourceType: 'unit', sourceId: 42, taskId: 9 }));
 
     // 같은 날을 다시 눌러도 탭은 하나
     await fireEvent.press(screen.getByLabelText('5일 풀이 2문제'));

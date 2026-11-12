@@ -1,12 +1,9 @@
 // 캔버스를 열기 전에 학습 기록(task)을 보장한다. 실패해도 캔버스는 열려야 하므로 undefined로 돌려주고 client_error만 보고한다.
-import { CREATE_SELECTION_TASK } from '../api/graphql/mutations/task';
+import { CREATE_COLLECTION_TASK, CREATE_SELECTION_TASK } from '../api/graphql/mutations/task';
 import { getAgentSession } from '../agent/useAgentSession';
 import { apolloClient } from '../state/bootstrap';
 
 export type TaskSpec = { taskType: 'selection' | 'topic' | 'bookmark' | 'hotline' | 'list'; task: Record<string, unknown> };
-
-/** 타임라인이 보여 주는 task만 만든다. 책갈피·목록·선생님 수업은 학습장을 묻지 않으므로 task를 만들지 않는다 */
-const CREATABLE: ReadonlySet<TaskSpec['taskType']> = new Set(['selection', 'topic']);
 
 export function createEnsureTask(deps: {
   create(spec: TaskSpec): Promise<number>;
@@ -17,8 +14,8 @@ export function createEnsureTask(deps: {
   // 같은 spec으로 동시에 들어온 호출은 task를 한 번만 만든다
   const inflight = new Map<string, Promise<number | undefined>>();
   return (taskId, spec) => {
+    // 모든 유형(책갈피·목록·선생님 수업 포함)에 task를 만든다 — 풀이 기록(CREATE_RECORD)을 task로 추적하기 위해
     if (taskId) return Promise.resolve(taskId);
-    if (!CREATABLE.has(spec.taskType)) return Promise.resolve(undefined);
     const key = JSON.stringify(spec);
     const cached = created.get(key);
     if (cached) return Promise.resolve(cached);
@@ -42,10 +39,12 @@ export function createEnsureTask(deps: {
 
 export const ensureTaskId = createEnsureTask({
   async create(spec) {
-    const { data } = await apolloClient.mutate<{ createTask: { id: number | string } }>({
-      mutation: CREATE_SELECTION_TASK,
-      variables: { taskType: spec.taskType, task: JSON.stringify(spec.task) },
-    });
+    // 서버는 topic task의 주제를 collectionId로 찾는다(taskOfId·타임라인 제목). 그 밖의 유형은 task(JSON 문자열)에 내용을 담는다
+    const { data } = await apolloClient.mutate<{ createTask: { id: number | string } }>(
+      spec.taskType === 'topic'
+        ? { mutation: CREATE_COLLECTION_TASK, variables: { taskType: spec.taskType, collectionId: Number(spec.task.topicId) } }
+        : { mutation: CREATE_SELECTION_TASK, variables: { taskType: spec.taskType, task: JSON.stringify(spec.task) } },
+    );
     const id = Number(data?.createTask.id);
     if (!id) throw new Error('createTask returned no id');
     return id;
