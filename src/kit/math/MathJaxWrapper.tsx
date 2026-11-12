@@ -20,8 +20,6 @@ export interface MathJaxWrapperProps {
   fontSize?: number;
   fontWeight?: TextStyle['fontWeight'];
   color?: string;
-  /** fullView 배경색 (기본 흰색) */
-  backgroundColor?: string;
   style?: StyleProp<ViewStyle>;
   fullView?: boolean;
   inline?: boolean;
@@ -104,7 +102,6 @@ export function buildMathJaxHtmlDocument({
   iPath = '',
   fontSize = 15,
   color = '#1f2937',
-  backgroundColor = '#ffffff',
   compact = false,
 }: {
   title?: string;
@@ -112,7 +109,6 @@ export function buildMathJaxHtmlDocument({
   iPath?: string;
   fontSize?: number;
   color?: string;
-  backgroundColor?: string;
   compact?: boolean;
 }): string {
   const processedTitle = processHtmlImages(title, iPath);
@@ -179,7 +175,7 @@ export function buildMathJaxHtmlDocument({
           font-size: ${fontSize}px;
           line-height: 1.65;
           color: ${color};
-          background-color: ${backgroundColor};
+          background-color: #ffffff;
           word-break: keep-all;
           overflow-wrap: break-word;
         }
@@ -249,7 +245,6 @@ export default function MathJaxWrapper({
   fontSize = 14,
   fontWeight = 'normal',
   color = '#1f2937',
-  backgroundColor = '#ffffff',
   style,
   fullView = false,
   inline = true,
@@ -287,7 +282,6 @@ export default function MathJaxWrapper({
     iPath,
     fontSize,
     color,
-    backgroundColor,
     compact: autoSize,
   });
 
@@ -299,7 +293,7 @@ export default function MathJaxWrapper({
     : null;
 
   return (
-    <View style={[styles.fullViewContainer, { backgroundColor }, style, autoSizeStyle]}>
+    <View style={[styles.fullViewContainer, style, autoSizeStyle]}>
       <WebView
         originWhitelist={['*']}
         source={{ html: htmlSource }}
@@ -309,14 +303,14 @@ export default function MathJaxWrapper({
             setContentSize({ width: message.width, height: message.height });
           }
         } : undefined}
-        style={[styles.webView, { backgroundColor }]}
+        style={styles.webView}
         scrollEnabled={true}
         showsVerticalScrollIndicator={true}
         javaScriptEnabled={true}
         domStorageEnabled={true}
         startInLoadingState={true}
         renderLoading={() => (
-          <View style={[styles.loadingOverlay, { backgroundColor }]}>
+          <View style={styles.loadingOverlay}>
             <ActivityIndicator size="small" color="#ea580c" />
             <Text style={styles.loadingText}>수식 렌더링 중...</Text>
           </View>
