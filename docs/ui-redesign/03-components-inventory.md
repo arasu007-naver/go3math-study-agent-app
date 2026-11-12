@@ -9,29 +9,28 @@
 
 76행 = 단계 1의 71 + 단계 3 공용 컴포넌트 안의 5(`Button`·`Chip` 본체, `StateView`·`Dialog` 안의 `<Button`). 앞의 세 열은 단계 1 조사의 값이고, `(T)`는 토큰만, `(H)`는 하드코딩 값이 있는 것이다.
 
+단계 4a 뒤 72행: 공용 컴포넌트로 옮긴 곳은 역할 열에 "4a 됨"을 적고 앞의 세 열을 지금 값으로 고쳤다. `IconButton`·`Chip`·`Dialog`로 옮겨 이 검색에 더는 잡히지 않는 9행(`ChatRail` dock 항목, `Stage` 전환, `SheetHost` scrim, `CanvasChrome` 배경, 메모 닫기 2, 퀴즈 닫기, `StudyNoteForm` 내부 Chip)은 지웠고, `notebook.tsx`의 `<Button` 3행과 `IconButton` 본체 1행을 더했다.
+
 | 파일:라인 | 역할 | 현재 표현 | 동작·상태 | 대상 | 예외 사유 | 교체 단계 |
 |---|---|---|---|---|---|---|
-| `app/hotline-class.tsx:187` | 모달 배경 닫기 영역 | — | — | 예외 | 모달 배경 닫기 영역 | — |
-| `app/notebook.tsx:160` | 모달 배경 닫기 영역 | — | — | 예외 | 모달 배경 닫기 영역 | — |
-| `app/topic-live-class.tsx:194` | 모달 배경 닫기 영역 | — | — | 예외 | 모달 배경 닫기 영역 | — |
+| `app/hotline-class.tsx:188` | 모달 배경 닫기 영역 | — | — | 예외 | 모달 배경 닫기 영역 | — |
+| `app/notebook.tsx:162` | 모달 배경 닫기 영역 | — | — | 예외 | 모달 배경 닫기 영역 | — |
+| `app/notebook.tsx:216` | 문제 목록 모달 "교체". 4a 됨(GoButton → Button) | Button secondary sm (T) | Button과 같음 | Button secondary sm | — | 4 |
+| `app/notebook.tsx:218` | "책갈피"/"책갈피됨". 4a 됨(GoButton → Button) | Button secondary sm (T) | 됨이면 disabled | Button secondary sm | — | 4 |
+| `app/notebook.tsx:233` | 문제 목록 모달 "닫기". 4a 됨(GoButton → Button) | Button secondary sm (T) | Button과 같음 | Button secondary sm | — | 4 |
+| `app/topic-live-class.tsx:195` | 모달 배경 닫기 영역 | — | — | 예외 | 모달 배경 닫기 영역 | — |
 | `app/welcome.tsx:114` | 공개 문제 분류 탭. role=tab 유지 | minHeight 36, minWidth 64, 반경 18 (H) | role=tab, selected | Chip | — | 5 |
 | `app/welcome.tsx:129` | 개발 빌드용 둘러보기(텍스트) | minHeight 44 (H) | — | Button text md | — | 5 |
 | `app/welcome.tsx:139` | 소셜 로그인 아이콘 | 60×60, 반경 30 (H) | disabled, 스피너, pressed(scale 0.92) | 예외 | 소셜 로그인 제공사 아이콘(제공사 표시 규칙) | — |
 | `src/agent/EdgeHandle.tsx:15` | dock·drawer 닫기 손잡이 | `layout.hit` 원형, `colors.accent`, `shadow.float` (T) | pressed(`accentPress`) | 예외 | 이미 공용, 모양 일치 | — |
-| `src/agent/InstructionCard.tsx:26` | 에이전트 지시 카드의 선택지(주요) | minHeight `layout.hit`, `radius.md`, `colors.accent` (T) | pressed(opacity 0.7) | Button primary md | — | 4 |
-| `src/agent/InstructionCard.tsx:35` | 에이전트 지시 카드의 확인(보조) | 같은 틀, `colors.cardMuted` (T) | pressed(opacity 0.7) | Button secondary md | — | 4 |
-| `src/agent/tablet/ChatRail.tsx:120` | 세로 pill 툴바의 dock 항목(내비) | `layout.hit` 원형, 선택 `accentSoft` (T) | disabled, selected, pressed(`accentSoftPress`) | 예외 | 아이콘 전용 내비 항목(공용 Button에 아이콘 전용 형태 없음, Gate C Q5) | — |
-| `src/agent/tablet/ChatRail.tsx:133` | 세로 pill 툴바의 채팅 항목 | 같은 틀, `accentSoft` (T) | selected, pressed | 예외 | 아이콘 전용 내비 항목(Gate C Q5) | — |
-| `src/agent/tablet/ChatTimeline.tsx:102` | 타임라인 카드 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(카드 전체) | — |
+| `src/agent/InstructionCard.tsx:27` | 에이전트 지시 카드의 선택지(첫째 주요, 나머지 보조). 4a 됨 | Button primary·secondary md (T) | Button과 같음 | Button primary md | — | 4 |
+| `src/agent/InstructionCard.tsx:29` | 에이전트 지시 카드의 확인(보조). 4a 됨 | Button secondary md (T) | Button과 같음 | Button secondary md | — | 4 |
+| `src/agent/tablet/ChatRail.tsx:139` | 세로 pill 툴바의 채팅 항목. dock 항목은 4a에서 `IconButton`으로 옮겨 이 검색에 잡히지 않는다 | `layout.hit` 원형, `accentSoft` (T) | selected, pressed, 읽지 않음 점 | 예외 | 학습장 아이콘 + 읽지 않음 점을 함께 그리는 채팅 항목(IconButton은 Ionicons만) | — |
+| `src/agent/tablet/ChatTimeline.tsx:103` | 타임라인 카드 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(카드 전체) | — |
 | `src/agent/tablet/DrawerFooter.tsx:54` | 하단 6칸 세그먼트 (컴포넌트는 미사용, 타입만 쓰임) | minHeight `layout.footerH - space.sm`, `radius.pill` (T) | role=tab, disabled, selected, pressed, hitSlop | 예외 | 데드 코드(렌더되지 않음), 정리는 별도 결정 | — |
-| `src/host/SheetHost.tsx:33` | 시트 scrim | — | — | 예외 | 시트 scrim. Gate B Q5로 단계 4에서 scrim 자체를 없앤다 | — |
-| `src/host/Stage.tsx:25` | 책갈피/문제 목록 전환 아이콘 | 스타일 정의 없음 | pressed(opacity 0.6), hitSlop | 예외 | 아이콘 전용 버튼(Gate C Q5) | — |
-| `src/kit/canvas/CanvasChrome.tsx:113` | 대화상자 배경 닫기 영역. 전체 지우기 확인(clear_confirm)의 배경. Dialog가 Sheet scrim으로 대신한다 | — | — | Dialog | — | 4 |
-| `src/kit/canvas/FloatingToolbar.tsx:59` | 캔버스 툴바 동작 버튼 | 높이 `layout.toolbarH - 8`, `radius.pill` (H: -8, 2, 1) | pressed(`accentSoftPress`) | 예외 | 캔버스 툴바 전용(아이콘+라벨, layout.toolbarH) | — |
-| `src/kit/canvas/FloatingToolbar.tsx:84` | 캔버스 툴바 도구 버튼 | 같은 틀, 선택 `accentSoft`, 비활성 opacity 0.38 (H) | disabled, selected, pressed | 예외 | 캔버스 툴바 전용 도구(선택 상태) | — |
+| `src/kit/canvas/FloatingToolbar.tsx:68` | 캔버스 툴바 동작 버튼 | 높이 `layout.toolbarH - 8`, `radius.pill` (H: -8, 2, 1) | pressed(`accentSoftPress`) | 예외 | 캔버스 툴바 전용(아이콘+라벨, layout.toolbarH) | — |
+| `src/kit/canvas/FloatingToolbar.tsx:93` | 캔버스 툴바 도구 버튼 | 같은 틀, 선택 `accentSoft`, 비활성 opacity 0.38 (H) | disabled, selected, pressed | 예외 | 캔버스 툴바 전용 도구(선택 상태) | — |
 | `src/kit/canvas/ToolPopover.tsx:26` | 팝오버 바깥 닫기 영역 | — | — | 예외 | 팝오버 바깥 닫기 영역 | — |
-| `src/kit/canvas/note-canvas/hotline-class-canvas.tsx:705` | 선생님 메모 닫기 ✕. role 없음은 단계 4에서 보완 | `memoToastClose` (미확인) | hitSlop. role 없음 | 예외 | 아이콘 전용 닫기 ✕(Gate C Q5) | — |
-| `src/kit/canvas/note-canvas/topic-live-canvas.tsx:684` | 선생님 메모 닫기 ✕. role 없음은 단계 4에서 보완 | `memoToastClose` (미확인) | hitSlop. role 없음 | 예외 | 아이콘 전용 닫기 ✕(Gate C Q5) | — |
 | `src/kit/canvas/note-canvas/topic-notebook.tsx:417` | 보조 풀이 FAB (데드 코드 파일) | 60×60, 반경 30, `colors.accent`, 그림자 직접 지정 (H) | — | 예외 | 데드 코드, 정리는 별도 결정 | — |
 | `src/kit/concepts/ConceptLookupPanel.tsx:88` | 개념 검색 과목 선택. role=tab 유지 | padding 14/6, 반경 16, 테두리 1.5 `#fed7aa` → 선택 `#ea580c` (H) | role=tab, selected | Chip | — | 5 |
 | `src/kit/concepts/ConceptLookupPanel.tsx:113` | 개념 검색 단원 선택. role=tab 유지 | padding 12/6, 반경 14, 테두리 1.2 → 선택 `#ea580c` (H) | role=tab, selected | Chip | — | 5 |
@@ -48,9 +47,8 @@
 | `src/kit/exam-search/ExamSearchPanel.tsx:111` | 기출 검색 필터(파일 내부 `Chip`, 4곳). 과목 단일 선택, 연도·월·번호 다중 선택. 파일 내부 Chip 4곳 | minHeight 32, minWidth 40, 반경 16, 테두리 `lineStrong`, 흰 바탕 → 선택 `'orange'` (H) | selected | Chip | — | 4 |
 | `src/kit/live-class/LiveClassListPanel.tsx:56` | 목록 행 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(목록 행) | — |
 | `src/kit/live-class/LiveClassListPanel.tsx:73` | 목록 행 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(목록 행) | — |
-| `src/kit/live-class/QuizResponseModal.tsx:235` | 퀴즈 닫기 ✕. role 없음은 단계 4에서 보완 | padding 6, 반경 16, `#f1f5f9` (H) | disabled. role 없음 | 예외 | 아이콘 전용 닫기 ✕(Gate C Q5) | — |
-| `src/kit/live-class/QuizResponseModal.tsx:273` | 퀴즈 필기 지우기(보조). role 없음 → Button이 해결 | padding 10/20, 반경 12, 테두리 `#cbd5e1`, `#f8fafc` (H) | disabled. role 없음 | Button secondary md | — | 4 |
-| `src/kit/live-class/QuizResponseModal.tsx:280` | 퀴즈 답 보내기(주요). "보내는 중..." → loading | padding 10/24, 반경 12, `#ea580c`, 비활성 opacity 0.6 (H) | disabled, "보내는 중..." 문구. role 없음 | Button primary md | — | 4 |
+| `src/kit/live-class/QuizResponseModal.tsx:268` | 퀴즈 필기 지우기(보조). 4a 됨 | Button secondary md (T) | 보내는 중 disabled | Button secondary md | — | 4 |
+| `src/kit/live-class/QuizResponseModal.tsx:270` | 퀴즈 답 보내기(주요). 4a 됨, "보내는 중..." → loading | Button primary md (T) | loading | Button primary md | — | 4 |
 | `src/kit/problem-list/ProblemActionRow.tsx:12` | 문제 행 아이콘 동작 | `layout.hit` 원형, 배경 없음 (T) | pressed(`accentSoft`) | 예외 | 아이콘 전용 동작(Gate C Q5) | — |
 | `src/kit/problem-list/ProblemActionRow.tsx:15` | 문제 행 아이콘 동작(업로드 등) | 같은 정의 (T) | disabled, pressed | 예외 | 아이콘 전용 동작(Gate C Q5) | — |
 | `src/kit/problem-list/ProblemListPanel.tsx:197` | 문제 카드 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(문제 카드) | — |
@@ -62,10 +60,9 @@
 | `src/kit/profile/ProfileActions.tsx:97` | 이름 변경 대화상자 취소. 대화상자 취소 → Dialog cancel | 같은 정의 (T) | pressed | Dialog | — | 4 |
 | `src/kit/profile/ProfileActions.tsx:100` | 이름 변경 대화상자 저장. 대화상자 저장 → Dialog confirm | 같은 정의 (T) | disabled, pressed | Dialog | — | 4 |
 | `src/kit/research/ResearchPanel.tsx:62` | 검색 종류 탭. role=tab 유지 | minHeight 36, minWidth 64, 반경 18, `#E5E5E5` → 선택 `'orange'` (H) | role=tab, selected | Chip | — | 4 |
-| `src/kit/study-note/StudyNoteForm.tsx:42` | 학습장 선택 칩(파일 내부 `Chip`, 3곳). 난이도·기대 선택과 힌트 삽입. 파일 내부 Chip 3곳 | 높이 32, `radius.pill`, `cardMuted` → 선택 `accentSoft` (H: 32) | role을 prop으로 받음, selected, hitSlop | Chip | — | 4 |
-| `src/kit/study-note/StudyNoteForm.tsx:183` | "다음 목표" 펼치기(텍스트) | 스타일 정의 없음 | expanded 상태, hitSlop | Button text sm | — | 4 |
-| `src/kit/study-note/StudyNoteForm.tsx:208` | 학습장 "나중에"(텍스트) | minHeight 44, 배경 없음 (H: 44) | hitSlop | Button text md | — | 4 |
-| `src/kit/study-note/StudyNoteForm.tsx:211` | 학습장 저장(주요) | minHeight 44, `radius.md`, `colors.accent`, 비활성 `cardMuted` (H: 44) | disabled | Button primary md | — | 4 |
+| `src/kit/study-note/StudyNoteForm.tsx:164` | "다음 목표" 펼치기(텍스트). 4a 됨 | Button text sm (T) | expanded 상태(Button `expanded`) | Button text sm | — | 4 |
+| `src/kit/study-note/StudyNoteForm.tsx:189` | 학습장 "나중에"(텍스트). 4a 됨 | Button text md (T) | Button과 같음 | Button text md | — | 4 |
+| `src/kit/study-note/StudyNoteForm.tsx:190` | 학습장 저장(주요). 4a 됨 | Button primary md (T) | disabled | Button primary md | — | 4 |
 | `src/kit/timeline/TimelinePanel.tsx:196` | 타임라인 "학습장"(보조) | minHeight 32, `radius.pill`, 테두리 `lineStrong` (H: 32) | hitSlop | Button secondary sm | — | 4 |
 | `src/kit/timeline/TimelinePanel.tsx:205` | 타임라인 "가자!!!"(주요). "가자!!!", #FF8800 → accent | minHeight 32, 반경 16, `#FF8800` (H) | pressed, hitSlop | Button primary sm | — | 4 |
 | `src/kit/topic-panel/TopicTabsPanel.tsx:90` | 개념 카드 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(개념 카드) | — |
@@ -79,8 +76,9 @@
 | `src/kit/ui/PencilFab.tsx:8` | 풀이 시작 FAB | 64×64, `radius.pill`, `colors.accent`, `shadow.float` (H: 64) | pressed(`accentPress`) | 예외 | 이미 공용 FAB(64×64), 모양 일치 | — |
 | `src/kit/ui/go-button.tsx:103` | 공용 `GoButton` 본체 | 높이 26/32/38, 반경 13/16/19, outline 또는 filled, 기본색 `colors.accent` (H: 크기 수치) | disabled, loading(스피너), pressed(scale), 400ms 디바운스. role 없음 | 예외 | GoButton 본체. 사용처를 옮긴 뒤(단계 5) 삭제 | — |
 | `src/kit/ui/toast.tsx:69` | 토스트 본문 전체(데드 코드) | — | — | 예외 | 데드 코드, 정리는 별도 결정 | — |
-| `src/ui/Button.tsx:112` | 공용 Button 본체 | theme 토큰만 (T) | disabled, busy, pressed, 400ms 디바운스 | 예외 | 공용 Button 본체 | — |
+| `src/ui/Button.tsx:132` | 공용 Button 본체 | theme 토큰만 (T) | disabled, busy, expanded, pressed, 400ms 디바운스 | 예외 | 공용 Button 본체 | — |
 | `src/ui/Chip.tsx:19` | 공용 Chip 본체 | theme 토큰만 (T) | selected, disabled, pressed | 예외 | 공용 Chip 본체 | — |
+| `src/ui/IconButton.tsx:44` | 공용 IconButton 본체(단계 4a). rail dock 항목, Stage 전환, 메모·퀴즈 닫기 ✕가 쓴다 | theme 토큰만 (T) | selected, disabled, pressed, sm은 hitSlop | 예외 | 공용 IconButton 본체 | — |
 | `src/ui/Dialog.tsx:48` | Dialog 취소 | Button secondary md (T) | Button과 같음, 확인 중 disabled | 예외 | 공용 Dialog 안의 공용 Button(이미 공용) | — |
 | `src/ui/Dialog.tsx:50` | Dialog 확인 | Button primary·danger md (T) | Button과 같음 | 예외 | 공용 Dialog 안의 공용 Button(이미 공용) | — |
 | `src/ui/Sheet.tsx:24` | 시트 scrim | — | — | 예외 | Sheet scrim(Dialog가 그대로 쓴다) | — |
@@ -88,23 +86,17 @@
 | `src/ui/StateView.tsx:25` | StateView 동작 | Button primary·secondary md (T) | Button과 같음 | 예외 | 공용 StateView 안의 공용 Button(이미 공용) | — |
 | `src/ui/toast/Toast.tsx:68` | 토스트 본문 전체 | — | — | 예외 | 버튼이 아닌 눌리는 면(토스트 본문) | — |
 
-### 1.1 `GoButton` 호출 (28)
+### 1.1 `GoButton` 호출 (22)
 
-`<GoButton`은 §1의 검색에 잡히지 않아 따로 적는다(검증 스크립트 대상 아님, `rg -n "<GoButton" app src`).
+`<GoButton`은 §1의 검색에 잡히지 않아 따로 적는다(검증 스크립트 대상 아님, `rg -n "<GoButton" app src`). 단계 4a에서 `app/notebook.tsx`의 4곳(교체·책갈피 → Button, 해답/문제 → Chip, 닫기 → Button)과 `CanvasChrome`의 2곳(→ Dialog)을 옮겨 28에서 22가 됐다.
 
 | 파일:라인 | 쓰임 | 지금 | 대상 | 교체 단계 |
 |---|---|---|---|---|
-| `app/notebook.tsx:214` | 문제 목록 모달 "교체" | outline small | Button secondary sm | 4 |
-| `app/notebook.tsx:216` | "책갈피"/"책갈피됨" | 됨이면 filled + disabled | Button secondary sm (됨: disabled) | 4 |
-| `app/notebook.tsx:223` | "해답"/"문제" 전환 | 보이는 쪽이 filled | Chip (selected = 해답 보는 중) | 4 |
-| `app/notebook.tsx:236` | 문제 목록 모달 "닫기" | outline small | Button secondary sm | 4 |
 | `app/public-questions.tsx:93` | "해답" | outline small | Button secondary sm | 5 |
 | `src/kit/exam-search/ExamSearchPanel.tsx:93` | "가자!!!" | outline small | Button primary sm | 4 |
 | `src/kit/exam-search/ExamSearchPanel.tsx:103` | "계열 선택 ->" 라벨(onPress 없음) | filled `#30B650` xSmall | 글자 (`type.bodyStrong`, `colors.subtle`) | 4 |
 | `src/kit/diary/DailyRecordsList.tsx:121` | "책갈피 추가" | outline small | Button secondary sm | 4 |
 | `src/kit/diary/DailyRecordsList.tsx:122` | "답안 예시" | outline small | Button secondary sm | 4 |
-| `src/kit/canvas/CanvasChrome.tsx:118` | 전체 지우기 "취소" | outline small | Dialog cancel | 4 |
-| `src/kit/canvas/CanvasChrome.tsx:124` | 전체 지우기 "확인" | filled small | Dialog confirm (`danger`) | 4 |
 | `src/kit/problem-list/ProblemListPanel.tsx:231` | "해답"/"문제" 전환 | 보이는 쪽이 filled | Chip (selected = 해답 보는 중) | 5 |
 | `src/kit/problem-list/ProblemListPanel.tsx:238` | "책갈피 해제" | outline, 색 덮어쓰기 `colors.danger` | Button danger sm (Gate C Q6) | 5 |
 | `src/kit/problem-list/ProblemListPanel.tsx:247` | "책갈피"/"책갈피됨" | 됨이면 filled + disabled | Button secondary sm (됨: disabled) | 5 |
@@ -216,7 +208,9 @@
 
 ## 4. 팔레트 밖 UI 색
 
-`app/`·`src/`의 `.ts`·`.tsx`에서 `#` 16진 색과 이름 색(`'orange'` 등)을 모두 찾아 나눈 것이다(`src/ui/theme.ts` 자신은 뺀다). 새 토큰을 만들지 않고 기존 토큰으로 바꾼다. 교체 단계는 그 파일이 §1에서 받은 단계를 따른다. 다시 만드는 명령:
+`app/`·`src/`의 `.ts`·`.tsx`에서 `#` 16진 색과 이름 색(`'orange'` 등)을 모두 찾아 나눈 것이다(`src/ui/theme.ts` 자신은 뺀다). 새 토큰을 만들지 않고 기존 토큰으로 바꾼다. 교체 단계는 그 파일이 §1에서 받은 단계를 따른다.
+
+단계 4a 됨: 아래 표에서 `QuizResponseModal`(UI 스타일), `app/hotline-class`·`app/topic-live-class`(토스트·저장 문구·모달 바탕), `app/notebook`(목록 모달 바탕·그림자), `CanvasChrome`(그림자)의 값은 토큰으로 옮겼다. 이 파일들에 남은 것은 §4.4의 값뿐이다: `QuizResponseModal`의 WebView 문자열(`#ffffff`, `#111827`)과 `MathJaxWrapper color="#1e293b"`, 메모 `MathJaxWrapper color="#ea580c"` 2곳, 잉크 색과 견본 글자. 아래 표의 행은 단계 1 기준 값이라 그대로 둔다. 다시 만드는 명령:
 
 ```bash
 grep -rnoE "#[0-9a-fA-F]{3,8}\b|'(tomato|red|blue|gray|grey|orange|white|black|green|yellow|purple|pink)'" app src --include=*.tsx --include=*.ts | grep -v src/ui/theme.ts
@@ -286,7 +280,7 @@ grep -rnoE "#[0-9a-fA-F]{3,8}\b|'(tomato|red|blue|gray|grey|orange|white|black|g
 |---|---|---|
 | 버튼이 아닌 눌리는 면(카드·행·달력 칸·토스트 본문) | §1: `ChatTimeline:102`, `LiveClassListPanel:56`, `:73`, `ProblemListPanel:197`, `MessageBoxPanel:146`, `TopicTabsPanel:90`, `:97`, `TopicUnitList:60`, `RecordsCalendar:123`, `Toast:68` | 그대로. 카드 눌림 표현은 카드 규칙(`03-tokens-components.md` §4)에서 다룬다 |
 | 배경·바깥 닫기 영역, scrim | §1: `app/notebook:160`, `topic-live-class:194`, `hotline-class:187`, `ToolPopover:26`, `SheetHost:33`, `Sheet:24` | 그대로. `SheetHost` scrim은 Gate B Q5로 단계 4에서 없앤다. 대화상자의 배경 2곳은 `Dialog` 대상이라 예외가 아니다 |
-| 아이콘 전용 버튼 | §1: `ChatRail:120`, `:133`, `Stage:25`, `DiaryPanel:138`, `RecordsCalendar:85`, `:98`, `QuizResponseModal:235`, `ProblemActionRow:12`, `:15`, 선생님 메모 닫기 2곳. §1.1: `PlaybackToolbar:68`, `:75` | 공용 `Button`은 제목이 필수라 담지 못한다. `IconButton`을 단계 4에서 더할지 Gate C Q5에서 묻는다. role 없는 3곳(퀴즈 닫기, 메모 닫기 2)은 어느 쪽이든 단계 4에서 role을 단다 |
+| 아이콘 전용 버튼 | §1: `ChatRail:139`(채팅 항목), `DiaryPanel:138`, `RecordsCalendar:85`, `:98`, `ProblemActionRow:12`, `:15`. §1.1: `PlaybackToolbar:68`, `:75` | 공용 `Button`은 제목이 필수라 담지 못한다. 단계 4a에서 공용 `IconButton`을 더해 rail dock 항목·`Stage` 전환·퀴즈 닫기·메모 닫기 2곳을 옮겼고, role 없던 3곳(퀴즈 닫기, 메모 닫기 2)은 role과 라벨을 얻었다. 남은 곳은 4b(dock 패널)와 단계 5에서 옮긴다 |
 | 이미 공용이고 모양이 같다 | §1: `PencilFab:8`, `EdgeHandle:15`, `SheetHandle:16` | 그대로 |
 | 전용 컨트롤 | §1: `FloatingToolbar:59`, `:84`(캔버스 툴바), `welcome:139`(소셜 로그인 제공사 아이콘) | 그대로 |
 | 잉크 색·굵기 견본 | §1.1: 펜 색·굵기 `GoButton` 6곳(데드 코드 파일의 2곳은 아래 데드 코드 행) | 저장값 `orange, blue, black, red, green`은 사용자 데이터라 바꾸지 않는다. 표시 라벨만 한국어로(Gate B Q6, 단계 4) |
