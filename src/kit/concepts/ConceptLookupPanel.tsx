@@ -1,10 +1,10 @@
 /**
  * 개념 조회 패널 — 기존 `components/chat/ChatModal.tsx`(chat FAB 패널)의 과목 칩 + `ConceptsPanel.tsx`를 하나로 합친 컴포넌트.
- * 검색 패널의 '개념' 탭으로 쓴다. 위: 과목 칩, 그 아래 단원 칩, 개념 칩(누르면 개념 설명 모달). 제목·닫기는 dock이 맡으므로 주황 헤더는 뺐다.
+ * 캔버스 개념·해답 시트의 '개념' 탭으로 쓴다. 위: 과목 칩, 그 아래 단원 칩, 개념 칩(누르면 칩 아래에 개념 설명). 제목·닫기는 시트가 맡으므로 주황 헤더는 뺐다.
  * 아직 안 옮김: 모의고사 일정·일정보기·오늘의 수업 버튼(이 앱에 해당 화면이 없음), 다른 화면에서 넘겨주는 과목/단원 자동 선택 키.
  */
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   getChaptersOfSubject,
   getConceptsInChapter,
@@ -71,6 +71,7 @@ export function ConceptLookupPanel({ fetchers = conceptFetchers }: { fetchers?: 
     if (chapterId <= 0) return;
     setConceptLoading(true);
     setConcepts([]);
+    setSelected(null); // 다른 단원의 설명이 남지 않게
     fetchers
       .fetchConcepts(chapterId)
       .then((list) => setConcepts(Array.isArray(list) ? list : []))
@@ -136,7 +137,7 @@ export function ConceptLookupPanel({ fetchers = conceptFetchers }: { fetchers?: 
             <Text style={styles.loadingText}>개념 목록을 가져오는 중입니다...</Text>
           </View>
         ) : concepts.length > 0 ? (
-          <ScrollView style={styles.flex} contentContainerStyle={styles.conceptContent}>
+          <ScrollView style={styles.conceptList} contentContainerStyle={styles.conceptContent}>
             <View style={styles.conceptGrid}>
               {concepts.map((c, i) => {
                 const on = selected?.id === c.id;
@@ -166,34 +167,22 @@ export function ConceptLookupPanel({ fetchers = conceptFetchers }: { fetchers?: 
             </Text>
           </View>
         )}
-      </View>
-
-      {/* 개념 설명 모달 */}
-      <Modal visible={selected !== null} transparent animationType="fade" onRequestClose={() => setSelected(null)}>
-        <View style={styles.backdrop}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setSelected(null)} />
-          <View style={styles.detailCard}>
-            <View style={styles.detailHeader}>
-              <Text style={styles.detailBadge}>📖 개념 설명</Text>
-            </View>
-            <View style={styles.flex}>
-              <MathJaxWrapper
-                iPath={selected?.imgPath ?? ''}
-                titleStatement={selected?.rawTitle ?? ''}
-                statement={selected?.rawStatement ?? ''}
-                fontSize={15}
-                color="#1f2937"
-                fullView={true}
-              />
-            </View>
-            <View style={styles.detailFooter}>
-              <Pressable accessibilityRole="button" onPress={() => setSelected(null)} style={styles.confirmBtn}>
-                <Text style={styles.confirmBtnText}>닫기</Text>
-              </Pressable>
-            </View>
-          </View>
+        {/* 개념 설명: 모달 대신 칩 목록 아래 남은 높이를 채운다 */}
+        <View style={styles.detail}>
+          {selected ? (
+            <MathJaxWrapper
+              iPath={selected.imgPath ?? ''}
+              titleStatement={selected.rawTitle ?? ''}
+              statement={selected.rawStatement ?? ''}
+              fontSize={15}
+              color="#1f2937"
+              fullView={true}
+            />
+          ) : (
+            <Text style={styles.emptyText}>개념을 누르면 여기에 설명이 나옵니다.</Text>
+          )}
         </View>
-      </Modal>
+      </View>
     </View>
   );
 }
@@ -234,11 +223,6 @@ const styles = StyleSheet.create({
   centerLoading: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 32 },
   loadingText: { fontSize: 12, color: '#6b7280', marginLeft: 8 },
   emptyText: { fontSize: 12, color: '#9ca3af', paddingHorizontal: 16, paddingVertical: 6 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.55)', justifyContent: 'center', alignItems: 'center', padding: 16 },
-  detailCard: { width: '100%', maxWidth: 440, height: 620, maxHeight: '88%', backgroundColor: '#ffffff', borderRadius: 20, overflow: 'hidden' },
-  detailHeader: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#fff7ed', borderBottomWidth: 1, borderBottomColor: '#fed7aa' },
-  detailBadge: { fontSize: 12, fontWeight: '700', color: '#ea580c' },
-  detailFooter: { paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#f3f4f6' },
-  confirmBtn: { backgroundColor: '#ea580c', borderRadius: 12, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
-  confirmBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '700' },
+  conceptList: { flexGrow: 0, maxHeight: '40%' },
+  detail: { flex: 1, borderTopWidth: 1, borderTopColor: '#fed7aa' },
 });
