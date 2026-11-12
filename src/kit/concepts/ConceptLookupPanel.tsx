@@ -56,6 +56,7 @@ export function ConceptLookupPanel({ fetchers = conceptFetchers }: { fetchers?: 
     setChapters([]);
     setConcepts([]);
     setChapterId(0);
+    setSelected(null); // 단원이 없는 과목이면 단원 effect가 돌지 않는다
     fetchers
       .fetchChapters(subjectId)
       .then((list) => {

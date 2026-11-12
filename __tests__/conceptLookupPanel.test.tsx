@@ -45,4 +45,18 @@ describe('ConceptLookupPanel - explanation inside the panel', () => {
     expect(screen.queryByTestId('concept-detail')).toBeNull();
     expect(screen.getByText('개념을 누르면 여기에 설명이 나옵니다.')).toBeTruthy();
   });
+
+  // 최종 리뷰: 단원이 없는 과목으로 바꾸면 chapterId가 0에 머물러 단원 effect의 초기화가 돌지 않았다
+  it('clears the explanation when the subject changes, even to a subject with no chapters', async () => {
+    const twoSubjects: ConceptFetchers = {
+      ...fakeFetchers,
+      fetchSubjects: async () => [{ id: 1, title: '수학I' }, { id: 2, title: '빈 과목' }] as any,
+      fetchChapters: async (id) => (id === 1 ? ([{ id: 10, chapterName: '지수' }] as any) : []),
+    };
+    await render(<ConceptLookupPanel fetchers={twoSubjects} />);
+    await fireEvent.press(await screen.findByText('지수법칙'));
+    await fireEvent.press(screen.getByText('빈 과목'));
+    await screen.findByText('선택된 과목의 단원이 없습니다.');
+    expect(screen.queryByTestId('concept-detail')).toBeNull();
+  });
 });
