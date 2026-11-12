@@ -18,13 +18,14 @@
 | `cf7ffc7` | 전체 지우기 → `Dialog`(danger 확인), notebook 목록 모달 → `Button`·`Chip`, 토스트·저장 문구 토큰, 잉크 라벨 한국어 표시(`INK_LABELS`, 저장값 그대로), 메모 닫기 ✕ → `IconButton`(role·라벨) |
 | `8a3b967` | 퀴즈 모달: 닫기 ✕ → `IconButton`, 지우기·답 보내기 → `Button`(보내는 중 loading), 스타일 토큰 |
 | `5cc9ed3` | 학습장 시트: backdrop 없는 bottom sheet(`@gorhom/bottom-sheet`, 내용 높이·최대 90%), 끌어 내리기·Android 뒤로 가기로 닫힘, 공용 `Chip`·`Button`, `Button`에 `expanded` |
-| (이 커밋) | 인벤토리 72행으로 갱신, 이 기록, 가이드 단계 표 |
+| `4c132b1` | 인벤토리 72행으로 갱신, 이 기록, 가이드 단계 표 |
+| `2b7d5ef` | 최종 리뷰 수정: 세션이 학습장 시트를 닫는 애니메이션 중에 다시 열면 다시 올린다(전에는 안 보인 채 멈췄다). 학습장 양식이 `BottomSheetScrollView`라 90%를 넘는 내용이 스크롤된다 |
 
 화면의 동작·저장값·권한·라우트 의미는 바꾸지 않았다. 새 의존성은 없다.
 
 ## 2. 검증
 
-- `npx jest`: 51 묶음 중 48 통과, 309 중 306 통과. 실패 3은 기존 baseline 그대로다(`canvasSize`, `notices`, `timeline`).
+- `npx jest`(리뷰 수정 뒤): 51 묶음 중 48 통과, 312 중 309 통과. 실패 3은 기존 baseline 그대로다(`canvasSize`, `notices`, `timeline`).
 - `npm run typecheck`: 오류 없음.
 - `node docs/ui-redesign/tools/check-inventory.mjs docs/ui-redesign/03-components-inventory.md .` → `OK rows=72`.
 - 손댄 파일의 hex·이름 색·숫자 `fontSize` 검색: 잉크 색·견본 글자, WebView 문자열(`QuizResponseModal`), `MathJaxWrapper` 색 3곳, 그리고 `FloatingToolbar` 라벨 `fontSize: 10`만 남았다(아래 결정 참고).
@@ -45,7 +46,9 @@
 
 ## 4. 남은 것
 
-- **실기기 확인이 필요한 위험**: 학습장 시트 안의 `ScrollView`가 내용 높이 시트(최대 90%)에서 긴 메모를 스크롤하는지. 캔버스 시트가 툴바 위에서 멈추는지. 키보드가 올라올 때 학습장 입력이 가려지지 않는지.
+- **사용자 결정 필요**: `FloatingToolbar` 라벨 `fontSize: 10`(설계 기준 3과 "툴바는 바뀌지 않는다"가 부딪친다).
+- **접근성 변화**: backdrop 없는 시트라 VoiceOver·TalkBack이 학습장 시트 뒤 화면에도 닿는다(전의 `Modal`은 시트 안에 가뒀다). Gate B Q5의 선택에 따른 것이다.
+- **실기기 확인이 필요한 위험**: 학습장 시트(최대 90%)에서 긴 메모와 키보드가 올라온 상태에서 저장까지 스크롤되는지. 캔버스 시트가 툴바 위에서 멈추는지. 키보드가 올라올 때 학습장 입력이 가려지지 않는지.
 - **D-02**는 부분 해결로 열어 둔다(셸·시트·캔버스 모달은 옮겼고, dock 패널은 4b).
 - **4b**: dock 패널(Diary, 문제 목록, 기출 검색, 타임라인, 프로필 등). 따로 설계·계획을 쓴다.
 - 다른 세션과 겹치는 파일은 사용자가 말할 때 합친다.
