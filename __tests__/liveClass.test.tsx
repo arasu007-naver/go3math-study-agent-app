@@ -11,6 +11,23 @@ jest.mock('react-native-webview', () => {
 jest.mock('../src/kit/ui/image-dynamic-dims', () => () => null);
 
 describe('LiveClassListPanel', () => {
+  it('section counts are unread Tags (spec 4b)', async () => {
+    const { StyleSheet } = require('react-native');
+    const { colors } = require('../src/ui/theme');
+    const fetchers = {
+      fetchHotlineClasses: jest.fn(async () => [{ tutor: { username: 'kim', name: '김선생' }, units: [{}] }]),
+      fetchTopicLiveClasses: jest.fn(async () => [
+        { id: '1', title: 'a' },
+        { id: '2', title: 'b' },
+      ]),
+    };
+    await render(<LiveClassListPanel fetchers={fetchers} onOpen={jest.fn()} />);
+    await waitFor(() => expect(screen.getAllByTestId('tag')).toHaveLength(2));
+    const tags = screen.getAllByTestId('tag');
+    expect(tags.map((t) => StyleSheet.flatten(t.props.style).backgroundColor)).toEqual([colors.unread, colors.unread]);
+    expect(screen.getByText('2')).toBeTruthy();
+  });
+
   it('lists hotline and topic live classes and hands the chosen class as a problem source', async () => {
     const fetchers = {
       fetchHotlineClasses: jest.fn(async () => [{ tutor: { username: 'kim', name: '김선생' }, units: [{}, {}] }]),

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // 단계 4b: dock 패널 파일에 hex 색·이름 색·숫자 fontSize를 남기지 않는다(값은 theme.ts에서만).
-const FILES = ['src/kit/timeline/TimelinePanel.tsx', 'src/kit/research/ResearchPanel.tsx', 'src/kit/exam-search/ExamSearchPanel.tsx'];
+const FILES = ['src/kit/timeline/TimelinePanel.tsx', 'src/kit/research/ResearchPanel.tsx', 'src/kit/exam-search/ExamSearchPanel.tsx', 'src/kit/live-class/LiveClassListPanel.tsx'];
 
 function findDrift(source: string): string[] {
   return [

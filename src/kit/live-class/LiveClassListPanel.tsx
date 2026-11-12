@@ -9,6 +9,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Tag } from '../../ui/Tag';
 import { colors, layout, radius, space, type } from '../../ui/theme';
 import type { ProblemSource } from '../problem-list/ProblemListPanel';
 
@@ -98,11 +99,7 @@ function Section({ title, count, empty, children }: { title: string; count: numb
     <View style={styles.section}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{title}</Text>
-        {count > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{count}</Text>
-          </View>
-        )}
+        {count > 0 && <Tag label={count} tone="unread" />}
       </View>
       {count === 0 ? <Text style={[styles.muted, styles.empty]}>{empty}</Text> : children}
     </View>
@@ -115,8 +112,6 @@ const styles = StyleSheet.create({
   section: { borderRadius: radius.md, backgroundColor: colors.card, overflow: 'hidden' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: space.md, backgroundColor: colors.accentSoft },
   headerTitle: { ...type.title, color: colors.accentText },
-  badge: { minWidth: 24, paddingHorizontal: space.xs, borderRadius: radius.pill, backgroundColor: colors.accent, alignItems: 'center' },
-  badgeText: { ...type.tabLabel, color: colors.card },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: layout.hit, padding: space.md },
   pressed: { backgroundColor: colors.accentSoftPress },
   avatar: { width: 40, height: 40, borderRadius: radius.pill, backgroundColor: colors.accentSoft },
