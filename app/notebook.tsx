@@ -10,6 +10,7 @@ import { CREATE_RECORD, SEND_REQUEST_MESSAGE, ADD_BOOKMARK } from '@/src/api/gra
 import { UNIT_TRIES } from '@/src/api/graphql/queries';
 import { UNITANSWER } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
+import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
 import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
@@ -247,20 +248,14 @@ export default function NotebookScreen() {
         screenActions={[
           canvasAction('exit', '나가기', 'chevron-back', () => (router.canGoBack() ? router.back() : router.replace('/'))),
           canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true)),
-          canvasAction('answer', '해답', 'eye-outline', handlePresentModalPress),
+          canvasAction('study', '개념·해답', 'book-outline', handlePresentModalPress),
           canvasAction('workouts', '내 풀이', 'layers-outline', handlePresentWorkoutSheetListModalPress),
         ]}
       />
-      <BottomSheetModal
-        ref={sheetRef}
-        snapPoints={CANVAS_SHEET_SNAPS}
-        index={0}
-        bottomInset={sheetBottomInset}
-        enableDynamicSizing={false}
-        enableContentPanningGesture={false}
-        handleComponent={SheetHandle}
-      >
-        <View style={styles.sheetBody}>
+      <CanvasStudySheet
+        sheetRef={sheetRef}
+        answerLabel="해답"
+        answer={
           <View style={styles.bottomContainerStyle}>
             <View style={{ flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
               {answerUrl && (
@@ -277,8 +272,8 @@ export default function NotebookScreen() {
               )}
             </View>
           </View>
-        </View>
-      </BottomSheetModal>
+        }
+      />
       <BottomSheetModal
         ref={workoutSheetListRef}
         snapPoints={CANVAS_SHEET_SNAPS}

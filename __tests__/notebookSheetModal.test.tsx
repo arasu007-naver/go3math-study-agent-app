@@ -111,9 +111,9 @@ describe('NotebookScreen - Problem List Modal', () => {
     const bookmarkButtons = screen.getAllByText('책갈피');
     expect(bookmarkButtons.length).toBe(2);
 
-    // 2 in problem list cards + 1 in bottom canvas toolbar
+    // 2 in problem list cards; the toolbar button is now 개념·해답
     const answerButtons = screen.getAllByText('해답');
-    expect(answerButtons.length).toBe(3);
+    expect(answerButtons.length).toBe(2);
   });
 
   it('calls addBookmark GraphQL mutation when 책갈피 button is clicked', async () => {
@@ -231,5 +231,12 @@ describe('NotebookScreen - canvas sheets (Gate B Q4)', () => {
     const [answer] = lastSheets(2);
     expect(answer.children.type).not.toBe(BottomSheetView);
     expect(StyleSheet.flatten(answer.children.props.style).flex).toBe(1);
+  });
+
+  it('toolbar has one 개념·해답 button and no separate 해답 or 개념 button', async () => {
+    await render(<NotebookScreen />);
+    expect(screen.getByText('개념·해답')).toBeTruthy();
+    expect(screen.queryByText('해답')).toBeNull();
+    expect(screen.queryByText('개념')).toBeNull();
   });
 });
