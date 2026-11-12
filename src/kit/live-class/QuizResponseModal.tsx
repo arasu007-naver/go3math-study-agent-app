@@ -4,10 +4,8 @@ import {
     Modal,
     View,
     Text,
-    TouchableOpacity,
     StyleSheet,
     Dimensions,
-    ActivityIndicator,
     Alert,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -15,6 +13,9 @@ import { useMutation } from '@apollo/client/react';
 import MathJaxWrapper from '../math/MathJaxWrapper';
 import { ADD_LIVE_CLASS_QUIZ_RESPONSE } from '../../api/graphql/mutations';
 import { uploadQuizAnswerToStorage } from '../canvas/note-canvas/canvas-utils';
+import { Button } from '../../ui/Button';
+import { IconButton } from '../../ui/IconButton';
+import { colors, shadow, type } from '../../ui/theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -232,13 +233,7 @@ export default function QuizResponseModal({
                     {/* Header */}
                     <View style={styles.header}>
                         <Text style={styles.title}>Quiz #{quiz.quizId}</Text>
-                        <TouchableOpacity
-                            onPress={onClose}
-                            style={styles.closeButton}
-                            disabled={isSubmitting}
-                        >
-                            <Text style={styles.closeButtonText}>✕</Text>
-                        </TouchableOpacity>
+                        <IconButton size="sm" icon="close" accessibilityLabel="퀴즈 닫기" onPress={onClose} disabled={isSubmitting} />
                     </View>
 
                     {/* 1. 상단: 퀴즈 수식 및 내용 */}
@@ -270,27 +265,9 @@ export default function QuizResponseModal({
 
                     {/* 3. 하단 컨트롤 버튼 바 */}
                     <View style={styles.footer}>
-                        <TouchableOpacity
-                            onPress={handleClear}
-                            style={styles.clearButton}
-                            disabled={isSubmitting}
-                        >
-                            <Text style={styles.clearButtonText}>지우기</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={handleRequestSubmit}
-                            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <View style={styles.submittingContainer}>
-                                    <ActivityIndicator size="small" color="#ffffff" />
-                                    <Text style={styles.submitButtonText}> 보내는 중...</Text>
-                                </View>
-                            ) : (
-                                <Text style={styles.submitButtonText}>답 보내기</Text>
-                            )}
-                        </TouchableOpacity>
+                        <Button variant="secondary" title="지우기" onPress={handleClear} disabled={isSubmitting} />
+                        {/* 보내는 동안은 loading 스피너(접근성 busy)가 "보내는 중"을 대신한다(단계 4a) */}
+                        <Button variant="primary" title="답 보내기" onPress={handleRequestSubmit} loading={isSubmitting} />
                     </View>
                 </View>
             </View>
@@ -304,7 +281,7 @@ const MODAL_HEIGHT = Math.min(SCREEN_HEIGHT * 0.9, 800);
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: colors.scrim,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 16,
@@ -312,15 +289,11 @@ const styles = StyleSheet.create({
     modalContainer: {
         width: MODAL_WIDTH,
         height: MODAL_HEIGHT,
-        backgroundColor: '#ffffff',
+        backgroundColor: colors.card,
         borderRadius: 24,
         padding: 20,
         flexDirection: 'column',
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
-        elevation: 15,
+        ...shadow.float,
     },
     header: {
         flexDirection: 'row',
@@ -329,29 +302,17 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#ea580c',
-    },
-    closeButton: {
-        padding: 6,
-        borderRadius: 16,
-        backgroundColor: '#f1f5f9',
-    },
-    closeButtonText: {
-        fontSize: 16,
-        color: '#64748b',
-        fontWeight: 'bold',
-        paddingHorizontal: 4,
+        ...type.heading,
+        color: colors.accentText,
     },
     quizBox: {
         width: '100%',
         maxHeight: 180,
         minHeight: 80,
-        backgroundColor: 'white',
+        backgroundColor: colors.card,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: '#f1f5f9',
+        borderColor: colors.cardMuted,
         padding: 4,
         marginBottom: 12,
         overflow: 'hidden',
@@ -362,11 +323,11 @@ const styles = StyleSheet.create({
     },
     canvasContainer: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: colors.card,
         borderRadius: 16,
         borderWidth: 2,
         borderStyle: 'dashed',
-        borderColor: '#cbd5e1',
+        borderColor: colors.lineStrong,
         overflow: 'hidden',
         marginBottom: 14,
     },
@@ -379,36 +340,5 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         alignItems: 'center',
         gap: 12,
-    },
-    clearButton: {
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#cbd5e1',
-        backgroundColor: '#f8fafc',
-    },
-    clearButtonText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#475569',
-    },
-    submitButton: {
-        paddingVertical: 10,
-        paddingHorizontal: 24,
-        borderRadius: 12,
-        backgroundColor: '#ea580c',
-    },
-    submitButtonDisabled: {
-        opacity: 0.6,
-    },
-    submitButtonText: {
-        fontSize: 15,
-        fontWeight: 'bold',
-        color: '#ffffff',
-    },
-    submittingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
     },
 });
