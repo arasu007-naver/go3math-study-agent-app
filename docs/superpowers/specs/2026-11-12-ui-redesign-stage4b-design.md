@@ -16,20 +16,22 @@
 2. 4b가 손댄 파일에 hex 색·이름 색과 숫자 `fontSize`가 남지 않는다(예외: 인벤토리 §4.4).
 3. 결정 D2~D4마다 그것을 고정하는 테스트가 있다.
 4. jest 전체가 기준보다 나빠지지 않는다(기준: `canvasSize`, `notices`, `timeline` 3 suites. `f791a77`에서 313 중 310 통과. 전체 실행에서만 가끔 실패하는 `TimelinePanel › shows the empty placeholder`는 따로 적는다). `npm run typecheck`가 깨끗하다.
-5. `git diff --stat f791a77 -- app src package.json`에 §4 표 밖의 파일이 없다. `package.json`은 바뀌지 않는다.
+5. `git diff --stat f791a77 -- app src package.json`에 §4 표 밖의 파일이 없다(D8로 합친 다른 세션의 커밋은 빼고 잰다). `package.json`은 바뀌지 않는다.
 6. `docs/ui-redesign/04-pilot/shot-list.md`에 4b 화면이 더해지고 `docs/ui-redesign/04-pilot/4b-notes.md`가 있다.
 
 ## 2. 결정 사항 (단계 4b 브레인스토밍, 2026-11-12)
 
 | # | 질문 | 결정 |
 |---|---|---|
-| P1 | 진행 방식 | **한 계획, dock마다 한 작업.** 새 부품 없음. 실기기 확인은 끝에 한 번, 이어서 Gate D |
+| P1 | 진행 방식 | **한 계획, dock마다 한 작업.** 새 부품 없음. 실기기 확인은 끝에 한 번, 이어서 Gate D. Diary 작업은 D8 때문에 맨 뒤(문서 작업 바로 앞)로 옮긴다 |
 | D1 | 타임라인 카드 정리(진단 D-08) | **A안: 모양만.** 보이는 정보는 그대로. 주황 띠 → 얇은 구분선, 이모지 → Ionicons, 글자·색 토큰, 번호 나열은 `caption`·`muted`로 낮춤. **날짜는 지금 자리(버튼 위 오른쪽 정렬)에 둔다** |
 | D2 | 검색 dock의 개념 탭(`ConceptLookupPanel`) | **삭제한다.** 개념 검색은 문제 풀이(캔버스)에서만 필요하다. `ConceptLookupPanel`은 캔버스 개념 시트(`CanvasChrome`)에서 그대로 쓴다. **"시각만 바꾼다" 원칙의 예외(기능 진입점 제거)** |
 | D3 | 에이전트가 `category: 'concept'`로 검색을 열 때 | **'2026'(recent) 탭.** 프리셋이 탭 목록에 없으면 저장값과 같은 규칙으로 'recent'. 서버·프로토콜은 바꾸지 않는다 |
 | D4 | 기출 검색 행 라벨("월 선택 ->" 등) | **연도·시행월·번호 행의 "선택" 버튼은 그 행의 선택을 비운다**(`[]`). 사용자 설명: 이 라벨은 초기화 버튼으로도 쓰인다(지금 코드에는 `onPress`가 없다). **새 동작** |
 | D5 | Diary 날 탭 | 라벨 → `Chip`(role=tab), 닫기 ✕ → 옆의 `IconButton sm`. 아래 주황 밑줄은 없앤다 |
-| D6 | Diary "가자!!!" 떠 있는 버튼 | `Button primary md`(44)를 떠 있는 감싸개(absolute + `shadow.float`) 안에 둔다. 인벤토리의 `sm`보다 크게: 떠 있는 버튼은 44 터치 영역을 지킨다 |
+| D6 | Diary "가자!!!" | **세션 "Diary Dock 풀이 구분선 추가"의 구조를 따른다.** 그 세션이 오른쪽 아래 떠 있던 FAB를 없애고, 문제마다 마지막 풀이 아래 한 줄 오른쪽에 '가자!!!'를 두었다(`DailyRecordsList`의 `onSolve`). 4b는 그 버튼 → `Button primary sm`. FAB 관련 스타일은 4b에서 다루지 않는다(이미 없다) |
+| D6a | Diary 구분선 두 가지 | 1안: 문제 묶음 사이 → `colors.lineStrong`, 같은 문제의 풀이 사이(`solution-divider`) → `colors.line`, 여백 8 유지. 근거: 지금은 둘 다 `#607D8B`라 문제 경계와 풀이 경계가 같아 보인다. 풀이 수를 세려고 넣은 선이라 문제 경계보다 한 단계 옅게 둔다 |
+| D8 | 다른 세션 작업과의 순서 | "Diary Dock 풀이 구분선 추가" 세션의 변경은 main 체크아웃에 **커밋되지 않은 채** 있다(`DailyRecordsList`·`DiaryPanel`·`widgets.tsx`·`ensureTask.ts`·`notebook.tsx` 등). 4b의 Diary 작업은 그 변경이 커밋되어 사용자가 이 브랜치로 합치라고 한 뒤에 한다. 그 전까지 Diary 작업은 `blocked`이고 나머지 dock 작업을 먼저 한다 |
 | D7 | 태블릿 내 정보 dock 순서 | 카드 → 동작 버튼 → 사서함(폰과 같은 순서). Gate B D-11 결정("두 기기 모두 프로필 카드 바로 아래")을 적용한다 |
 
 ## 3. 공용 부품
@@ -47,12 +49,12 @@
 | 파일 | 바뀌는 것 | 근거 |
 |---|---|---|
 | `src/kit/timeline/TimelinePanel.tsx` | D1. 제목 → `type.title` + `colors.text` + Ionicons `document-text-outline`(밑줄 없음). 부제 → `type.bodyStrong` + `colors.accentText`. 월 줄 → `calendar-outline` + `type.body` + `colors.subtle`. 번호 줄 → `list-outline` + `type.caption` + `colors.muted`. 날짜 → `time-outline` + `type.caption` + `colors.muted`, 오른쪽 정렬 유지. 카드 사이 → 1px `colors.line`. 카드 바탕 → `colors.card`. 학습장 → `Button secondary sm`, 가자!!! → `Button primary sm`. 목록 끝 스피너 → `colors.accent`. 이모지는 `describeTask`가 만든 문자열에서 앞 글자를 떼지 않고, 그리는 쪽에서 아이콘과 나머지 글자로 나눈다(§5.1) | §1 `TimelinePanel:196`, `:205`, 진단 D-08 |
-| `src/kit/diary/DiaryPanel.tsx` | D5 날 탭, D6 가자!!!, "풀이 목록" 뒤로 → `Button text md` + `icon="chevron-back"` | §1 `DiaryPanel:99`, `:117`, `:129`, `:138` |
+| `src/kit/diary/DiaryPanel.tsx` | D5 날 탭, "풀이 목록" 뒤로 → `Button text md` + `icon="chevron-back"`. 줄 번호는 D8로 합친 뒤 다시 잰다 | §1 `DiaryPanel` 행들, D8 |
 | `src/kit/diary/RecordsCalendar.tsx` | 이전·다음 달 화살표 → `IconButton md`("이전 달"·"다음 달", 색은 IconButton 기본). 날짜 위 숫자 배지 → `Tag tone="unread"`. 나머지 색·글자 토큰 | §1 `RecordsCalendar:85`, `:98`, §2 배지 |
-| `src/kit/diary/DailyRecordsList.tsx` | 책갈피 추가·답안 예시(GoButton) → `Button secondary sm`. 색·글자 토큰 | §1.1 `DailyRecordsList:121`, `:122` |
+| `src/kit/diary/DailyRecordsList.tsx` | 책갈피 추가·답안 예시(GoButton) → `Button secondary sm`. D6 문제별 가자!!!(GoButton filled) → `Button primary sm`, 줄 오른쪽 정렬 그대로. D6a 구분선 두 가지. 바탕 `#FFFFFF` → `colors.card`. `onSolve`·`DiarySolveTarget`·`groupByProblem`은 그대로 | §1.1 `DailyRecordsList` 행들, D6, D6a, D8 |
 | `src/kit/notices/NoticesPanel.tsx` | 색·글자 토큰만(눌리는 요소 없음) | §3, §4 |
 | `src/kit/research/ResearchPanel.tsx` | D2: `CATEGORIES`에서 `concept` 삭제, `ConceptLookupPanel` import·분기 삭제, `ResearchCategory`에서 `'concept'` 삭제. 탭 3개 → `Chip`(role=tab). D3: `resolveInitialCategory`가 프리셋도 탭 목록으로 확인 | §1 `ResearchPanel:62`, D2, D3 |
-| `src/host/widgets.tsx` | D2로 `ResearchCategory`가 좁아져 `props.category` 형 단언만 맞춘다(동작 변화 없음, 값 확인은 `resolveInitialCategory`가 한다) | D3 |
+| `src/host/widgets.tsx` | D2로 `ResearchCategory`가 좁아져 `props.category` 형 단언만 맞춘다(동작 변화 없음, 값 확인은 `resolveInitialCategory`가 한다). D8의 다른 세션도 이 파일을 고치므로 4b의 변경은 이 한 줄로 한정한다 | D3, D8 |
 | `src/kit/exam-search/ExamSearchPanel.tsx` | 계열 행 라벨 → 글자(`type.bodyStrong`, `colors.subtle`). D4: 연도·시행월·번호 행 라벨 → `Button secondary sm` + `icon="refresh"`, 제목 "<행> 선택", hint "선택을 모두 지웁니다". 파일 안 `Chip` → 공용 `Chip`(계열 radio, 나머지 checkbox). 가자!!! → `Button primary sm`. 알림 글자 `#B45309` → 1안 `colors.danger`(근거: 글자용 warn 토큰이 없고 새 토큰을 만들지 않는다. `palette.warn[500]`은 배경용 팔레트라 직접 쓰지 않는다). 행 구분선 → `colors.line` | §1 `ExamSearchPanel:111`, §1.1 `:93`, `:103`, D4 |
 | `src/kit/live-class/LiveClassListPanel.tsx` | 숫자 배지 → `Tag tone="unread"` | §2 배지 |
 | `src/kit/profile/ProfileActions.tsx` | 이름 변경·프로필 이미지 변경 → `Button text md`(밑줄 없음). 구분선 뒤 마지막에 로그아웃 → `Button text md tone="danger"`. 이름 변경 모달 → `Dialog`(title "이름 변경", 입력은 children, `cancel={{}}`, confirm "저장", 비었거나 같으면 `disabled`). `NAME_MAX`, 완료 키 저장, 바쁠 때 비활성은 그대로 | §1 `ProfileActions:53`~`:100`, Gate C Q6, D-11 |
@@ -102,7 +104,7 @@
 새 테스트는 4a처럼 역할·라벨·testID로 찾고 스타일은 `props.style`로 읽는다(RNTL v14).
 
 - **타임라인**: 카드에 이모지 글자가 없고 아이콘이 있다. 학습장·가자!!!가 `Button`(role button, 라벨 유지). 날짜가 그대로 그려진다. 모르는 이모지 줄은 글자 그대로.
-- **Diary**: 날 탭이 role tab + selected, 닫기가 "<라벨> 탭 닫기" 버튼이고 누르면 그 탭만 닫힌다. 가자!!!가 minHeight 44. 달 화살표 두 개가 라벨로 찾아지고 누르면 달이 바뀐다. 숫자 배지가 `Tag`.
+- **Diary**(D8로 합친 뒤): 날 탭이 role tab + selected, 닫기가 "<라벨> 탭 닫기" 버튼이고 누르면 그 탭만 닫힌다. 문제마다 가자!!!가 `Button`(role button)이고 누르면 `onSolve`가 그 문제로 한 번 불린다(다른 세션의 기존 테스트가 있으면 그대로 통과). `solution-divider`가 `colors.line`, 문제 사이 구분선이 `colors.lineStrong`. 달 화살표 두 개가 라벨로 찾아지고 누르면 달이 바뀐다. 숫자 배지가 `Tag`.
 - **검색**: D2 — 탭이 셋이고 "개념"이 없다. D3 — `resolveInitialCategory('concept')`와 저장값 `'concept'`이 모두 `'recent'`(기존 `research.test.ts:15` 기대값을 바꾼다). D4 — 시행월 "선택"을 누르면 시행월 칩이 모두 꺼지고 계열·번호는 그대로, 번호·연도도 같다. 계열 행에는 비우기 버튼이 없다.
 - **실황 수업**: 숫자 배지가 `Tag`(unread).
 - **내 정보**: 세 동작이 버튼이고 로그아웃이 마지막, 위험 톤 글자색. 이름 변경 → `Dialog`가 열리고, 같은 이름이면 저장 비활성, 새 이름 저장 시 `changeName` 한 번. 태블릿 dock 순서 카드 → 동작 → 사서함.
@@ -119,4 +121,5 @@
 
 - Diary 날 탭이 `Chip` 높이(`controlSm` 32)로 바뀌어 탭 줄이 낮아진다. 터치 영역은 4a의 `Chip`·`IconButton sm`이 정한 방식 그대로이며 실기기에서 확인한다.
 - 내 정보 dock 순서가 바뀌어, 사서함이 길면 동작 버튼은 위에 남고 사서함만 길어진다(폰과 같은 모양).
+- D8: 다른 세션의 변경이 늦게 합쳐지면 Diary 작업과 Gate D 요청이 함께 늦어진다. 합칠 때 `widgets.tsx`·`DailyRecordsList.tsx`가 겹치면 사용자가 합치라고 한 뒤 그 자리에서 푼다.
 - D2로 검색 dock에서 개념을 찾던 사용자는 캔버스 개념 시트를 써야 한다. 4b-notes와 Gate D 요청에 적는다.
