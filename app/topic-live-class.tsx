@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type Ref } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useLazyQuery, useMutation, useSubscription } from '@apollo/client/react';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useIsFocused } from '@react-navigation/native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
@@ -13,7 +13,8 @@ import { LAST_LIVE_TOPIC_MESSAGE, STUDY_TOPIC } from '@/src/api/graphql/queries'
 import { TOPIC_LIVE_MESSAGE_ADDED } from '@/src/api/graphql/subscriptions';
 import { UNITANSWER, UNITIMAGE } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
-import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
+import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
+import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import LegacyTopicLiveClassCanvasPanel from '@/src/kit/canvas/note-canvas/topic-live-canvas';
 import { storage } from '@/src/kit/canvas/note-canvas/legacy';
 import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
@@ -24,7 +25,6 @@ import { ensureTaskId } from '@/src/adapters/ensureTask';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { topicLiveSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
-import { SheetHandle } from '@/src/ui/SheetHandle';
 import { colors, radius, type } from '@/src/ui/theme';
 
 // 주제 실황 수업 화면: 기존 qoolla-student-app `pages/notebook/topic-live-class.tsx`를 옮김. 패널은 note-canvas/topic-live-canvas.tsx 그대로.
@@ -55,7 +55,6 @@ export default function TopicLiveClassScreen() {
   const isFocused = useIsFocused();
   const panelRef = useRef<PanelHandle | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
-  const sheetBottomInset = useCanvasSheetBottomInset();
 
   const [topicUnits, setTopicUnits] = useState<Unit[]>([]);
   const [currentSheet, setCurrentSheet] = useState<Unit | null>(null);
@@ -184,7 +183,7 @@ export default function TopicLiveClassScreen() {
     canvasAction('sync', '필기 따라가기', 'sync-outline', syncBoard),
     canvasAction('lastStep', '마지막 단계', 'checkmark-done-outline', playLastStep),
     ...(topicUnits.length > 1 ? [canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true))] : []),
-    canvasAction('answer', '답안 예시', 'eye-outline', () => sheetRef.current?.present()),
+    canvasAction('study', '개념·해답', 'book-outline', () => sheetRef.current?.present()),
   ];
 
   return (
@@ -235,16 +234,10 @@ export default function TopicLiveClassScreen() {
         onSubmitted={() => showToast('답안을 보냈습니다.')}
         onError={(msg) => showToast(msg)}
       />
-      <BottomSheetModal
-        ref={sheetRef}
-        snapPoints={CANVAS_SHEET_SNAPS}
-        index={0}
-        bottomInset={sheetBottomInset}
-        enableDynamicSizing={false}
-        enableContentPanningGesture={false}
-        handleComponent={SheetHandle}
-      >
-        <View style={styles.sheetBody}>
+      <CanvasStudySheet
+        sheetRef={sheetRef}
+        answerLabel="답안 예시"
+        answer={
           <View style={styles.answerRow}>
             <View style={styles.answerPane}>
               {problemUrl && <DynamicDimensionsImage source={{ uri: problemUrl }} width={360} />}
@@ -264,8 +257,8 @@ export default function TopicLiveClassScreen() {
               )}
             </View>
           </View>
-        </View>
-      </BottomSheetModal>
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -290,7 +283,6 @@ const styles = StyleSheet.create({
   listContainer: { position: 'absolute', backgroundColor: colors.card, padding: 20, borderRadius: 12, elevation: 5 },
   listItem: { marginRight: 16 },
   // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
-  sheetBody: { flex: 1 },
   answerRow: { flex: 1, flexDirection: 'row', gap: 6, paddingHorizontal: 6 },
   answerPane: { flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card },
 });
