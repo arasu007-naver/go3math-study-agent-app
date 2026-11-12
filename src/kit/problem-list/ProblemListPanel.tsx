@@ -4,26 +4,27 @@
  * 데이터는 fetcher로 주입받고(어떤 출처의 문제인지는 source로 넘긴다), 고른 문제는 onSelectProblem으로 올린다.
  * 오른쪽 아래 연필 버튼(onSolve)은 마지막으로 고른 문제(없으면 1번)부터 풀이 화면을 연다.
  * renderFooter(선택)는 카드 이미지 아래 한 줄(폰 결과 화면의 해답·카메라 버튼).
+ * 기본 버튼 줄의 '해답'은 그 문항을 말꼬리로 가리키는 해답 말풍선(WebView)을 연다. 버튼을 누른 문항은 카드를 누른 것처럼 현재 문제가 된다.
  */
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { WebView } from 'react-native-webview';
 import { ADD_BOOKMARK, REMOVE_BOOKMARK } from '../../api/graphql/mutations';
 import { UNITANSWER } from '../../config/api.constants';
 import { apolloClient } from '../../state/bootstrap';
 import { colors } from '../../ui/theme';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import GoButton from '../ui/go-button';
-import Go3MathLoader from '../ui/loading-view';
 import { PencilFab } from '../ui/PencilFab';
+import { AnswerBubble } from './AnswerBubble';
+import { placeAnswerBubble, type BubblePlacement, type Rect } from './answerBubblePlacement';
 
 /** 출처: 타임라인 학습 기록(task), 기출 검색 조건(검색 dock · exam_search의 '가자') 또는 내 책갈피(Stage 헤더 책갈피 버튼) */
 export type ProblemSource =
   | { kind: 'task'; taskId: number }
   | { kind: 'exam_query'; query: Record<string, unknown>; taskId?: number }
   | { kind: 'bookmarks'; taskId?: number }
-  /** 앱이 이미 가진 문제 묶음(태블릿 Diary dock의 그날 문제 '가자!!!'). 조회 없이 그대로 보인다 */
-  | { kind: 'list'; title: string; problems: Problem[] }
+  /** 앱이 이미 가진 문제 묶음(태블릿 Diary dock의 문제별 '가자!!!'). 조회 없이 그대로 보인다. taskId: 그 묶음을 받아 온 task */
+  | { kind: 'list'; title: string; problems: Problem[]; taskId?: number }
   /** 실황 수업 dock: 선생님 수업(문제가 수업 중 늘거나 줄 수 있다 — subscribe) · 주제 실황 수업 */
   | { kind: 'hotline'; tutorId: string; title: string }
   | { kind: 'topic_live'; topicId: number; title: string };
@@ -50,14 +51,20 @@ export function ProblemListPanel({
   source: ProblemSource;
   onSelectProblem(a: { index: number; problem: Problem }): void;
   onSolve?(a: { index: number; set: ProblemSet }): void;
-  renderFooter?(a: { index: number; problem: Problem }): ReactNode;
+  renderFooter?(a: { index: number; problem: Problem; set: ProblemSet }): ReactNode;
 }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const [set, setSet] = useState<ProblemSet | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<number | null>(0);
   const [bookmarkedKeys, setBookmarkedKeys] = useState<Set<string>>(new Set());
-  const [showingAnswerKeys, setShowingAnswerKeys] = useState<Set<string>>(new Set());
+  // 열려 있는 해답 말풍선(한 번에 하나)
+  const [answer, setAnswer] = useState<{ itemKey: string; url: string; placement: BubblePlacement } | null>(null);
+  // 말풍선 자리 계산용: 패널 크기, 목록(ScrollView)의 패널 안 y, 스크롤 위치, 카드별 목록 안 자리
+  const rootSize = useRef({ width: 0, height: 0 });
+  const listY = useRef(0);
+  const scrollY = useRef(0);
+  const cardRects = useRef<Record<number, Rect>>({});
   const key = JSON.stringify(source);
 
   useEffect(() => {
@@ -65,6 +72,7 @@ export function ProblemListPanel({
     setSet(null);
     setError(null);
     setSelected(0);
+    setAnswer(null);
     fetchers
       .fetchProblems(JSON.parse(key))
       .then((s) => {
@@ -106,17 +114,21 @@ export function ProblemListPanel({
     source.kind === 'bookmarks' ||
     (source.kind === 'task' && (set?.title.includes('책갈피') ?? false));
 
-  const toggleAnswer = useCallback((itemKey: string) => {
-    setShowingAnswerKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(itemKey)) {
-        next.delete(itemKey);
-      } else {
-        next.add(itemKey);
-      }
-      return next;
-    });
-  }, []);
+  // '해답'·'책갈피'·'책갈피 해제'를 누른 문항은 카드를 누른 것처럼 현재 문제로 고른다
+  const select = (index: number, problem: Problem) => {
+    setSelected(index);
+    onSelectProblem({ index, problem });
+  };
+
+  // 같은 문항이면 닫고, 아니면 그 문항 카드의 지금 자리를 기준으로 말풍선을 연다(다른 문항이면 옮겨 간다)
+  const toggleAnswer = (index: number, problem: Problem, itemKey: string, url: string | undefined) => {
+    if (answer?.itemKey === itemKey || !url) return setAnswer(null);
+    select(index, problem);
+    const card = cardRects.current[index] ?? { x: 0, y: 0, width: 0, height: 0 };
+    const container = rootSize.current.width > 0 ? rootSize.current : { width, height };
+    const placement = placeAnswerBubble({ ...card, y: card.y - scrollY.current + listY.current }, container, width >= 600);
+    setAnswer({ itemKey, url, placement });
+  };
 
   const handleAddBookmark = useCallback(
     async (problem: Problem, itemKey: string) => {
@@ -154,6 +166,7 @@ export function ProblemListPanel({
             },
           });
         }
+        setAnswer(null);
         setSet((prev) => {
           if (!prev) return prev;
           const nextProblems = prev.problems.filter((_, i) => i !== index);
@@ -180,16 +193,30 @@ export function ProblemListPanel({
   const cardWidth = (twoCol ? Math.min(width, 1200) / 2 : Math.min(width, 600)) - 24;
 
   return (
-    <View style={styles.root}>
+    <View
+      style={styles.root}
+      onLayout={(e) => {
+        rootSize.current = e.nativeEvent.layout;
+      }}>
       <View style={styles.head}>
         <Text style={styles.heading}>{set.title}</Text>
         {!!set.subtitle && <Text style={styles.subtitle}>{set.subtitle}</Text>}
       </View>
-      <ScrollView contentContainerStyle={styles.grid}>
+      <ScrollView
+        contentContainerStyle={styles.grid}
+        scrollEventThrottle={16}
+        onLayout={(e) => {
+          listY.current = e.nativeEvent.layout.y;
+        }}
+        onScroll={(e) => {
+          scrollY.current = e.nativeEvent.contentOffset.y;
+          // 목록이 움직이면 말풍선이 문항과 어긋나므로 닫는다
+          setAnswer(null);
+        }}>
         {set.problems.length === 0 && <Text style={styles.empty}>문제가 없어요.</Text>}
         {set.problems.map((problem, index) => {
           const itemKey = `${problem.sourceType}-${problem.sourceId}-${index}`;
-          const isShowingAnswer = showingAnswerKeys.has(itemKey);
+          const isShowingAnswer = answer?.itemKey === itemKey;
           const itemAnswerUrl = UNITANSWER(problem.sourceType, problem.sourceId);
           const isBookmarked = bookmarkedKeys.has(itemKey);
 
@@ -199,9 +226,12 @@ export function ProblemListPanel({
               accessibilityRole="button"
               accessibilityLabel={`${index + 1}번 문제`}
               accessibilityState={{ selected: index === selected }}
+              onLayout={(e) => {
+                cardRects.current[index] = e.nativeEvent.layout;
+              }}
               onPress={() => {
-                setSelected(index);
-                onSelectProblem({ index, problem });
+                setAnswer(null);
+                select(index, problem);
               }}
               style={({ pressed }) => [
                 styles.card,
@@ -210,29 +240,16 @@ export function ProblemListPanel({
                 pressed && styles.pressed,
               ]}>
               <Text style={styles.cardLabel}>{index + 1}번</Text>
-              {isShowingAnswer && itemAnswerUrl ? (
-                <View style={[styles.answerContainer, { width: cardWidth - 16 }]}>
-                  <WebView
-                    originWhitelist={['*']}
-                    source={{ uri: itemAnswerUrl }}
-                    style={styles.answerWebView}
-                    startInLoadingState
-                    nestedScrollEnabled
-                    renderLoading={() => <Go3MathLoader style={styles.fullSize} />}
-                  />
-                </View>
-              ) : (
-                <DynamicDimensionsImage source={{ uri: problem.image }} width={cardWidth - 16} />
-              )}
+              <DynamicDimensionsImage source={{ uri: problem.image }} width={cardWidth - 16} />
               {renderFooter ? (
-                renderFooter({ index, problem })
+                renderFooter({ index, problem, set })
               ) : (
                 <View style={styles.cardActions}>
                   <GoButton
-                    title={isShowingAnswer ? '문제' : '해답'}
+                    title={isShowingAnswer ? '닫기' : '해답'}
                     size="small"
                     variant={isShowingAnswer ? 'filled' : 'outline'}
-                    onPress={() => toggleAnswer(itemKey)}
+                    onPress={() => toggleAnswer(index, problem, itemKey, itemAnswerUrl)}
                   />
                   {isBookmarkList ? (
                     <GoButton
@@ -241,7 +258,10 @@ export function ProblemListPanel({
                       variant="outline"
                       color={colors.danger}
                       textColor={colors.danger}
-                      onPress={() => handleRemoveBookmark(problem, index)}
+                      onPress={() => {
+                        select(index, problem);
+                        return handleRemoveBookmark(problem, index);
+                      }}
                     />
                   ) : (
                     <GoButton
@@ -249,7 +269,10 @@ export function ProblemListPanel({
                       size="small"
                       variant={isBookmarked ? 'filled' : 'outline'}
                       disabled={isBookmarked}
-                      onPress={() => handleAddBookmark(problem, itemKey)}
+                      onPress={() => {
+                        select(index, problem);
+                        return handleAddBookmark(problem, itemKey);
+                      }}
                     />
                   )}
                 </View>
@@ -258,6 +281,7 @@ export function ProblemListPanel({
           );
         })}
       </ScrollView>
+      {answer && <AnswerBubble url={answer.url} placement={answer.placement} />}
       {onSolve && set.problems.length > 0 && <PencilFab onPress={() => onSolve({ index: selected ?? 0, set })} />}
     </View>
   );
@@ -302,23 +326,6 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
     paddingTop: 4,
-  },
-  answerContainer: {
-    height: 300,
-    backgroundColor: colors.card,
-    borderRadius: 6,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  answerWebView: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  fullSize: {
-    width: '100%',
-    height: '100%',
   },
   empty: { padding: 24, fontSize: 14, color: '#52525B' },
   center: { padding: 32 },

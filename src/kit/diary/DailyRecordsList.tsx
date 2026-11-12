@@ -19,6 +19,8 @@ export type DailyRecord = {
   id: string | number;
   sourceType: string;
   sourceId: string | number;
+  /** 이 풀이를 저장한 학습 기록(task). 없으면 0/null(예전 기록) */
+  taskId?: number | null;
   /** 학생이 올린 풀이 이미지 */
   fileName?: string | null;
   /** 선생님 첨삭 이미지 URL들(쉼표 구분) */
@@ -47,7 +49,7 @@ export function DailyRecordsList({
   onShowAnswer,
   width: widthProp,
   scrollable = true,
-  onLoadProblems,
+  onSolve,
 }: {
   fetchers: DailyRecordsFetchers;
   day: string;
@@ -57,8 +59,8 @@ export function DailyRecordsList({
   width?: number;
   /** false면 FlatList 대신 기록을 모두 그려 바깥 ScrollView가 스크롤한다 */
   scrollable?: boolean;
-  /** 그날 기록을 받으면 그날 문제들(문제별 1개, 나온 순서)을 알린다(태블릿 Diary dock의 '가자!!!' FAB) */
-  onLoadProblems?(problems: DayProblem[]): void;
+  /** 있으면 문제마다 마지막 풀이 아래 한 줄 오른쪽에 '가자!!!' 버튼을 둔다(태블릿 Diary dock — 그 문제를 풀이 화면에서 다시 푼다) */
+  onSolve?(target: DiarySolveTarget): void;
 }) {
   const window = useWindowDimensions();
   const width = widthProp ?? window.width;
@@ -74,19 +76,11 @@ export function DailyRecordsList({
       .then((r) => {
         if (!alive) return;
         setRecords(r);
-        onLoadProblems?.(
-          groupByProblem(r).map((g) => ({
-            sourceType: g.first.sourceType,
-            sourceId: Number(g.first.sourceId),
-            image: UNITIMAGE(g.first.sourceType, g.first.sourceId) ?? '',
-          })),
-        );
       })
       .catch((e) => alive && setError(String(e?.message ?? e)));
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 날이 바뀔 때만 다시 받는다(콜백이 바뀌어도 다시 받지 않음)
   }, [fetchers, day]);
 
   if (error) return <Text style={styles.message}>기록을 불러오지 못했어요. {error}</Text>;
@@ -121,13 +115,36 @@ export function DailyRecordsList({
           <GoButton title="책갈피 추가" onPress={() => addBookmark(g.first)} />
           {onShowAnswer && <GoButton title="답안 예시" onPress={() => onShowAnswer(g.first)} />}
         </View>
-        {g.records.map((r) => {
+        {g.records.map((r, n) => {
           // 선생님 첨삭이 있으면 첨삭, 없으면 학생 풀이(기존 그대로)
           const sheets = r.tutorNote ? r.tutorNote.split(',').filter(Boolean) : [];
-          return sheets.length > 0
-            ? sheets.map((s, i) => <Zoomable key={`feedback-${r.id}-${i}`} uri={s} width={width - 32} />)
-            : !!r.fileName && <Zoomable key={`solution-${r.id}`} uri={r.fileName} width={imgW} />;
+          return (
+            <Fragment key={r.id}>
+              {/* 풀이(기록) 사이 구분선 — 같은 문제를 몇 번 풀었는지 보이게 */}
+              {n > 0 && <View testID="solution-divider" style={styles.solutionDivider} />}
+              {sheets.length > 0
+                ? sheets.map((s, i) => <Zoomable key={`feedback-${r.id}-${i}`} uri={s} width={width - 32} />)
+                : !!r.fileName && <Zoomable key={`solution-${r.id}`} uri={r.fileName} width={imgW} />}
+            </Fragment>
+          );
         })}
+        {onSolve && (
+          <View style={styles.buttons}>
+            <GoButton
+              title="가자!!!"
+              variant="filled"
+              onPress={() =>
+                onSolve({
+                  sourceType: g.first.sourceType,
+                  sourceId: Number(g.first.sourceId),
+                  image: question ?? '',
+                  // 이 문제의 가장 최근 풀이가 속한 task
+                  taskId: [...g.records].reverse().find((r) => r.taskId)?.taskId ?? undefined,
+                })
+              }
+            />
+          </View>
+        )}
       </View>
     );
   };
@@ -157,7 +174,8 @@ export function DailyRecordsList({
   );
 }
 
-export type DayProblem = { sourceType: string; sourceId: number; image: string };
+/** '가자!!!'로 다시 풀 문제. taskId: 그 문제의 가장 최근 풀이가 속한 task(없으면 undefined) */
+export type DiarySolveTarget = { sourceType: string; sourceId: number; image: string; taskId?: number };
 
 type ProblemGroup ={ key: string; first: DailyRecord; records: DailyRecord[] };
 
@@ -198,5 +216,6 @@ const styles = StyleSheet.create({
   },
   buttons: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 6, paddingVertical: 8 },
   divider: { height: 1, width: '100%', backgroundColor: '#607D8B' },
+  solutionDivider: { height: 1, alignSelf: 'stretch', marginVertical: 8, backgroundColor: '#607D8B' },
   message: { margin: 24, textAlign: 'center', color: colors.muted },
 });

@@ -6,7 +6,7 @@ Method: design review only (detector not applicable, native platform)
 
 | 항목 | 값 |
 |---|---|
-| 단계 / 상태 | 단계 1 / **승인대기 (조건부)** — 실기기 캡처가 없고, 캡처에 쓴 번들이 기준 커밋과 다를 수 있다. 아래 §9 참고 |
+| 단계 / 상태 | 단계 1 / **완료** — 2026-11-10 사용자가 Gate A를 조건부로 승인했다. 실기기 캡처 0장, 번들 출처 미확인, 미촬영 47행은 해결되지 않은 채 다음 단계로 넘긴다(§9, §12) |
 | 기준 | `feat/study-note` @ `76b99e3`, 작업 브랜치 `design/ui-redesign` |
 | 사용한 스킬 | `impeccable` — 로드함. `critique`(native 경로: 설계 리뷰만)와 `audit.native`의 5개 차원을 적용했다 |
 | 쓰지 않은 스킬 | `expo-design-system`, `vercel-react-native-skills`(설치·노출됨, 단계 3부터 사용), `ui-ux-pro-max` |
@@ -147,3 +147,9 @@ Method: design review only (detector not applicable, native platform)
 ## 11. 소스 변경 파일
 
 없음.
+
+## 12. Gate A 결정
+
+- 2026-11-10 사용자 승인: **승인, 조건 유지**. 단계 2는 코드 근거(`파일:라인`)를 바탕으로 진행한다.
+- 열린 조건 세 가지(실기기 캡처 0장, 캡처 번들 출처 미확인, 미촬영 47행)는 닫히지 않았다. 재촬영과 실기기 촬영 시점은 단계 2 브레인스토밍에서 정한다(§10 질문 5).
+- 승인한 PC(Windows)에는 Xcode가 없어 iOS 캡처를 다시 찍을 수 없다.

@@ -178,7 +178,8 @@ describe('ProblemListPanel selection border and buttons', () => {
       fetchProblems: jest.fn(async () => ({ title: '📝 문제 목록', problems })),
       addBookmark,
     };
-    await render(<ProblemListPanel fetchers={fetchers} source={{ kind: 'task', taskId: 1 }} onSelectProblem={jest.fn()} />);
+    const onSelectProblem = jest.fn();
+    await render(<ProblemListPanel fetchers={fetchers} source={{ kind: 'task', taskId: 1 }} onSelectProblem={onSelectProblem} />);
     await waitFor(() => expect(screen.getByText('📝 문제 목록')).toBeTruthy());
 
     const answerButtons = screen.getAllByText('해답');
@@ -186,20 +187,41 @@ describe('ProblemListPanel selection border and buttons', () => {
     expect(answerButtons.length).toBe(2);
     expect(bookmarkButtons.length).toBe(2);
 
-    // Click bookmark button for 1st problem
-    fireEvent.press(bookmarkButtons[0]);
-    await waitFor(() => expect(addBookmark).toHaveBeenCalledWith('UNIT', 10));
-    expect(screen.getByText('책갈피됨')).toBeTruthy();
+    // 2번 '책갈피' -> 책갈피되고 2번이 현재 문제가 된다
+    fireEvent.press(bookmarkButtons[1]);
+    await waitFor(() => expect(addBookmark).toHaveBeenCalledWith('UNIT', 20));
+    expect(onSelectProblem).toHaveBeenLastCalledWith({ index: 1, problem: problems[1] });
+    expect(screen.getByLabelText('2번 문제').props.accessibilityState.selected).toBe(true);
+    await new Promise((r) => setTimeout(r, 450));
 
-    // Click answer button for 1st problem -> toggles to '문제' and renders webview
+    // Click bookmark button for 1st problem
+    fireEvent.press(screen.getAllByText('책갈피')[0]);
+    await waitFor(() => expect(addBookmark).toHaveBeenCalledWith('UNIT', 10));
+    expect(screen.getAllByText('책갈피됨').length).toBe(2);
+    expect(screen.getByLabelText('1번 문제').props.accessibilityState.selected).toBe(true);
+
+    // 1번 '해답' -> 말풍선(WebView)이 뜨고 버튼은 '닫기', 문제 카드는 둘 다 그대로
     fireEvent.press(answerButtons[0]);
-    await waitFor(() => expect(screen.getByText('문제')).toBeTruthy());
-    expect(screen.getByTestId('webview')).toBeTruthy();
+    await waitFor(() => expect(screen.getByText('닫기')).toBeTruthy());
+    expect(screen.getByTestId('answer-bubble')).toBeTruthy();
+    expect(screen.getByTestId('webview').props.source.uri).toContain('10');
+    expect(screen.getByLabelText('1번 문제')).toBeTruthy();
 
     await new Promise((r) => setTimeout(r, 450));
-    // Click '문제' -> toggles back to problem
-    fireEvent.press(screen.getByText('문제'));
-    await waitFor(() => expect(screen.getAllByText('해답').length).toBe(2));
+    // 2번 '해답' -> 말풍선이 2번 문항으로 옮겨 간다(하나만 열린다)
+    fireEvent.press(screen.getByText('해답'));
+    await waitFor(() => expect(screen.getByTestId('webview').props.source.uri).toContain('20'));
+    expect(screen.getAllByTestId('answer-bubble').length).toBe(1);
+    // 해답을 연 문항이 현재 문제가 된다
+    expect(onSelectProblem).toHaveBeenLastCalledWith({ index: 1, problem: problems[1] });
+    expect(screen.getByLabelText('2번 문제').props.accessibilityState.selected).toBe(true);
+    expect(screen.getByLabelText('1번 문제').props.accessibilityState.selected).toBe(false);
+
+    await new Promise((r) => setTimeout(r, 450));
+    // '닫기' -> 말풍선이 닫힌다
+    fireEvent.press(screen.getByText('닫기'));
+    await waitFor(() => expect(screen.queryByTestId('answer-bubble')).toBeNull());
+    expect(screen.getAllByText('해답').length).toBe(2);
   });
 
   it('renders "해답" and "책갈피 해제" buttons on right for BookmarksPanel and handles removal', async () => {
@@ -208,7 +230,8 @@ describe('ProblemListPanel selection border and buttons', () => {
       fetchProblems: jest.fn(async () => ({ title: '🔖 내 책갈피', problems })),
       removeBookmark,
     };
-    await render(<BookmarksPanel fetchers={fetchers} onSelectProblem={jest.fn()} />);
+    const onSelectProblem = jest.fn();
+    await render(<BookmarksPanel fetchers={fetchers} onSelectProblem={onSelectProblem} />);
     await waitFor(() => expect(screen.getByText('🔖 내 책갈피')).toBeTruthy());
 
     // First card selected by default in BookmarksPanel
@@ -222,9 +245,10 @@ describe('ProblemListPanel selection border and buttons', () => {
     expect(answerButtons.length).toBe(2);
     expect(removeButtons.length).toBe(2);
 
-    // Click remove bookmark on 1st problem
-    fireEvent.press(removeButtons[0]);
-    await waitFor(() => expect(removeBookmark).toHaveBeenCalledWith('UNIT', 10));
+    // 2번 '책갈피 해제' -> 누른 문항이 현재 문제가 되고 책갈피가 풀린다
+    fireEvent.press(removeButtons[1]);
+    expect(onSelectProblem).toHaveBeenLastCalledWith({ index: 1, problem: problems[1] });
+    await waitFor(() => expect(removeBookmark).toHaveBeenCalledWith('UNIT', 20));
 
     // After removal, only 1 problem remains
     await waitFor(() => expect(screen.queryByLabelText('2번 문제')).toBeNull());

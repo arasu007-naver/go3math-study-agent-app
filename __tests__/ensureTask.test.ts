@@ -55,17 +55,17 @@ describe('ensureTaskId', () => {
     expect(create).toHaveBeenCalledTimes(2);
   });
 
-  it('bookmark/list/hotline specs never call create', async () => {
-    const create = jest.fn().mockResolvedValue(1);
-    const report = jest.fn();
-    const ensure = createEnsureTask({ create, report });
+  it('bookmark/list/hotline specs create a task too', async () => {
+    const create = jest.fn().mockResolvedValueOnce(1).mockResolvedValueOnce(2).mockResolvedValueOnce(3);
+    const ensure = createEnsureTask({ create, report: jest.fn() });
     const specs: TaskSpec[] = [
       { taskType: 'bookmark', task: { units: [] } },
       { taskType: 'list', task: { problems: [] } },
       { taskType: 'hotline', task: { tutorId: 't' } },
     ];
-    for (const s of specs) expect(await ensure(undefined, s)).toBeUndefined();
-    expect(create).not.toHaveBeenCalled();
-    expect(report).not.toHaveBeenCalled();
+    const ids = [];
+    for (const s of specs) ids.push(await ensure(undefined, s));
+    expect(ids).toEqual([1, 2, 3]);
+    expect(create).toHaveBeenCalledTimes(3);
   });
 });

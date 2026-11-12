@@ -66,7 +66,7 @@ export function FloatingToolbar({
                   hasLabel ? styles.btnWithLabel : styles.btnIconOnly,
                   pressed && styles.btnPressed,
                 ]}>
-                <View style={styles.iconSlot}>{a.icon}</View>
+                <View style={[styles.iconSlot, a.id === 'exit' && styles.exitBadge]}>{a.icon}</View>
                 {hasLabel && (
                   <Text style={styles.btnLabel} numberOfLines={1}>
                     {a.label}
@@ -165,5 +165,7 @@ const styles = StyleSheet.create({
   btnPressed: { backgroundColor: colors.accentSoftPress },
   btnOff: { opacity: 0.38 },
   divider: { width: StyleSheet.hairlineWidth * 2, height: 24, backgroundColor: colors.line, marginHorizontal: space.xs },
+  // 뒤로가기(exit): 회색 원 + 흰 테두리 2px. 흰 툴바 위에서 테두리가 보이도록 swatch처럼 옅은 그림자를 둔다
+  exitBadge: { width: 32, height: 32, borderRadius: radius.pill, backgroundColor: colors.lineStrong, borderWidth: 2, borderColor: colors.card, ...shadow.card },
   swatch: { width: 20, height: 20, borderRadius: radius.pill, borderWidth: 2, borderColor: colors.card, ...shadow.card },
 });
