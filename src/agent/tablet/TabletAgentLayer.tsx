@@ -9,7 +9,7 @@ import { createTimelineFetchers } from '../../adapters/timelineFetchers';
 import { logout } from '../../auth/logout';
 import { useMyInfo } from '../../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../../config/exam.constants';
-import { hotlineSpec, listSpec, openHotlineClass, openNotebook, openTopicLiveClass, topicFetchers, topicLiveSpec } from '../../host/widgets';
+import { hotlineSpec, openHotlineClass, openTopicLiveClass, solveDiaryProblem, topicFetchers, topicLiveSpec } from '../../host/widgets';
 import { DiaryPanel } from '../../kit/diary/DiaryPanel';
 import { LiveClassListPanel } from '../../kit/live-class/LiveClassListPanel';
 import { MessageBoxPanel } from '../../kit/profile/MessageBoxPanel';
@@ -83,7 +83,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   }, [ins]);
 
   // Stage에 문제 목록이 뜰 때마다(이미 문제 목록이 떠 있어도 새 show_component면) 문제를 보며 풀 수 있게 dock을 닫는다.
-  // 단 Diary dock의 '가자!!!'로 띄운 그날 문제 목록(source.kind 'list')은 dock을 그대로 둔다
+  // 단 Diary dock의 문제별 '가자!!!'로 띄운 문제 목록(source.kind 'list')은 dock을 그대로 둔다
   const stage = state.stage;
   useEffect(() => {
     const fromDiary = (stage?.props.source as { kind?: string } | undefined)?.kind === 'list';
@@ -129,12 +129,8 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
             <DiaryPanel
               recordFetchers={recordFetchers}
               noticeFetchers={noticeFetchers}
-              onSolveDay={(day, problems) => {
-                // Stage에 그날 문제 목록을 띄우고 곧바로 풀이 화면으로. dock은 그대로 두어 풀이 화면에서 나오면 지금 상태로 돌아온다
-                const title = `${day} 일자`;
-                session.showLocalComponent('problem_list', { source: { kind: 'list', title, problems } });
-                void openNotebook(title, problems, 0, undefined, undefined, listSpec(problems));
-              }}
+              // 그 풀이의 task 문제 목록을 Stage에 띄우고 곧바로 풀이 화면으로. dock은 그대로 두어 풀이 화면에서 나오면 지금 상태로 돌아온다
+              onSolveProblem={(target) => void solveDiaryProblem(session, target)}
             />
           )}
           {dock === 'liveClass' && (

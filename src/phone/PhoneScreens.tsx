@@ -25,7 +25,8 @@ import { logout } from '../auth/logout';
 import { useMyInfo } from '../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { UNITANSWER } from '../config/api.constants';
-import { topicFetchers } from '../host/widgets';
+import { ensureTaskId, type TaskSpec } from '../adapters/ensureTask';
+import { notebookArgs, topicFetchers, topicLiveSpec } from '../host/widgets';
 import { DailyRecordsList } from '../kit/diary/DailyRecordsList';
 import { RecordsCalendar } from '../kit/diary/RecordsCalendar';
 import { NoticesPanel } from '../kit/notices/NoticesPanel';
@@ -196,7 +197,20 @@ function backToTab(tab: ResultTab) {
 }
 
 /** 문제 카드 아래 해답·카메라 줄. 올리는 동안 카메라 자리에 스피너 */
-function SolutionRow({ tab, index, problem, taskId }: { tab: ResultTab; index: number; problem: { sourceType: string; sourceId: number }; taskId?: number }) {
+function SolutionRow({
+  tab,
+  index,
+  problem,
+  taskId,
+  spec,
+}: {
+  tab: ResultTab;
+  index: number;
+  problem: { sourceType: string; sourceId: number };
+  taskId?: number;
+  /** taskId가 없으면 풀이 사진을 올릴 때 이 spec으로 task를 만든다 */
+  spec?: TaskSpec;
+}) {
   const [uploading, setUploading] = useState(false);
   const capture = async (target: SolutionTarget) => {
     setUploading(true);
@@ -214,7 +228,14 @@ function SolutionRow({ tab, index, problem, taskId }: { tab: ResultTab; index: n
       label={`${index + 1}번 문제`}
       uploading={uploading}
       onAnswer={() => router.push(href(`/${tab}/solution`, { sourceType: problem.sourceType, sourceId: problem.sourceId }))}
-      onCamera={() => void capture({ sourceType: problem.sourceType, sourceId: problem.sourceId, taskId })}
+      onCamera={() =>
+        void capture({
+          sourceType: problem.sourceType,
+          sourceId: problem.sourceId,
+          taskId,
+          resolveTaskId: spec && (() => ensureTaskId(undefined, spec)),
+        })
+      }
     />
   );
 }
@@ -233,7 +254,10 @@ export function ProblemsResultScreen({ tab }: { tab: ResultTab }) {
         onSelectProblem={({ index, problem }) =>
           session.emit('problem_selected', { index, sourceType: problem.sourceType, sourceId: problem.sourceId, ...(taskId != null ? { taskId } : {}) })
         }
-        renderFooter={({ index, problem }) => <SolutionRow tab={tab} index={index} problem={problem} taskId={taskId} />}
+        renderFooter={({ index, problem, set }) => {
+          const [rowTaskId, , spec] = notebookArgs(source, set.problems);
+          return <SolutionRow tab={tab} index={index} problem={problem} taskId={rowTaskId} spec={spec} />;
+        }}
       />
     </View>
   );
@@ -250,7 +274,7 @@ export function TopicResultScreen({ tab }: { tab: ResultTab }) {
         fetchers={topicFetchers}
         topicId={topicId}
         onSelectUnit={({ unitIdx }) => session.emit('unit_selected', { topicId, unitIdx })}
-        renderFooter={({ unitIdx, unit }) => <SolutionRow tab={tab} index={unitIdx} problem={unit} />}
+        renderFooter={({ unitIdx, unit }) => <SolutionRow tab={tab} index={unitIdx} problem={unit} spec={topicLiveSpec(topicId)} />}
       />
     </View>
   );

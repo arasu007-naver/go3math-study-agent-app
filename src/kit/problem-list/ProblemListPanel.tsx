@@ -22,8 +22,8 @@ export type ProblemSource =
   | { kind: 'task'; taskId: number }
   | { kind: 'exam_query'; query: Record<string, unknown>; taskId?: number }
   | { kind: 'bookmarks'; taskId?: number }
-  /** 앱이 이미 가진 문제 묶음(태블릿 Diary dock의 그날 문제 '가자!!!'). 조회 없이 그대로 보인다 */
-  | { kind: 'list'; title: string; problems: Problem[] }
+  /** 앱이 이미 가진 문제 묶음(태블릿 Diary dock의 문제별 '가자!!!'). 조회 없이 그대로 보인다. taskId: 그 묶음을 받아 온 task */
+  | { kind: 'list'; title: string; problems: Problem[]; taskId?: number }
   /** 실황 수업 dock: 선생님 수업(문제가 수업 중 늘거나 줄 수 있다 — subscribe) · 주제 실황 수업 */
   | { kind: 'hotline'; tutorId: string; title: string }
   | { kind: 'topic_live'; topicId: number; title: string };
@@ -50,7 +50,7 @@ export function ProblemListPanel({
   source: ProblemSource;
   onSelectProblem(a: { index: number; problem: Problem }): void;
   onSolve?(a: { index: number; set: ProblemSet }): void;
-  renderFooter?(a: { index: number; problem: Problem }): ReactNode;
+  renderFooter?(a: { index: number; problem: Problem; set: ProblemSet }): ReactNode;
 }) {
   const { width } = useWindowDimensions();
   const [set, setSet] = useState<ProblemSet | null>(null);
@@ -225,7 +225,7 @@ export function ProblemListPanel({
                 <DynamicDimensionsImage source={{ uri: problem.image }} width={cardWidth - 16} />
               )}
               {renderFooter ? (
-                renderFooter({ index, problem })
+                renderFooter({ index, problem, set })
               ) : (
                 <View style={styles.cardActions}>
                   <GoButton

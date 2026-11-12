@@ -74,4 +74,16 @@ describe('createSolutionPhotoUploader', () => {
       expect.objectContaining({ variables: { sourceType: 'UNIT', sourceId: 7, taskId: 3, fileName: 'https://blob/x.jpg', photoUnitId: 0 } }),
     );
   });
+
+  it('resolves a task after the scan when no taskId is given', async () => {
+    const resolveTaskId = jest.fn(async () => 9);
+    scan.mockResolvedValue({ status: 'cancel' });
+    await upload({ sourceType: 'UNIT', sourceId: 7, resolveTaskId });
+    expect(resolveTaskId).not.toHaveBeenCalled();
+
+    scan.mockResolvedValue({ status: 'success', scannedImages: ['BASE64'] });
+    (requestStorageUrl as jest.Mock).mockResolvedValue({ data: { url: 'https://blob/x.jpg?sig=1' } });
+    await upload({ sourceType: 'UNIT', sourceId: 7, resolveTaskId });
+    expect(client.mutate).toHaveBeenCalledWith(expect.objectContaining({ variables: expect.objectContaining({ taskId: 9 }) }));
+  });
 });

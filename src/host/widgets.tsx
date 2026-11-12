@@ -1,6 +1,9 @@
 // 위젯 = kit 패널을 감싸는 얇은 어댑터(§4.4): fetcher 주입, kit 콜백 → 에이전트 이벤트 변환, 프리셋 반영.
 import { useRef, type MutableRefObject, type ReactElement } from 'react';
 import { router } from 'expo-router';
+import moment from 'moment';
+import { UPDATE_VISIT_COUNT } from '../api/graphql/mutations';
+import type { DiarySolveTarget } from '../kit/diary/DailyRecordsList';
 import type { AgentSession } from '../agent/session';
 import { createProblemListFetchers } from '../adapters/problemListFetchers';
 import { ensureTaskId, type TaskSpec } from '../adapters/ensureTask';
@@ -29,9 +32,12 @@ export type WidgetProps = { props: Record<string, unknown>; session: AgentSessio
 /** task 생성이 이보다 오래 걸리면 taskId 없이 캔버스를 연다(늦게 온 성공은 ensureTask 캐시에 남는다) */
 export const ENSURE_TASK_TIMEOUT_MS = 2500;
 
-/** 캔버스를 열기 전 taskId를 확보한다(없고 spec이 있을 때만 task를 만든다). 실패·시간 초과여도 undefined로 캔버스는 연다 */
+/**
+ * 캔버스를 열기 전 taskId를 확보한다(없고 spec이 있을 때만 task를 만든다). 실패·시간 초과여도 undefined로 캔버스는 연다.
+ * 책갈피는 여기서 만들지 않는다 — 처음 풀이를 저장할 때 발급받는다(풀이 화면이 spec으로 ensureTaskId)
+ */
 function resolveTaskId(taskId: number | undefined, spec: TaskSpec | undefined): Promise<number | undefined> {
-  if (taskId || !spec) return Promise.resolve(taskId);
+  if (taskId || !spec || spec.taskType === 'bookmark') return Promise.resolve(taskId);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<undefined>((resolve) => {
     timer = setTimeout(() => {
@@ -63,7 +69,7 @@ const unitsOf = (problems: { sourceType: string; sourceId: number }[]) => proble
 /** 문제 목록의 연필 버튼: 문제 묶음을 넘기고 풀이 화면(/notebook)으로 */
 export function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number, spec?: TaskSpec) {
   return openWithTask(taskId, spec, (id) => {
-    solveStore.dispatch({ title, problems, index, taskId: id, topicId });
+    solveStore.dispatch({ title, problems, index, taskId: id, topicId, spec });
     router.push('/notebook');
   });
 }
@@ -123,17 +129,50 @@ function ProblemPreviewWidget({ props, session }: WidgetProps) {
 }
 
 /** 문제 목록 출처별 [taskId, topicId, spec]: task는 이미 taskId가 있고, 나머지는 없으면 만든다 */
-function notebookArgs(source: ProblemSource, problems: { sourceType: string; sourceId: number }[]): [number | undefined, undefined, TaskSpec | undefined] {
+export function notebookArgs(source: ProblemSource, problems: { sourceType: string; sourceId: number }[]): [number | undefined, undefined, TaskSpec | undefined] {
   switch (source.kind) {
     case 'task':
       return [source.taskId, undefined, undefined];
     case 'exam_query':
       return [source.taskId, undefined, { taskType: 'selection', task: source.query }];
     case 'bookmarks':
-      return [source.taskId, undefined, { taskType: 'bookmark', task: { units: unitsOf(problems) } }];
+      return [source.taskId, undefined, { taskType: 'bookmark', task: { regDate: moment().format('YYYY-MM-DD'), units: unitsOf(problems) } }];
+    case 'topic_live':
+      return [undefined, undefined, topicLiveSpec(source.topicId)];
+    case 'hotline':
+      return [undefined, undefined, hotlineSpec(source.tutorId)];
     default:
-      return [undefined, undefined, listSpec(problems)];
+      return [source.taskId, undefined, listSpec(problems)];
   }
+}
+
+/**
+ * Diary dock 문제별 '가자!!!': 그 풀이가 속한 task의 방문 수를 올리고, task의 문제 목록을 받아 Stage 문제 목록에 넘긴 뒤 그 문제로 풀이 화면을 연다.
+ * task가 없거나(예전 기록) task에서 문제 목록을 받지 못하면(선생님 수업 등) 그 문제 하나만 연다.
+ */
+export async function solveDiaryProblem(session: AgentSession, target: DiarySolveTarget) {
+  const { taskId } = target;
+  let title = '풀이 기록';
+  let problems: SolveProblem[] = [{ sourceType: target.sourceType, sourceId: target.sourceId, image: target.image }];
+  let index = 0;
+  if (taskId) {
+    apolloClient
+      .mutate({ mutation: UPDATE_VISIT_COUNT, variables: { taskId } })
+      .catch((e) => console.warn('[diary] increaseVisitCount failed:', e));
+    try {
+      const set = await problemListFetchers.fetchProblems({ kind: 'task', taskId });
+      const found = set.problems.findIndex((p) => p.sourceType === target.sourceType && Number(p.sourceId) === target.sourceId);
+      if (found >= 0) {
+        title = set.title;
+        problems = set.problems;
+        index = found;
+      }
+    } catch (e) {
+      console.warn('[diary] task problems failed:', e);
+    }
+  }
+  session.showLocalComponent('problem_list', { source: { kind: 'list', title, problems, taskId } });
+  return openNotebook(title, problems, index, taskId, undefined, listSpec(problems));
 }
 
 function ProblemListWidget({ props, session }: WidgetProps) {
