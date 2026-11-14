@@ -13,13 +13,14 @@ export const ANSWER_PAGE_STYLE_JS = `(function () {
 })();
 true;`;
 
+/** 개념 설명(내용)의 글자 크기(px). 해답 말풍선도 이 크기에 맞춘다 */
+export const STATEMENT_FONT_SIZE = 15;
+
 /**
- * Stage 문제 목록의 해답 말풍선용 — 해답 페이지 글자 크기를 2/3로 줄인다(말풍선이 좁아 한눈에 더 많이 보이게).
- * 페이지가 body에 직접 준 크기를 읽어 그 2/3로 다시 준다. 수식(MathJax)은 글자 크기를 따라 같이 줄어든다.
+ * Stage 문제 목록의 해답 말풍선용 — 해답 페이지 글자 크기를 개념 '내용' 말풍선과 같게 맞춘다.
+ * 페이지가 body에 직접 준 크기(24px)를 덮어쓴다. 수식(MathJax)은 글자 크기를 따라 같이 줄어든다.
  */
 export const ANSWER_BUBBLE_FONT_JS = `(function () {
-  var b = document.body;
-  var size = parseFloat(window.getComputedStyle(b).fontSize);
-  if (size > 0) b.style.fontSize = (size * 2 / 3) + 'px';
+  document.body.style.fontSize = '${STATEMENT_FONT_SIZE}px';
 })();
 true;`;

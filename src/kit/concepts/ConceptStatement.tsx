@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { colors } from '../../ui/theme';
 import MathJaxWrapper from '../math/MathJaxWrapper';
+import { STATEMENT_FONT_SIZE } from '../ui/answerPageStyle';
 
 export type ConceptBody = { rawStatement?: string | null; imgPath?: string | null };
 
@@ -39,7 +40,7 @@ export function ConceptStatement({
 
   if (failed) return <Text style={styles.message}>개념 내용을 불러오지 못했어요.</Text>;
   if (!body) return <ActivityIndicator style={styles.loading} color={colors.accent} />;
-  return <MathJaxWrapper iPath={body.imgPath ?? ''} statement={body.rawStatement ?? ''} fontSize={15} color={colors.text} fullView plain={plain} />;
+  return <MathJaxWrapper iPath={body.imgPath ?? ''} statement={body.rawStatement ?? ''} fontSize={STATEMENT_FONT_SIZE} color={colors.text} fullView plain={plain} />;
 }
 
 const styles = StyleSheet.create({
