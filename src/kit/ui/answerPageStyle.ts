@@ -12,3 +12,14 @@ export const ANSWER_PAGE_STYLE_JS = `(function () {
   document.head.appendChild(s);
 })();
 true;`;
+
+/**
+ * Stage 문제 목록의 해답 말풍선용 — 해답 페이지 글자 크기를 2/3로 줄인다(말풍선이 좁아 한눈에 더 많이 보이게).
+ * 페이지가 body에 직접 준 크기를 읽어 그 2/3로 다시 준다. 수식(MathJax)은 글자 크기를 따라 같이 줄어든다.
+ */
+export const ANSWER_BUBBLE_FONT_JS = `(function () {
+  var b = document.body;
+  var size = parseFloat(window.getComputedStyle(b).fontSize);
+  if (size > 0) b.style.fontSize = (size * 2 / 3) + 'px';
+})();
+true;`;

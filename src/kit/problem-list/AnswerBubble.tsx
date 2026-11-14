@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { colors, radius, shadow, z } from '../../ui/theme';
+import { ANSWER_BUBBLE_FONT_JS } from '../ui/answerPageStyle';
 import Go3MathLoader from '../ui/loading-view';
 import { BUBBLE_TAIL, type BubblePlacement } from './answerBubblePlacement';
 
@@ -25,6 +26,7 @@ export function AnswerBubble({ url, placement, label = '해답', children }: { u
           <WebView
             originWhitelist={['*']}
             source={{ uri: url ?? '' }}
+            injectedJavaScript={ANSWER_BUBBLE_FONT_JS}
             style={styles.fullSize}
             startInLoadingState
             nestedScrollEnabled
