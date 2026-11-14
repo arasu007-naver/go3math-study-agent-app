@@ -37,6 +37,7 @@ const config: ExpoConfig = {
     appleTeamId: '6TW3Y4L9SX', // 기존 앱과 같은 팀(공개 식별자)
     usesAppleSignIn: true, // Sign in with Apple entitlement(기존 앱과 같음)
     supportsTablet: true,
+    requireFullScreen: true, // iPad에서 캔버스 화면 세로 고정(app/_layout.tsx)이 먹으려면 필요. Split View·Slide Over는 못 쓴다
   },
   android: {
     package: 'com.qoolla.student',

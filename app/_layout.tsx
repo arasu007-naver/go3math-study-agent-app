@@ -7,7 +7,7 @@ import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import GlobalLoadingOverlay from '@/src/kit/ui/loading-view/global-overlay';
-import { isFullScreenRoute } from '@/src/layout/fullScreenRoutes';
+import { CANVAS_ROUTES, isFullScreenRoute } from '@/src/layout/fullScreenRoutes';
 import { apolloClient, bootstrap } from '@/src/state/bootstrap';
 import { AdSlotFrame, initMobileAds } from '@/src/ui/AdSlot';
 import { TabletLaunchOverlay } from '@/src/ui/TabletLaunchOverlay';
@@ -40,7 +40,12 @@ export default function RootLayout() {
           <BottomSheetModalProvider>
             {/* 전체 화면(캔버스·폰 결과 화면)이 아니면 화면 아래에 광고 자리를 둔다. 화면은 그 위 영역만 쓴다 */}
             <AdSlotFrame show={showAd}>
-              <Stack screenOptions={{ headerShown: false }} />
+              <Stack screenOptions={{ headerShown: false }}>
+                {/* 캔버스 화면은 세로 고정. 전역 고정은 없으므로(app.config.ts) 나가면 방향 고정이 풀린다 */}
+                {CANVAS_ROUTES.map((name) => (
+                  <Stack.Screen key={name} name={name} options={{ orientation: 'portrait' }} />
+                ))}
+              </Stack>
             </AdSlotFrame>
             <GlobalLoadingOverlay />
             <StatusBar style="dark" />
