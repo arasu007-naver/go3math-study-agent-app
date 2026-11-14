@@ -4,20 +4,16 @@ import { useLazyQuery, useMutation } from '@apollo/client/react';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 import { Redirect, router } from 'expo-router';
-import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CREATE_RECORD, SEND_REQUEST_MESSAGE, ADD_BOOKMARK } from '@/src/api/graphql/mutations';
 import { UNIT_TRIES } from '@/src/api/graphql/queries';
-import { UNITANSWER } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
+import { CanvasAnswer } from '@/src/kit/canvas/CanvasAnswer';
 import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
 import { centerListItem } from '@/src/kit/canvas/centerListItem';
-import { ConceptStatement, isConceptType } from '@/src/kit/concepts/ConceptStatement';
 import { CANVAS_SHEET_SNAPS, CANVAS_SHEET_VIEW, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
-import { ANSWER_PAGE_STYLE_JS } from '@/src/kit/ui/answerPageStyle';
-import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { ensureTaskId } from '@/src/adapters/ensureTask';
 import { fetchConcept } from '@/src/adapters/problemListFetchers';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
@@ -54,7 +50,6 @@ export default function NotebookScreen() {
   const [currentSheet, setCurrentSheet] = useState<SolveProblem | undefined>(session?.problems[session.index]);
   const [sheetListVisible, setSheetListVisible] = useState(false);
   const [workoutNotes, setWorkoutNotes] = useState<string[]>([]);
-  const [pageLoadProgress, setPageLoadProgress] = useState(0);
   const [bookmarkedKeys, setBookmarkedKeys] = useState<Set<string>>(new Set());
 
   const [createNewRecord] = useMutation<{ createRecord: { id: number } }>(CREATE_RECORD, {
@@ -107,7 +102,6 @@ export default function NotebookScreen() {
 
   if (!session || !currentSheet) return <Redirect href="/" />;
   const units = session.problems;
-  const answerUrl = UNITANSWER(currentSheet.sourceType, currentSheet.sourceId);
 
   // task(study)는 첫 풀이를 저장할 때 spec으로 만들고, 그 뒤로는 그 task에 붙인다(이어 푸는 task는 taskId가 이미 있다)
   const recordOf = async (imageUrl: string) => {
@@ -224,28 +218,7 @@ export default function NotebookScreen() {
       <CanvasStudySheet
         sheetRef={sheetRef}
         answerLabel="해답/내용"
-        answer={
-          <View style={styles.bottomContainerStyle}>
-            <View style={{ flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
-              {/* 현재 문제가 개념이면 해답 페이지 대신 개념 설명(내용) */}
-              {isConceptType(currentSheet.sourceType) ? (
-                <ConceptStatement key={currentSheet.sourceId} conceptId={Number(currentSheet.sourceId)} fetchConcept={fetchConcept} />
-              ) : answerUrl ? (
-                <WebView
-                  originWhitelist={['*']}
-                  source={{ uri: answerUrl }}
-                  injectedJavaScript={ANSWER_PAGE_STYLE_JS}
-                  style={{ flex: 1, opacity: pageLoadProgress < 1 ? 0 : 1, width: '100%', height: '100%' }}
-                  onLoadStart={() => setPageLoadProgress(0)}
-                  startInLoadingState
-                  nestedScrollEnabled
-                  renderLoading={() => <Go3MathLoader style={{ width: '100%', height: '100%' }} />}
-                  onLoadProgress={({ nativeEvent }) => setPageLoadProgress(nativeEvent.progress)}
-                />
-              ) : null}
-            </View>
-          </View>
-        }
+        answer={<CanvasAnswer sourceType={currentSheet.sourceType} sourceId={currentSheet.sourceId} fetchConcept={fetchConcept} />}
       />
       <BottomSheetModal
         ref={workoutSheetListRef}
@@ -318,7 +291,6 @@ const styles = StyleSheet.create({
   buttonContainerStyle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: 44, marginTop: 6 },
   // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
   sheetBody: { flex: 1 },
-  bottomContainerStyle: { flex: 1, flexDirection: 'row', width: '100%' },
   tryContainer: { width: width / 3 + 18 },
   tryImageContainer: { alignItems: 'flex-start', justifyContent: 'flex-start', width: width / 3 + 12 },
   workoutSheetContainerStyle: { flex: 1, flexDirection: 'column', alignItems: 'flex-start', width: '100%' },

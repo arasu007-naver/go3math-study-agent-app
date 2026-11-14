@@ -17,8 +17,8 @@ describe('ANSWER_PAGE_STYLE_JS', () => {
     expect(src).toContain('border: 1.5px solid #fed7aa;');
   });
 
-  it('the notebook answer WebView injects it', () => {
-    const src = fs.readFileSync(path.join(__dirname, '..', 'app/notebook.tsx'), 'utf8');
+  it('the shared canvas answer WebView injects it', () => {
+    const src = fs.readFileSync(path.join(__dirname, '..', 'src/kit/canvas/CanvasAnswer.tsx'), 'utf8');
     expect(src).toMatch(/source=\{\{ uri: answerUrl \}\}\s*injectedJavaScript=\{ANSWER_PAGE_STYLE_JS\}/);
   });
 });

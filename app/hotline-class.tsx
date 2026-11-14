@@ -4,15 +4,15 @@ import { useLazyQuery, useMutation, useSubscription } from '@apollo/client/react
 import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useIsFocused } from '@react-navigation/native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import debounce from 'lodash/debounce';
 import moment from 'moment';
 import { CREATE_RECORD } from '@/src/api/graphql/mutations';
 import { LAST_ONLINE_CLASS_MESSAGE, ONLINE_CLASS_OF_TUTOR } from '@/src/api/graphql/queries';
 import { ONLINE_TUTOR_CLASS_MESSAGE_ADDED } from '@/src/api/graphql/subscriptions';
-import { UNITANSWER, UNITIMAGE } from '@/src/config/api.constants';
+import { UNITIMAGE } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
+import { CanvasAnswer } from '@/src/kit/canvas/CanvasAnswer';
 import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
 import { centerListItem } from '@/src/kit/canvas/centerListItem';
 import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
@@ -23,10 +23,11 @@ import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizRespo
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { ensureTaskId, findLiveClassTaskId } from '@/src/adapters/ensureTask';
+import { fetchConcept } from '@/src/adapters/problemListFetchers';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { hotlineSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
-import { colors, radius, type } from '@/src/ui/theme';
+import { colors, type } from '@/src/ui/theme';
 
 // 선생님 수업(hotline class) 화면: 기존 qoolla-student-app `pages/notebook/hotline-class.tsx`를 옮김. 패널은 note-canvas/hotline-class-canvas.tsx 그대로.
 // 실황 수업 dock에서 선생님 수업을 누르면 Stage에 그 선생님 수업 문제 목록(ProblemListPanel)을 띄우고 이 화면으로 온다. 나가면 문제 목록이 그대로 남는다.
@@ -76,7 +77,6 @@ export default function HotlineClassScreen() {
   const [savedMessage, setSavedMessage] = useState('🟡 ' + moment().format('MM/DD HH:mm'));
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [liveQuiz, setLiveQuiz] = useState<LiveQuiz | null>(null);
-  const [pageLoadProgress, setPageLoadProgress] = useState(0);
 
   const showToast = useCallback((msg: string, durationMs = 2500) => {
     setToastMessage(msg);
@@ -181,8 +181,6 @@ export default function HotlineClassScreen() {
     });
   };
 
-  const answerUrl = currentSheet ? UNITANSWER(currentSheet.sourceType, currentSheet.sourceId) : undefined;
-  const problemUrl = currentSheet ? UNITIMAGE(currentSheet.sourceType, currentSheet.sourceId) : undefined;
   // 목록을 열 때 가운데에 둘 현재 문제(패널이 changeUnit으로 알려 준 것)
   const currentIndex = topicUnits.findIndex((u) => u.sourceType === currentSheet?.sourceType && Number(u.sourceId) === Number(currentSheet?.sourceId));
   const modalWidth = Math.round(width * 0.82);
@@ -246,28 +244,8 @@ export default function HotlineClassScreen() {
       />
       <CanvasStudySheet
         sheetRef={sheetRef}
-        answerLabel="답안 예시"
-        answer={
-          <View style={styles.answerRow}>
-            <View style={styles.answerPane}>
-              {problemUrl && <DynamicDimensionsImage source={{ uri: problemUrl }} width={360} />}
-            </View>
-            <View style={styles.answerPane}>
-              {answerUrl && (
-                <WebView
-                  originWhitelist={['*']}
-                  source={{ uri: answerUrl }}
-                  style={[styles.fullSize, { opacity: pageLoadProgress < 1 ? 0 : 1 }]}
-                  onLoadStart={() => setPageLoadProgress(0)}
-                  startInLoadingState
-                  nestedScrollEnabled
-                  renderLoading={() => <Go3MathLoader style={styles.fullSize} />}
-                  onLoadProgress={({ nativeEvent }) => setPageLoadProgress(nativeEvent.progress)}
-                />
-              )}
-            </View>
-          </View>
-        }
+        answerLabel="해답/내용"
+        answer={currentSheet ? <CanvasAnswer sourceType={currentSheet.sourceType} sourceId={currentSheet.sourceId} fetchConcept={fetchConcept} /> : null}
       />
     </SafeAreaView>
   );
@@ -293,7 +271,4 @@ const styles = StyleSheet.create({
   listContainer: { position: 'absolute', backgroundColor: colors.card, padding: 20, borderRadius: 12, elevation: 5 },
   // 폭 고정 — 이미지가 오기 전에도 카드 자리가 있어야 목록을 열 때 현재 문제로 스크롤된다
   listItem: { width: 360, marginRight: 16 },
-  // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
-  answerRow: { flex: 1, flexDirection: 'row', gap: 6, paddingHorizontal: 6 },
-  answerPane: { flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card },
 });
