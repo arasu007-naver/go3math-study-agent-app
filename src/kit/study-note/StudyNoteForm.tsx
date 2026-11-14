@@ -1,15 +1,17 @@
 /**
  * 학습장 입력 양식. 달성률(단일) · 어려웠던 점(복수) 칩과 메모 입력.
  * 처음 값은 초안 → 조회한 노트 → 빈 양식 순. 입력마다 초안을 저장하고, 저장에 성공하면 지운다.
+ * 캔버스 활동 기록(조회한 개념·받은 퀴즈)은 서버 노트의 것과 로컬 기록을 합쳐 추천 칩·퀴즈 개수로 보여 주고, 저장할 때 함께 보낸다.
  * 키보드 회피는 이 컴포넌트가 아니라 시트(SheetHost)가 맡는다.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { StyleSheet, Text, View } from 'react-native';
 import type { KeyValueStore } from '../../storage/types';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
 import { colors, radius, space, type } from '../../ui/theme';
+import { clearActivity, isEmptyActivities, loadActivity, mergeActivities, parseActivities } from './activity';
 import { clearDraft, loadDraft, saveDraft } from './draft';
 import {
   ACHIEVEMENTS,
@@ -44,6 +46,18 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
   const [saving, setSaving] = useState(false);
   const [goalOpen, setGoalOpen] = useState(false);
   const touched = useRef(loadDraft(store, taskId) !== null);
+  // 캔버스를 나갈 때 남긴 로컬 기록. 저장에 성공하면 지운다
+  const [localActivity] = useState(() => loadActivity(store, taskId));
+  const activities = useMemo(
+    () => mergeActivities(parseActivities(existing?.activities), localActivity),
+    [existing, localActivity],
+  );
+  // 추천 칩: 주제 힌트 뒤에 조회한 개념 제목. 같은 문구는 한 번만
+  const hints = useMemo(
+    () => [...new Set([...(topicHints ?? []), ...activities.concepts.map((c) => c.title)])].filter(Boolean),
+    [topicHints, activities],
+  );
+  const quizCount = activities.quizIds.length;
 
   useEffect(() => {
     let alive = true;
@@ -86,8 +100,14 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
     if (saving || !canSave(form)) return;
     setSaving(true);
     try {
-      await persistNote(fetchers, taskId, toInput(form, mode), existing);
+      // 조회에 실패했던 경우 여기서 다시 조회한다 — 서버에 있던 활동 기록을 덮어써 지우지 않도록 합쳐 보낸다
+      const current = existing === undefined ? await fetchers.fetchNote(taskId) : existing;
+      const merged = mergeActivities(parseActivities(current?.activities), loadActivity(store, taskId));
+      const input = toInput(form, mode);
+      if (!isEmptyActivities(merged)) input.activities = JSON.stringify(merged);
+      await persistNote(fetchers, taskId, input, current);
       clearDraft(store, taskId);
+      clearActivity(store, taskId);
       onDone('saved');
     } catch {
       setFailed(true);
@@ -141,10 +161,10 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
       </View>
 
       <Text style={styles.question}>{memoLabel}</Text>
-      {topicHints && topicHints.length > 0 ? (
+      {hints.length > 0 ? (
         <View style={styles.chips}>
           <Text style={styles.caption}>추천:</Text>
-          {topicHints.map((h) => (
+          {hints.map((h) => (
             <Chip key={h} label={h} selected={false} onPress={() => addHint(h)} />
           ))}
         </View>
@@ -158,6 +178,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
         onChangeText={(t) => change((p) => ({ ...p, description: t.slice(0, MAX_TEXT) }))}
         textAlignVertical="top"
       />
+      {quizCount > 0 ? <Text style={styles.caption}>{`수업 퀴즈 ${quizCount}개`}</Text> : null}
 
       {!live ? (
         <>
