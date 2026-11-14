@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { StudyNoteForm } from '../src/kit/study-note/StudyNoteForm';
 import { colors, layout } from '../src/ui/theme';
 
@@ -46,7 +46,8 @@ function setup(over: Partial<StudyNoteFetchers> = {}, props: Partial<React.Compo
   return { fetchers, store, onDone, ui };
 }
 
-const settle = () => waitFor(() => expect(screen.getByText('학습장 · 수열')).toBeTruthy());
+// 이전 학습장 조회가 끝나 스켈레톤이 양식으로 바뀔 때까지 기다린다
+const settle = () => waitFor(() => expect(screen.getByText('얼마나 해냈나요?')).toBeTruthy());
 
 describe('StudyNoteForm', () => {
   it('saves achievement and difficulty chips', async () => {
@@ -188,6 +189,86 @@ describe('StudyNoteForm', () => {
     expect(onDone).toHaveBeenCalledWith('dismissed');
     expect(fetchers.register).not.toHaveBeenCalled();
     expect(fetchers.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('StudyNoteForm - 불러오는 중·저장 중', () => {
+  const flat = (node: any) => StyleSheet.flatten(node.props.style);
+  function deferred<T>() {
+    let resolve!: (v: T) => void;
+    let reject!: (e: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  }
+
+  it('이전 학습장을 조회하는 동안은 양식 대신 스켈레톤을 보여 준다', async () => {
+    const d = deferred<StudyNote | null>();
+    const { ui } = setup({ fetchNote: jest.fn(() => d.promise) }, { topicHints: ['일반항'] });
+    await render(ui);
+    expect(screen.getByText('학습장 · 수열')).toBeTruthy();
+    expect(screen.getByLabelText('불러오는 중')).toBeTruthy();
+    expect(screen.queryByText('얼마나 해냈나요?')).toBeNull();
+    expect(screen.queryByLabelText('공부한 내용')).toBeNull();
+    expect(screen.queryByText('추천:')).toBeNull();
+    expect(screen.getByRole('button', { name: '저장' }).props.accessibilityState).toMatchObject({ disabled: true, busy: false });
+
+    await act(async () => d.resolve({ taskId: 7, description: '점화식', achievementRate: 50 }));
+    await settle();
+    expect(screen.queryByLabelText('불러오는 중')).toBeNull();
+    expect(screen.getByDisplayValue('점화식')).toBeTruthy();
+    expect(screen.getByRole('radio', { name: '절반' }).props.accessibilityState.checked).toBe(true);
+    expect(screen.getByRole('button', { name: '수정' })).toBeTruthy();
+  });
+
+  it('조회하는 동안에도 나중에로 닫을 수 있다', async () => {
+    const d = deferred<StudyNote | null>();
+    const { onDone, ui } = setup({ fetchNote: jest.fn(() => d.promise) });
+    await render(ui);
+    await fireEvent.press(screen.getByText('나중에'));
+    expect(onDone).toHaveBeenCalledWith('dismissed');
+  });
+
+  it('조회에 실패하면 스켈레톤을 걷고 안내와 양식을 보여 준다', async () => {
+    const d = deferred<StudyNote | null>();
+    const { ui } = setup({ fetchNote: jest.fn(() => d.promise) });
+    await render(ui);
+    await act(async () => d.reject(new Error('net')));
+    await settle();
+    expect(screen.queryByLabelText('불러오는 중')).toBeNull();
+    expect(screen.getByText('이전 메모를 불러오지 못했어요')).toBeTruthy();
+  });
+
+  it('초안이 있어도 조회가 끝난 뒤에 초안으로 연다', async () => {
+    const store = memoryStore();
+    store.set(draftKey(7), JSON.stringify({ achievement: 75, difficulties: [], description: '쓰던 글', expectations: '' }));
+    const d = deferred<StudyNote | null>();
+    const { ui } = setup({ fetchNote: jest.fn(() => d.promise) }, { store });
+    await render(ui);
+    expect(screen.getByLabelText('불러오는 중')).toBeTruthy();
+    await act(async () => d.resolve({ taskId: 7, description: '서버 글' }));
+    await settle();
+    expect(screen.getByDisplayValue('쓰던 글')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '수정' })).toBeTruthy();
+  });
+
+  it('저장하는 동안 저장 버튼은 주요 버튼 색 그대로 로딩 표시를 보인다', async () => {
+    const d = deferred<void>();
+    const { onDone, ui } = setup({ register: jest.fn(() => d.promise) });
+    await render(ui);
+    await settle();
+    await fireEvent.press(screen.getByText('거의'));
+    // 누름은 저장이 끝날 때까지 끝나지 않는다 — 기다리지 않고 저장 중 상태를 본다
+    const pressing = fireEvent.press(screen.getByText('저장'));
+    const button = () => screen.getByRole('button', { name: '저장' });
+    await waitFor(() => expect(button().props.accessibilityState).toMatchObject({ busy: true }));
+    expect(flat(button())).toMatchObject({ backgroundColor: colors.accent });
+    expect(onDone).not.toHaveBeenCalled();
+    await act(async () => d.resolve());
+    await pressing;
+    await waitFor(() => expect(onDone).toHaveBeenCalledWith('saved'));
   });
 });
 

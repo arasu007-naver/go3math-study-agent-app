@@ -2,6 +2,7 @@
  * 학습장 입력 양식. 달성률(단일) · 어려웠던 점(복수) 칩과 메모 입력.
  * 처음 값은 초안 → 조회한 노트 → 빈 양식 순. 입력마다 초안을 저장하고, 저장에 성공하면 지운다.
  * 캔버스 활동 기록(조회한 개념·받은 퀴즈)은 서버 노트의 것과 로컬 기록을 합쳐 추천 칩·퀴즈 개수로 보여 주고, 저장할 때 함께 보낸다.
+ * 이전 학습장을 조회하는 동안은 양식 대신 스켈레톤을 보여 준다 — 조회 전에 입력을 시작하면 이전 내용을 채우지 못한 채 덮어쓰게 된다.
  * 키보드 회피는 이 컴포넌트가 아니라 시트(SheetHost)가 맡는다.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -11,6 +12,7 @@ import { cleanMathText } from '../math/MathJaxWrapper';
 import type { KeyValueStore } from '../../storage/types';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
+import { SkeletonCards } from '../ui/SkeletonCards';
 import { colors, radius, space, type } from '../../ui/theme';
 import { clearActivity, isEmptyActivities, loadActivity, mergeActivities, parseActivities } from './activity';
 import { clearDraft, loadDraft, saveDraft } from './draft';
@@ -43,6 +45,8 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
   // undefined = 조회 실패(또는 아직 조회 전), null = 노트 없음
   const [existing, setExisting] = useState<StudyNote | null | undefined>(undefined);
   const [fetchFailed, setFetchFailed] = useState(false);
+  // 조회가 끝났는지(성공·실패 모두). 끝나기 전에는 스켈레톤만 보여 준다
+  const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [goalOpen, setGoalOpen] = useState(false);
@@ -68,9 +72,12 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
         if (!alive) return;
         setExisting(note);
         if (!touched.current) setForm(fromNote(note));
+        setLoaded(true);
       },
       () => {
-        if (alive) setFetchFailed(true);
+        if (!alive) return;
+        setFetchFailed(true);
+        setLoaded(true);
       },
     );
     return () => {
@@ -99,7 +106,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
     });
 
   const save = async () => {
-    if (saving || !canSave(form)) return;
+    if (saving || !loaded || !canSave(form)) return;
     setSaving(true);
     try {
       // 조회에 실패했던 경우 여기서 다시 조회한다 — 서버에 있던 활동 기록을 덮어써 지우지 않도록 합쳐 보낸다
@@ -120,7 +127,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
   const live = mode === 'live';
   const memoLabel = live ? '한 줄 메모 (선택)' : '공부한 내용';
   const saveLabel = failed ? '다시 저장' : existing ? '수정' : '저장';
-  const saveDisabled = saving || !canSave(form);
+  const saveDisabled = !loaded || !canSave(form);
   const goalVisible = goalOpen || form.expectations !== '';
 
   return (
@@ -129,88 +136,96 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
 
       {fetchFailed ? <Text style={styles.notice}>이전 메모를 불러오지 못했어요</Text> : null}
 
-      {live ? (
-        <View style={styles.tutorBox}>
-          <Text style={styles.caption}>선생님 정리</Text>
-          <Text style={styles.body}>{existing?.tutorDescription || '선생님 정리가 아직 없어요'}</Text>
+      {!loaded ? (
+        <View style={styles.skeleton}>
+          <SkeletonCards count={3} lines={1} divider={false} />
         </View>
-      ) : null}
-
-      <Text style={styles.question}>얼마나 해냈나요?</Text>
-      <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel="얼마나 해냈나요?">
-        {ACHIEVEMENTS.map((a) => (
-          <Chip
-            key={a.value}
-            label={a.label}
-            accessibilityRole="radio"
-            selected={form.achievement === a.value}
-            onPress={() => change((p) => ({ ...p, achievement: a.value }))}
-          />
-        ))}
-      </View>
-
-      <Text style={styles.question}>어려웠던 점 (여러 개)</Text>
-      <View style={styles.chips} accessibilityLabel="어려웠던 점">
-        {DIFFICULTIES.map((d) => (
-          <Chip
-            key={d.code}
-            label={d.label}
-            accessibilityRole="checkbox"
-            selected={form.difficulties.includes(d.code)}
-            onPress={() => change((p) => ({ ...p, difficulties: toggleDifficulty(p.difficulties, d.code) }))}
-          />
-        ))}
-      </View>
-
-      <Text style={styles.question}>{memoLabel}</Text>
-      {hints.length > 0 ? (
-        <View style={styles.chips}>
-          <Text style={styles.caption}>추천:</Text>
-          {hints.map((h) => (
-            <Chip key={h} label={h} selected={false} onPress={() => addHint(h)} />
-          ))}
-        </View>
-      ) : null}
-      <BottomSheetTextInput
-        accessibilityLabel={memoLabel}
-        style={styles.input}
-        multiline
-        maxLength={MAX_TEXT}
-        value={form.description}
-        onChangeText={(t) => change((p) => ({ ...p, description: t.slice(0, MAX_TEXT) }))}
-        textAlignVertical="top"
-      />
-      {quizCount > 0 ? <Text style={styles.caption}>{`수업 퀴즈 ${quizCount}개`}</Text> : null}
-
-      {!live ? (
+      ) : (
         <>
-          <Button
-            variant="text"
-            size="sm"
-            title="▸ 다음 목표 (선택)"
-            expanded={goalVisible}
-            onPress={() => setGoalOpen((v) => !v)}
-            style={styles.toggle}
+          {live ? (
+            <View style={styles.tutorBox}>
+              <Text style={styles.caption}>선생님 정리</Text>
+              <Text style={styles.body}>{existing?.tutorDescription || '선생님 정리가 아직 없어요'}</Text>
+            </View>
+          ) : null}
+
+          <Text style={styles.question}>얼마나 해냈나요?</Text>
+          <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel="얼마나 해냈나요?">
+            {ACHIEVEMENTS.map((a) => (
+              <Chip
+                key={a.value}
+                label={a.label}
+                accessibilityRole="radio"
+                selected={form.achievement === a.value}
+                onPress={() => change((p) => ({ ...p, achievement: a.value }))}
+              />
+            ))}
+          </View>
+
+          <Text style={styles.question}>어려웠던 점 (여러 개)</Text>
+          <View style={styles.chips} accessibilityLabel="어려웠던 점">
+            {DIFFICULTIES.map((d) => (
+              <Chip
+                key={d.code}
+                label={d.label}
+                accessibilityRole="checkbox"
+                selected={form.difficulties.includes(d.code)}
+                onPress={() => change((p) => ({ ...p, difficulties: toggleDifficulty(p.difficulties, d.code) }))}
+              />
+            ))}
+          </View>
+
+          <Text style={styles.question}>{memoLabel}</Text>
+          {hints.length > 0 ? (
+            <View style={styles.chips}>
+              <Text style={styles.caption}>추천:</Text>
+              {hints.map((h) => (
+                <Chip key={h} label={h} selected={false} onPress={() => addHint(h)} />
+              ))}
+            </View>
+          ) : null}
+          <BottomSheetTextInput
+            accessibilityLabel={memoLabel}
+            style={styles.input}
+            multiline
+            maxLength={MAX_TEXT}
+            value={form.description}
+            onChangeText={(t) => change((p) => ({ ...p, description: t.slice(0, MAX_TEXT) }))}
+            textAlignVertical="top"
           />
-          {goalVisible ? (
-            <BottomSheetTextInput
-              accessibilityLabel="다음 목표"
-              style={styles.input}
-              multiline
-              maxLength={MAX_TEXT}
-              value={form.expectations}
-              onChangeText={(t) => change((p) => ({ ...p, expectations: t.slice(0, MAX_TEXT) }))}
-              textAlignVertical="top"
-            />
+          {quizCount > 0 ? <Text style={styles.caption}>{`수업 퀴즈 ${quizCount}개`}</Text> : null}
+
+          {!live ? (
+            <>
+              <Button
+                variant="text"
+                size="sm"
+                title="▸ 다음 목표 (선택)"
+                expanded={goalVisible}
+                onPress={() => setGoalOpen((v) => !v)}
+                style={styles.toggle}
+              />
+              {goalVisible ? (
+                <BottomSheetTextInput
+                  accessibilityLabel="다음 목표"
+                  style={styles.input}
+                  multiline
+                  maxLength={MAX_TEXT}
+                  value={form.expectations}
+                  onChangeText={(t) => change((p) => ({ ...p, expectations: t.slice(0, MAX_TEXT) }))}
+                  textAlignVertical="top"
+                />
+              ) : null}
+            </>
           ) : null}
         </>
-      ) : null}
+      )}
 
       {failed ? <Text style={styles.error}>저장하지 못했어요. 다시 시도해 주세요.</Text> : null}
 
       <View style={styles.actions}>
         <Button variant="text" title="나중에" onPress={() => onDone('dismissed')} />
-        <Button variant="primary" title={saveLabel} disabled={saveDisabled} onPress={save} />
+        <Button variant="primary" title={saveLabel} disabled={saveDisabled} loading={saving} onPress={save} />
       </View>
     </BottomSheetScrollView>
   );
@@ -219,6 +234,8 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
 const styles = StyleSheet.create({
   root: { padding: space.lg, gap: space.md },
   header: { ...type.title, color: colors.text },
+  // SkeletonCards는 제 좌우 여백(16)을 갖는다 — 양식 여백과 겹치지 않게 당긴다
+  skeleton: { marginHorizontal: -space.lg },
   notice: { ...type.body, color: colors.muted },
   tutorBox: { backgroundColor: colors.cardMuted, borderRadius: radius.md, padding: space.md, gap: space.xs },
   caption: { ...type.caption, color: colors.muted },
