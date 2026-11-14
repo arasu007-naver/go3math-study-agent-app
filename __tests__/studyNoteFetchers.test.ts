@@ -1,3 +1,4 @@
+import { print } from 'graphql';
 import { createStudyNoteFetchers } from '../src/adapters/studyNoteFetchers';
 import { persistNote, type StudyNoteFetchers } from '../src/kit/study-note/persist';
 import type { StudyNote, StudyNoteInput } from '../src/kit/study-note/model';
@@ -146,5 +147,31 @@ describe('createStudyNoteFetchers', () => {
     await expect(f.update(7, input)).rejects.toThrow('저장하지 못했어요');
     client.mutate.mockResolvedValueOnce({ data: { updateTaskNote: 1 } });
     await expect(f.update(7, input)).resolves.toBeUndefined();
+  });
+
+  it('fetchNote passes activities through', async () => {
+    const client = makeClient();
+    const activities = '{"v":1,"concepts":[],"quizIds":[45]}';
+    client.query.mockResolvedValue({ data: { studyNote: { taskId: 7, activities } } });
+    const f = createStudyNoteFetchers(client as never);
+    expect((await f.fetchNote(7))?.activities).toBe(activities);
+  });
+
+  it('register / update send input.activities as a variable', async () => {
+    const client = makeClient();
+    const f = createStudyNoteFetchers(client as never);
+    const activities = '{"v":1,"concepts":[{"id":1,"title":"일반항"}],"quizIds":[]}';
+    await f.register(7, { ...input, activities });
+    expect(client.mutate.mock.calls[0][0].variables.activities).toBe(activities);
+    await f.update(7, { ...input, activities });
+    expect(client.mutate.mock.calls[1][0].variables.activities).toBe(activities);
+  });
+
+  it('documents carry the activities field and argument', () => {
+    expect(print(STUDY_NOTE)).toMatch(/noteType\s+activities/);
+    expect(print(REGIST_TASK_NOTE)).toContain('$activities: String');
+    expect(print(REGIST_TASK_NOTE)).toContain('activities: $activities');
+    expect(print(UPDATE_STUDY_NOTE)).toContain('$activities: String');
+    expect(print(UPDATE_STUDY_NOTE)).toContain('activities: $activities');
   });
 });

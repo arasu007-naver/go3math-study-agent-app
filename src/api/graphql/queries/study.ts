@@ -9,6 +9,7 @@ export const STUDY_NOTE = gql`
       expectations
       achievementRate
       noteType
+      activities
     }
   }
 `;
