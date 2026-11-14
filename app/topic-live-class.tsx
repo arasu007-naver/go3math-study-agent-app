@@ -27,6 +27,7 @@ import { fetchConcept } from '@/src/adapters/problemListFetchers';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { topicLiveSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
+import { canvasActivityStore } from '@/src/state/canvasActivity';
 import { colors, type } from '@/src/ui/theme';
 
 // 주제 실황 수업 화면: 기존 qoolla-student-app `pages/notebook/topic-live-class.tsx`를 옮김. 패널은 note-canvas/topic-live-canvas.tsx 그대로.
@@ -78,6 +79,11 @@ export default function TopicLiveClassScreen() {
   const [lastPoint, setLastPoint] = useState<Guide>({ scriptId: 0 });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [liveQuiz, setLiveQuiz] = useState<LiveQuiz | null>(null);
+  // 받은 퀴즈는 학습장 활동 기록에도 남긴다
+  const receiveQuiz = useCallback((q: LiveQuiz) => {
+    canvasActivityStore.dispatch({ type: 'quiz', quizId: Number(q.quizId) });
+    setLiveQuiz(q);
+  }, []);
 
   const showToast = useCallback((msg: string, then?: () => void) => {
     setToastMessage(msg);
@@ -95,7 +101,7 @@ export default function TopicLiveClassScreen() {
       const guide = safeJsonParse(data?.data?.liveTopicClassMessage?.content, null) as Guide | null;
       if (guide) {
         if (guide.action === 'quiz') {
-          setLiveQuiz({ quizId: guide.quizId as number, content: guide.quiz as string });
+          receiveQuiz({ quizId: guide.quizId as number, content: guide.quiz as string });
           return;
         }
         if (guide.action !== 'snapshot' && guide.action !== 'canvas-synch') setLastPoint(guide);
@@ -237,7 +243,7 @@ export default function TopicLiveClassScreen() {
           loaded={() => panelRef.current?.onReceiveGuide(lastPoint)}
           initScript={lastPoint.scriptId}
           topicUnits={topicUnits}
-          onQuizReceived={setLiveQuiz}
+          onQuizReceived={receiveQuiz}
           screenActions={actions}
         />
       ) : (
