@@ -10,6 +10,7 @@ import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View, 
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { SkeletonCards } from '../ui/SkeletonCards';
 import type { SubjectOption, TopicPanelFetchers, TopicSummary } from './types';
+import { Chip } from '../../ui/Chip';
 import { colors } from '../../ui/theme';
 
 export const TOPIC_PAGE_SIZE = 12;
@@ -110,19 +111,9 @@ export function TopicTabsPanel({ fetchers, subjects, initialSubject, store, page
   return (
     <View style={styles.root}>
       <View style={styles.chips}>
-        {subjects.map((s) => {
-          const on = s.value === subject;
-          return (
-            <Pressable
-              key={s.value}
-              accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-              onPress={() => changeSubject(s.value)}
-              style={[styles.chip, on && styles.chipOn]}>
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>{s.label}</Text>
-            </Pressable>
-          );
-        })}
+        {subjects.map((s) => (
+          <Chip key={s.value} raised label={s.label} selected={s.value === subject} onPress={() => changeSubject(s.value)} />
+        ))}
       </View>
       {loading ? (
         <SkeletonCards count={6} lines={1} avatar divider={false} />
@@ -168,10 +159,6 @@ export function resolveInitialSubject(
 const styles = StyleSheet.create({
   root: { flex: 1 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 12, backgroundColor: '#FFFFFF' },
-  chip: { minHeight: 36, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: '#FFFFFF' },
-  chipOn: { backgroundColor: 'orange' },
-  chipText: { fontSize: 14, color: '#18181B' },
-  chipTextOn: { fontWeight: '700' },
   row: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#FFFFFF' },
   rowText: { flex: 1, gap: 4 },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#E4E4E7' },

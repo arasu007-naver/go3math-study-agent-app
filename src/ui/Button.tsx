@@ -1,7 +1,7 @@
 import { useRef, useState, type ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, layout, radius, space, type } from './theme';
+import { colors, layout, radius, shadow, space, type } from './theme';
 
 const LAYOUT_KEYS = [
   'margin',
@@ -62,7 +62,8 @@ type Look = { bg: string; pressedBg: string; border: string; label: string };
 
 const LOOK: Record<ButtonVariant, Look> = {
   primary: { bg: colors.accent, pressedBg: colors.accentPress, border: 'transparent', label: colors.onAccent },
-  secondary: { bg: colors.card, pressedBg: colors.cardMuted, border: colors.lineStrong, label: colors.text },
+  // 보조 버튼 공통 모양: 회색 바탕 + 검은 글자 + 두꺼운 흰 테두리 + 그림자(styles.raised)
+  secondary: { bg: colors.rail, pressedBg: colors.lineStrong, border: colors.card, label: colors.text },
   danger: { bg: colors.danger, pressedBg: colors.danger, border: 'transparent', label: colors.onAccent },
   text: { bg: 'transparent', pressedBg: colors.accentSoft, border: 'transparent', label: colors.accentText },
 };
@@ -70,7 +71,7 @@ const LOOK: Record<ButtonVariant, Look> = {
 const DISABLED: Record<ButtonVariant, Look> = {
   primary: { bg: colors.cardMuted, pressedBg: colors.cardMuted, border: 'transparent', label: colors.disabled },
   danger: { bg: colors.cardMuted, pressedBg: colors.cardMuted, border: 'transparent', label: colors.disabled },
-  secondary: { bg: colors.card, pressedBg: colors.card, border: colors.disabled, label: colors.disabled },
+  secondary: { bg: colors.cardMuted, pressedBg: colors.cardMuted, border: colors.card, label: colors.disabled },
   text: { bg: 'transparent', pressedBg: 'transparent', border: 'transparent', label: colors.disabled },
 };
 
@@ -145,6 +146,7 @@ export function Button({
           backgroundColor: pressed && !inactive ? look.pressedBg : look.bg,
           borderColor: look.border,
         },
+        variant === 'secondary' && look !== DANGER_TONE.secondary && styles.raised,
         pressed && !inactive && variant === 'danger' && styles.dangerPressed,
         pickLayout(style),
       ]}
@@ -173,4 +175,5 @@ const styles = StyleSheet.create({
   hidden: { opacity: 0 },
   spinner: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
   dangerPressed: { opacity: 0.85 },
+  raised: { borderWidth: 3, ...shadow.card },
 });

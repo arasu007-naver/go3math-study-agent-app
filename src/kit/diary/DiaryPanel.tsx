@@ -11,7 +11,6 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { UNITANSWER } from '../../config/api.constants';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
-import { IconButton } from '../../ui/IconButton';
 import { colors, space } from '../../ui/theme';
 import { NoticesPanel, type NoticeFetchers } from '../notices/NoticesPanel';
 import QoollaWebView from '../ui/web-view';
@@ -103,20 +102,14 @@ function AnswerView({ record, onBack }: { record: DailyRecord; onBack(): void })
   );
 }
 
-/** 단계 4b D5: 탭 = 공용 Chip(role=tab). 날 탭은 옆에 닫기 IconButton. 밑줄은 없다 */
+/** 단계 4b D5: 탭 = 공용 Chip(role=tab). 날 탭은 칩 안 오른쪽에 닫기(✕). 밑줄은 없다 */
 function Tab({ label, on, onPress, onClose }: { label: string; on: boolean; onPress(): void; onClose?(): void }) {
-  return (
-    <View style={styles.tab}>
-      <Chip label={label} accessibilityRole="tab" selected={on} onPress={onPress} />
-      {onClose && <IconButton size="sm" icon="close" accessibilityLabel={`${label} 탭 닫기`} onPress={onClose} />}
-    </View>
-  );
+  return <Chip label={label} accessibilityRole="tab" selected={on} onPress={onPress} onClose={onClose} closeLabel={`${label} 탭 닫기`} />;
 }
 
 const styles = StyleSheet.create({
   tabBar: { flexGrow: 0, backgroundColor: colors.card, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.line },
   tabBarContent: { paddingHorizontal: space.sm, paddingVertical: space.xs, gap: space.xs, alignItems: 'center' },
-  tab: { flexDirection: 'row', alignItems: 'center' },
   body: { flex: 1 },
   back: { alignSelf: 'flex-start' },
 });

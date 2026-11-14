@@ -67,6 +67,12 @@ describe('ExamSearchPanel rows (spec 4b D4)', () => {
     expect(screen.getByRole('button', { name: '시행월 선택' })).toBeTruthy();
   });
 
+  it('every row has a separator between its header and its chips', async () => {
+    await render(<ExamSearchPanel mode="pre_exam" store={store()} onSubmit={() => {}} />);
+    // 계열 · 연도 · 시행월 · 번호
+    expect(screen.getAllByTestId('row-sep', { includeHiddenElements: true })).toHaveLength(4);
+  });
+
   it('가자!!! submits the query', async () => {
     const onSubmit = jest.fn();
     await render(<ExamSearchPanel mode="this_year" store={store()} onSubmit={onSubmit} />);

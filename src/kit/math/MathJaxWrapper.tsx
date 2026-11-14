@@ -26,6 +26,8 @@ export interface MathJaxWrapperProps {
   /** fullView에서 렌더링된 내용 크기에 맞춰 WebView 크기를 조절 (최대 폭: maxWidth) */
   autoSize?: boolean;
   maxWidth?: number;
+  /** fullView에서 설명 상자의 테두리·바탕을 없앤다(말풍선처럼 이미 테두리가 있는 곳) */
+  plain?: boolean;
 }
 
 /**
@@ -103,6 +105,7 @@ export function buildMathJaxHtmlDocument({
   fontSize = 15,
   color = '#1f2937',
   compact = false,
+  plain = false,
 }: {
   title?: string;
   statement?: string;
@@ -110,6 +113,7 @@ export function buildMathJaxHtmlDocument({
   fontSize?: number;
   color?: string;
   compact?: boolean;
+  plain?: boolean;
 }): string {
   const processedTitle = processHtmlImages(title, iPath);
   const processedStatement = processHtmlImages(statement, iPath);
@@ -220,6 +224,7 @@ export function buildMathJaxHtmlDocument({
           font-size: 13px;
         }
         ${compactStyle}
+        ${plain ? '.concept-statement-card { border: none; background-color: transparent; padding: 0; }' : ''}
       </style>
     </head>
     <body>
@@ -250,6 +255,7 @@ export default function MathJaxWrapper({
   inline = true,
   autoSize = false,
   maxWidth = 480,
+  plain = false,
 }: MathJaxWrapperProps) {
   const [contentSize, setContentSize] = useState<{ width: number; height: number } | null>(null);
 
@@ -283,6 +289,7 @@ export default function MathJaxWrapper({
     fontSize,
     color,
     compact: autoSize,
+    plain,
   });
 
   // autoSize: 측정 전에는 maxWidth 폭으로 렌더링한 뒤, 측정된 내용 크기로 줄임

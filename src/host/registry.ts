@@ -49,7 +49,7 @@ export const registry: Record<string, RegistryEntry> = {
   // 검색 카테고리 칩 + 세부 선택(기존 research 화면). drawer '검색' 메뉴에 에이전트가 띄운다.
   research: {
     mode: 'phone',
-    propsSchema: z.object({ category: z.enum(['recent', 'pre', 'mentor']).optional() }),
+    propsSchema: z.object({ category: z.enum(['recent', 'pre', 'mentor', 'concept']).optional() }),
   },
   // 풀이 종료 후 학습장 입력 양식. Stage 대신 모달 시트로 뜬다.
   study_note: {

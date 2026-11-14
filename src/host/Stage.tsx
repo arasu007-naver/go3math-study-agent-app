@@ -2,7 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AgentSession, SessionSnapshot } from '../agent/session';
 import { widgets } from './widgets';
-import { colors, layout, radius, space, type } from '../ui/theme';
+import { colors, layout, radius, shadow, space, type } from '../ui/theme';
 
 // 회색(colors.bg) 헤더에 맞춰 흰 바탕을 #F7F7F8로 바꾼 판. 원본(흰 바탕)은 welcome 화면이 쓴다
 const logo = require('../../assets/images/welcome/go3math-one-line-logo-gray.png');
@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
   header: { height: layout.headerH, flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.md, backgroundColor: colors.bg }, // 캔버스 화면 하단 툴바 둘레와 같은 옅은 회색
   title: { flex: 1, paddingLeft: 4 },
   logo: { height: 32, width: 32 * (987 / 242) },
-  // 책갈피 ↔ 문제 목록 전환 버튼: 회색 원 + 흰 테두리 2px, 터치 크기는 공용 hit(44)
-  iconButton: { minWidth: layout.hit, minHeight: layout.hit, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.lineStrong, borderWidth: 2, borderColor: colors.card },
+  // 책갈피 ↔ 문제 목록 전환 버튼: 회색 원 + 흰 테두리 2px + 그림자, 터치 크기는 공용 hit(44)
+  iconButton: { minWidth: layout.hit, minHeight: layout.hit, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.lineStrong, borderWidth: 2, borderColor: colors.card, ...shadow.card },
   pressed: { opacity: 0.6 },
   status: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   fallback: { margin: space.md, padding: space.md, borderRadius: radius.sm, backgroundColor: colors.warnSoft, color: colors.text, ...type.body },

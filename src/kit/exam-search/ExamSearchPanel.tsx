@@ -69,24 +69,24 @@ export function ExamSearchPanel({ mode, preset, store, onSubmit }: Props) {
       <ScrollView contentContainerStyle={styles.content}>
         <ChipRow label="계열">
           {subjects.map((s) => (
-            <Chip key={s.value} label={s.label} accessibilityRole="radio" selected={s.value === subject} onPress={() => changeSubject(s.value)} />
+            <Chip raised key={s.value} label={s.label} accessibilityRole="radio" selected={s.value === subject} onPress={() => changeSubject(s.value)} />
           ))}
         </ChipRow>
         {mode === 'pre_exam' && (
           <ChipRow label="연도" onClear={() => setYears([])}>
             {yearOptions.map((y) => (
-              <Chip key={y.value} label={y.label} accessibilityRole="checkbox" selected={years.includes(y.value)} onPress={() => setYears(toggle(years, y.value))} />
+              <Chip raised key={y.value} label={y.label} accessibilityRole="checkbox" selected={years.includes(y.value)} onPress={() => setYears(toggle(years, y.value))} />
             ))}
           </ChipRow>
         )}
         <ChipRow label="시행월" onClear={() => setMonths([])}>
           {monthOptions.map((m) => (
-            <Chip key={m.value} label={m.label} accessibilityRole="checkbox" selected={months.includes(m.value)} onPress={() => setMonths(toggle(months, m.value))} />
+            <Chip raised key={m.value} label={m.label} accessibilityRole="checkbox" selected={months.includes(m.value)} onPress={() => setMonths(toggle(months, m.value))} />
           ))}
         </ChipRow>
         <ChipRow label="번호" onClear={() => setNumbers([])}>
           {PRE_EXAMS_ASSETS.numbers.map((n) => (
-            <Chip key={n.value} label={n.label} accessibilityRole="checkbox" selected={numbers.includes(n.value)} onPress={() => setNumbers(toggle(numbers, n.value))} />
+            <Chip raised key={n.value} label={n.label} accessibilityRole="checkbox" selected={numbers.includes(n.value)} onPress={() => setNumbers(toggle(numbers, n.value))} />
           ))}
         </ChipRow>
         {notice && <Text style={styles.notice}>{notice}</Text>}
@@ -110,6 +110,10 @@ function ChipRow({ label, onClear, children }: { label: string; onClear?: () => 
       ) : (
         <Text style={styles.rowLabel}>{label}</Text>
       )}
+      {/* 행 머리(라벨·초기화 버튼)와 고르는 칩을 가르는 표시 — 둘 다 같은 버튼 모양이라 구별이 필요하다 */}
+      <Text testID="row-sep" style={styles.rowSep} accessibilityElementsHidden importantForAccessibility="no">
+        ›
+      </Text>
       {children}
     </View>
   );
@@ -130,6 +134,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.line,
   },
   rowLabel: { ...type.bodyStrong, color: colors.subtle, paddingHorizontal: space.sm },
+  rowSep: { ...type.title, color: colors.muted, paddingHorizontal: space.xxs },
   // 1안: 글자용 warn 토큰이 없어 danger를 쓴다(새 토큰 없음)
   notice: { ...type.body, color: colors.danger, padding: 6 },
   goRow: { alignItems: 'flex-end', paddingVertical: 12, paddingRight: 12 },

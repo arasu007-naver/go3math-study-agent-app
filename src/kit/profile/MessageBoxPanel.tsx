@@ -2,7 +2,7 @@
  * 개인 사서함(내 쪽지함) — 기존 `components/panels/profile/my-tablet-memos.tsx`의 쪽지 카드 목록을 fetcher 주입형으로 재작성.
  * 보존: 요청 유형별 제목(주황) · 부제(요청 내용) · 답변 내용(빨강) · 문제 해설 요청의 문제 이미지 · 작성 시각,
  * 카드 사이 연주황 구분선, 페이지 단위 더 불러오기, 당겨서 새로고침.
- * 답변 첨부 PDF(response.fileLink, 비밀번호 response.sub)는 카드나 '가자 !!!'를 누르면 PdfViewerModal로 연다(기존 PDFViewPage 이동 대신).
+ * 답변 첨부 PDF(response.fileLink, 비밀번호 response.sub)는 카드나 '가자!!!'를 누르면 PdfViewerModal로 연다(기존 PDFViewPage 이동 대신).
  * 아직 안 옮김: 개선 요청 쪽지 쓰기(입력창), '읽음' 표시(setLastMemoVisitFlag·onConfirmResponse).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -12,6 +12,7 @@ import { UNITIMAGE } from '../../config/api.constants';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { PdfViewerModal, type PdfDoc } from '../ui/PdfViewerModal';
 import { SkeletonCards } from '../ui/SkeletonCards';
+import { Button } from '../../ui/Button';
 import { colors, type } from '../../ui/theme';
 
 export type PrivateMessage = {
@@ -153,7 +154,10 @@ export function MessageBoxPanel({ fetchers, pageSize = MESSAGE_PAGE_SIZE }: { fe
                 {!!d.response && <Text style={item.requestType.startsWith('UNIT_CLASS') ? styles.subtitle : styles.response}>{d.response}</Text>}
                 <View style={styles.actions}>
                   {item.writtenAt != null && <Text style={styles.date}>{moment(Number(item.writtenAt)).format('YYYY/MM/DD HH:mm')}</Text>}
-                  {!!fileLink && <Text style={styles.go}>가자 !!!</Text>}
+                  {/* 타임라인 dock의 '가자!!!'와 같은 버튼 */}
+                  {!!fileLink && (
+                    <Button variant="primary" size="sm" title="가자!!!" onPress={() => setPdf({ url: fileLink, password: item.response?.sub })} />
+                  )}
                 </View>
               </Pressable>
             );
@@ -175,8 +179,6 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.6 },
   actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   date: { ...type.caption, color: colors.muted },
-  // 기존 GoButton('가자 !!!')
-  go: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: colors.accent, color: colors.accentText, fontWeight: '700', overflow: 'hidden' },
   // 기존 cardDivider
   divider: { height: StyleSheet.hairlineWidth * 2, backgroundColor: colors.line, marginVertical: 12, marginHorizontal: 16 },
   empty: { padding: 24, ...type.body, color: colors.subtle },

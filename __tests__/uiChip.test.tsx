@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Chip } from '../src/ui/Chip';
+import { colors, shadow } from '../src/ui/theme';
 
 const sheet = StyleSheet.create({ smuggle: { marginTop: 8, borderColor: 'red' } });
 
@@ -18,6 +19,29 @@ describe('Chip', () => {
     expect(screen.getByRole('button')).toBeTruthy();
     await rerender(<Chip label="기출" selected={false} onPress={() => {}} accessibilityRole="tab" />);
     expect(screen.getByRole('tab')).toBeTruthy();
+  });
+
+  it('with onClose shows a close button inside the chip that does not select it', async () => {
+    const onPress = jest.fn();
+    const onClose = jest.fn();
+    await render(<Chip label="11월/10일" accessibilityRole="tab" selected={false} onPress={onPress} onClose={onClose} closeLabel="11월/10일 탭 닫기" />);
+    const close = screen.getByRole('button', { name: '11월/10일 탭 닫기' });
+    // 닫기 버튼은 칩(탭) 안에 있다
+    expect(close.parent).toBe(screen.getByRole('tab'));
+    await fireEvent.press(close);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('raised looks like the common button, and a selected one only turns its label accent', async () => {
+    const { rerender } = await render(<Chip raised label="미적분" selected={false} onPress={() => {}} />);
+    const look = { backgroundColor: colors.rail, borderColor: colors.card, borderWidth: 3, ...shadow.card };
+    const labelColor = () => StyleSheet.flatten(screen.getByText('미적분').props.style).color;
+    expect(StyleSheet.flatten(screen.getByRole('button').props.style)).toMatchObject(look);
+    expect(labelColor()).toBe(colors.text);
+    await rerender(<Chip raised label="미적분" selected onPress={() => {}} />);
+    expect(StyleSheet.flatten(screen.getByRole('button').props.style)).toMatchObject(look);
+    expect(labelColor()).toBe(colors.accent);
   });
 
   it('disabled and selected', async () => {

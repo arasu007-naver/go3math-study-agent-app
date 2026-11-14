@@ -12,11 +12,14 @@ import { UNITANSWER } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
 import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
 import { centerListItem } from '@/src/kit/canvas/centerListItem';
+import { ConceptStatement, isConceptType } from '@/src/kit/concepts/ConceptStatement';
 import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
+import { ANSWER_PAGE_STYLE_JS } from '@/src/kit/ui/answerPageStyle';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { ensureTaskId } from '@/src/adapters/ensureTask';
+import { fetchConcept } from '@/src/adapters/problemListFetchers';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
 import { Button } from '@/src/ui/Button';
@@ -148,7 +151,8 @@ export default function NotebookScreen() {
   const modalWidth = Math.round(width * 0.82);
   const modalHeight = Math.round(height * 0.65);
   const itemWidth = Math.min(380, Math.floor(modalWidth - 48));
-  const bodyHeight = Math.max(260, modalHeight - 130);
+  // 카드(본문 + 버튼 줄)가 목록 높이 안에 들어와야 버튼 그림자가 목록 경계에 잘리지 않는다
+  const bodyHeight = Math.max(260, modalHeight - 160);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -219,14 +223,18 @@ export default function NotebookScreen() {
       />
       <CanvasStudySheet
         sheetRef={sheetRef}
-        answerLabel="해답"
+        answerLabel="해답/내용"
         answer={
           <View style={styles.bottomContainerStyle}>
             <View style={{ flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card }}>
-              {answerUrl && (
+              {/* 현재 문제가 개념이면 해답 페이지 대신 개념 설명(내용) */}
+              {isConceptType(currentSheet.sourceType) ? (
+                <ConceptStatement key={currentSheet.sourceId} conceptId={Number(currentSheet.sourceId)} fetchConcept={fetchConcept} />
+              ) : answerUrl ? (
                 <WebView
                   originWhitelist={['*']}
                   source={{ uri: answerUrl }}
+                  injectedJavaScript={ANSWER_PAGE_STYLE_JS}
                   style={{ flex: 1, opacity: pageLoadProgress < 1 ? 0 : 1, width: '100%', height: '100%' }}
                   onLoadStart={() => setPageLoadProgress(0)}
                   startInLoadingState
@@ -234,7 +242,7 @@ export default function NotebookScreen() {
                   renderLoading={() => <Go3MathLoader style={{ width: '100%', height: '100%' }} />}
                   onLoadProgress={({ nativeEvent }) => setPageLoadProgress(nativeEvent.progress)}
                 />
-              )}
+              ) : null}
             </View>
           </View>
         }
@@ -305,6 +313,7 @@ const styles = StyleSheet.create({
     gap: space.sm,
     width: '100%',
     marginTop: 8,
+    padding: space.sm, // 버튼 그림자가 보일 자리
   },
   buttonContainerStyle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: 44, marginTop: 6 },
   // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)

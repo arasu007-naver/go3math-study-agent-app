@@ -12,11 +12,19 @@ import { ADD_BOOKMARK, REMOVE_BOOKMARK } from '../api/graphql/mutations';
 import { GET_UNITS_IN_TOPIC, MY_BOOKMARKS, ONLINE_CLASS_OF_TUTOR, TASK_OF_ID } from '../api/graphql/queries';
 import { ONLINE_TUTOR_CLASS_MESSAGE_ADDED } from '../api/graphql/subscriptions';
 import { getMemberMathPreExams, getUnitsOfMathCollection } from '../api/rest';
+import { apiV3 } from '../api/rest/apiV3';
 import { getLessonNote, lessonNoteUnits, type LessonNote } from '../api/rest/lessonNotes';
 import { ESSAY_TITLE_PATH_PREFIX, UNITIMAGE } from '../config/api.constants';
 import type { Problem, ProblemListFetchers } from '../kit/problem-list/ProblemListPanel';
 import { describeTask, type TimelineTask } from '../kit/timeline/TimelinePanel';
 import { authStore } from '../state/auth';
+
+/** 개념 하나의 설명·그림 경로: Java API GET /api/math/concept/{id}(MathMappingController). 내 책갈피 '내용'과 캔버스 '해답/내용' 탭이 쓴다 */
+export async function fetchConcept(conceptId: number) {
+  const token = authStore.getState().appToken;
+  if (!token) throw new Error('로그인이 필요해요');
+  return apiV3<{ rawStatement?: string | null; imgPath?: string | null }>(`/api/math/concept/${conceptId}`, token);
+}
 
 type RemoteUnit = { id: number; qPath: string };
 
@@ -93,6 +101,7 @@ export function createProblemListFetchers(
         variables: { sourceType, sourceId: Number(sourceId) },
       });
     },
+    fetchConcept,
     async removeBookmark(sourceType: string, sourceId: number) {
       await client.mutate({
         mutation: REMOVE_BOOKMARK,

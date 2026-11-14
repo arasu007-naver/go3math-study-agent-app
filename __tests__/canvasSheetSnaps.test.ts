@@ -19,3 +19,10 @@ test.each(['app/hotline-class.tsx', 'app/topic-live-class.tsx'])('%s opens the m
   expect(src).not.toMatch(/<BottomSheetModal\s/); // JSX 시트만 — useRef<BottomSheetModal> 타입 인자는 남는다
   expect(src).toMatch(/styles\.answerRow/);
 });
+
+// 풀이 화면: 해답 탭 라벨은 '해답/내용', 현재 문제가 개념(MATH_CONCEPT·CONCEPT)이면 해답 페이지 대신 개념 설명을 보인다
+test('app/notebook.tsx labels the answer tab 해답/내용 and shows the concept statement for concept problems', () => {
+  const src = read('app/notebook.tsx');
+  expect(src).toMatch(/<CanvasStudySheet[\s\S]*answerLabel="해답\/내용"/);
+  expect(src).toMatch(/isConceptType\(currentSheet\.sourceType\) \? \(\s*<ConceptStatement[^>]*conceptId=\{Number\(currentSheet\.sourceId\)\}/);
+});

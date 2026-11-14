@@ -11,9 +11,10 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWi
 import { ADD_BOOKMARK, REMOVE_BOOKMARK } from '../../api/graphql/mutations';
 import { UNITANSWER } from '../../config/api.constants';
 import { apolloClient } from '../../state/bootstrap';
+import { Button } from '../../ui/Button';
 import { colors } from '../../ui/theme';
+import { ConceptStatement, isConceptType, type ConceptBody } from '../concepts/ConceptStatement';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
-import GoButton from '../ui/go-button';
 import { PencilFab } from '../ui/PencilFab';
 import { AnswerBubble } from './AnswerBubble';
 import { placeAnswerBubble, type BubblePlacement, type Rect } from './answerBubblePlacement';
@@ -32,12 +33,17 @@ export type ProblemSource =
 export type Problem = { sourceType: string; sourceId: number; image: string };
 export type ProblemSet = { title: string; subtitle?: string | null; problems: Problem[] };
 
+/** 개념 책갈피: 버튼은 '해답' 대신 '내용', 말풍선은 개념 설명만(제목 없이) */
+const isConcept = (problem: Problem) => isConceptType(problem.sourceType);
+
 const itemKeyOf = (problem: Problem, index: number) => `${problem.sourceType}-${problem.sourceId}-${index}`;
 
 export interface ProblemListFetchers {
   fetchProblems(source: ProblemSource): Promise<ProblemSet>;
   addBookmark?(sourceType: string, sourceId: number): Promise<void>;
   removeBookmark?(sourceType: string, sourceId: number): Promise<void>;
+  /** 개념 책갈피의 '내용' 말풍선에 보일 개념 설명. 없으면 개념도 해답 페이지(WebView)로 보인다 */
+  fetchConcept?(conceptId: number): Promise<ConceptBody>;
   /** 출처의 문제가 바뀔 때마다 onChange를 부른다(선생님 수업). 돌려준 함수로 구독을 끝낸다. 바뀌지 않는 출처면 undefined */
   subscribe?(source: ProblemSource, onChange: () => void): (() => void) | undefined;
 }
@@ -61,7 +67,7 @@ export function ProblemListPanel({
   const [selected, setSelected] = useState<number | null>(0);
   const [bookmarkedKeys, setBookmarkedKeys] = useState<Set<string>>(new Set());
   // 열려 있는 해답 말풍선(한 번에 하나)
-  const [answer, setAnswer] = useState<{ itemKey: string; url: string; placement: BubblePlacement } | null>(null);
+  const [answer, setAnswer] = useState<{ itemKey: string; url?: string; conceptId?: number; placement: BubblePlacement } | null>(null);
   // 말풍선 자리 계산용: 패널 크기, 목록(ScrollView)의 패널 안 y, 스크롤 위치, 카드별 목록 안 자리
   const rootSize = useRef({ width: 0, height: 0 });
   const listY = useRef(0);
@@ -130,12 +136,13 @@ export function ProblemListPanel({
 
   // 같은 문항이면 닫고, 아니면 그 문항 카드의 지금 자리를 기준으로 말풍선을 연다(다른 문항이면 옮겨 간다)
   const toggleAnswer = (index: number, problem: Problem, itemKey: string, url: string | undefined) => {
-    if (answer?.itemKey === itemKey || !url) return setAnswer(null);
+    const conceptId = isConcept(problem) && fetchers.fetchConcept ? Number(problem.sourceId) : undefined;
+    if (answer?.itemKey === itemKey || (!url && conceptId === undefined)) return setAnswer(null);
     select(index, problem);
     const card = cardRects.current[index] ?? { x: 0, y: 0, width: 0, height: 0 };
     const container = rootSize.current.width > 0 ? rootSize.current : { width, height };
     const placement = placeAnswerBubble({ ...card, y: card.y - scrollY.current + listY.current }, container, width >= 600);
-    setAnswer({ itemKey, url, placement });
+    setAnswer({ itemKey, url, conceptId, placement });
   };
 
   const handleAddBookmark = useCallback(
@@ -253,29 +260,22 @@ export function ProblemListPanel({
                 renderFooter({ index, problem, set })
               ) : (
                 <View style={styles.cardActions}>
-                  <GoButton
-                    title={isShowingAnswer ? '닫기' : '해답'}
-                    size="small"
-                    variant={isShowingAnswer ? 'filled' : 'outline'}
-                    onPress={() => toggleAnswer(index, problem, itemKey, itemAnswerUrl)}
-                  />
+                  <Button variant="secondary" size="sm" title={isShowingAnswer ? '닫기' : isConcept(problem) ? '내용' : '해답'} onPress={() => toggleAnswer(index, problem, itemKey, itemAnswerUrl)} />
                   {isBookmarkList ? (
-                    <GoButton
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       title="책갈피 해제"
-                      size="small"
-                      variant="outline"
-                      color={colors.danger}
-                      textColor={colors.danger}
                       onPress={() => {
                         select(index, problem);
                         return handleRemoveBookmark(problem, index);
                       }}
                     />
                   ) : (
-                    <GoButton
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       title={isBookmarked ? '책갈피됨' : '책갈피'}
-                      size="small"
-                      variant={isBookmarked ? 'filled' : 'outline'}
                       disabled={isBookmarked}
                       onPress={() => {
                         select(index, problem);
@@ -289,7 +289,14 @@ export function ProblemListPanel({
           );
         })}
       </ScrollView>
-      {answer && <AnswerBubble url={answer.url} placement={answer.placement} />}
+      {answer &&
+        (answer.conceptId !== undefined && fetchers.fetchConcept ? (
+          <AnswerBubble label="내용" placement={answer.placement}>
+            <ConceptStatement key={answer.conceptId} conceptId={answer.conceptId} fetchConcept={fetchers.fetchConcept} plain />
+          </AnswerBubble>
+        ) : (
+          <AnswerBubble url={answer.url} placement={answer.placement} />
+        ))}
       {onSolve && set.problems.length > 0 && <PencilFab onPress={() => onSolve({ index: selected ?? 0, set })} />}
     </View>
   );

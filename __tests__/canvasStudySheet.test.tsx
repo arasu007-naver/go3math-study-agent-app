@@ -1,7 +1,7 @@
 import React, { createRef, useEffect } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { layout } from '../src/ui/theme';
+import { colors, layout, shadow } from '../src/ui/theme';
 
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 
@@ -92,6 +92,16 @@ describe('CanvasStudySheet', () => {
     expect(p.enableContentPanningGesture).toBe(false);
     expect(p.children.type).not.toBe(BottomSheetView);
     expect(StyleSheet.flatten(p.children.props.style).flex).toBe(1);
+  });
+
+  it('tab chips use the common button look; the selected one only turns its label accent', async () => {
+    await render(ui());
+    for (const name of ['개념', '해답']) {
+      expect(StyleSheet.flatten(screen.getByRole('tab', { name }).props.style)).toMatchObject({ backgroundColor: colors.rail, borderColor: colors.card, borderWidth: 3, ...shadow.card });
+    }
+    const labelColor = (t: string) => StyleSheet.flatten(screen.getByText(t).props.style).color;
+    expect(labelColor('해답')).toBe(colors.accent);
+    expect(labelColor('개념')).toBe(colors.text);
   });
 
   it('labels the answer tab with answerLabel', async () => {

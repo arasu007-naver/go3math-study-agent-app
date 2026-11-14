@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { MessageBoxPanel, describeMessage, type MessageBoxFetchers } from '../src/kit/profile/MessageBoxPanel';
+import { colors, layout } from '../src/ui/theme';
 
 const fetchers = (impl: MessageBoxFetchers['fetchMessages']): MessageBoxFetchers => ({ fetchMessages: impl });
 
@@ -44,6 +46,12 @@ describe('MessageBoxPanel', () => {
     expect(screen.getByText('비밀번호: 1234')).toBeTruthy();
     await fireEvent.press(screen.getByText('닫기'));
     expect(screen.queryByText('비밀번호: 1234')).toBeNull();
+
+    // '가자!!!'는 타임라인 dock과 같은 주요 버튼(sm)이고, 눌러도 같은 PDF를 연다
+    const go = screen.getByRole('button', { name: '가자!!!' });
+    expect(StyleSheet.flatten(go.props.style)).toMatchObject({ backgroundColor: colors.accent, minHeight: layout.controlSm });
+    await fireEvent.press(go);
+    await waitFor(() => expect(screen.getByText('비밀번호: 1234')).toBeTruthy());
   });
 
   it('shows the skeleton placeholder until the messages arrive', async () => {

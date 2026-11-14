@@ -11,12 +11,13 @@ describe('ResearchPanel initial category', () => {
   it('restores legacy lastAgenda value', () => {
     expect(resolveInitialCategory(undefined, store('pre'))).toBe('pre');
   });
-  it('stored concept falls back to recent (spec 4b D2/D3: the 개념 tab is gone)', () => {
-    expect(resolveInitialCategory(undefined, store('concept'))).toBe('recent');
+  it('concept is a tab again: stored or preset concept opens it', () => {
+    expect(resolveInitialCategory(undefined, store('concept'))).toBe('concept');
+    expect(resolveInitialCategory('concept', store('pre'))).toBe('concept');
   });
   it('unknown preset falls back like a stored value (spec 4b D3)', () => {
-    expect(resolveInitialCategory('concept' as never, store('pre'))).toBe('pre');
-    expect(resolveInitialCategory('concept' as never, store())).toBe('recent');
+    expect(resolveInitialCategory('unit' as never, store('pre'))).toBe('pre');
+    expect(resolveInitialCategory('unit' as never, store())).toBe('recent');
   });
   it('falls back to recent for missing or retired categories', () => {
     expect(resolveInitialCategory(undefined, store())).toBe('recent');

@@ -1,8 +1,8 @@
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import type { MathConcept } from '@qoolla/script-parser';
 import { useState, type ReactNode, type RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Chip } from '../../ui/Chip';
+import { pickedConceptsStore } from '../../state/concepts';
 import { SheetHandle } from '../../ui/SheetHandle';
 import { space } from '../../ui/theme';
 import { ConceptLookupPanel } from '../concepts/ConceptLookupPanel';
@@ -21,15 +21,15 @@ export function CanvasStudySheet({
   answer,
 }: {
   sheetRef: RefObject<BottomSheetModal | null>;
-  /** 해답 탭 라벨 — '해답' 또는 '답안 예시' */
+  /** 해답 탭 라벨 — '해답/내용' 또는 '답안 예시' */
   answerLabel: string;
   answer: ReactNode;
 }) {
   const [tab, setTab] = useState<Tab>('answer');
   // 여는 높이는 닫힐 때만 정한다 — index prop이 열린 동안 바뀌면 시트가 움직인다(실기기 확인)
   const [openIndex, setOpenIndex] = useState(0);
-  // 고른 개념은 여기 둔다 — 시트를 닫으면 패널은 사라지지만 캔버스를 나갈 때까지 남는다
-  const [pickedConcepts, setPickedConcepts] = useState<MathConcept[]>([]);
+  // 고른 개념은 공용 store에 둔다 — 시트를 닫거나 캔버스를 나가도 남고, 검색 dock '개념' 탭과 같이 쓴다
+  const pickedConcepts = pickedConceptsStore.useStore();
   const bottomInset = useCanvasSheetBottomInset();
 
   return (
@@ -47,11 +47,11 @@ export function CanvasStudySheet({
       {/* BottomSheetView는 내용 높이만큼만 커져 높이 없는 WebView가 0이 된다 — 시트를 채우는 flex View */}
       <View style={styles.body}>
         <View style={styles.tabs}>
-          <Chip label="개념" accessibilityRole="tab" selected={tab === 'concept'} onPress={() => setTab('concept')} />
-          <Chip label={answerLabel} accessibilityRole="tab" selected={tab === 'answer'} onPress={() => setTab('answer')} />
+          <Chip raised label="개념" accessibilityRole="tab" selected={tab === 'concept'} onPress={() => setTab('concept')} />
+          <Chip raised label={answerLabel} accessibilityRole="tab" selected={tab === 'answer'} onPress={() => setTab('answer')} />
         </View>
         <View testID="study-tab-concept" style={[styles.body, tab !== 'concept' && styles.hidden]}>
-          <ConceptLookupPanel picked={pickedConcepts} onPickedChange={setPickedConcepts} />
+          <ConceptLookupPanel picked={pickedConcepts} onPickedChange={pickedConceptsStore.dispatch} />
         </View>
         <View testID="study-tab-answer" style={[styles.body, tab !== 'answer' && styles.hidden]}>
           {answer}

@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ADD_BOOKMARK } from '../src/api/graphql/mutations';
 import { StyleSheet } from 'react-native';
-import { colors, layout } from '../src/ui/theme';
+import { colors, layout, shadow } from '../src/ui/theme';
 
 const mockAddBookmark = jest.fn().mockResolvedValue({ data: { addBookmark: true } });
 const mockCreateRecord = jest.fn().mockResolvedValue({ data: { createRecord: { id: 1 } } });
@@ -149,13 +149,18 @@ describe('NotebookScreen - list modal uses shared Button', () => {
   };
   const flat = (node: any) => StyleSheet.flatten(node.props.style);
 
-  it('교체 and 책갈피 are small secondary buttons and 닫기 is a secondary button', async () => {
+  it('교체, 책갈피 and 닫기 are small secondary buttons: gray fill, thick white border, shadow', async () => {
     await openList();
-    for (const name of ['교체', '책갈피']) {
+    for (const name of ['교체', '책갈피', '닫기']) {
       const node = screen.getAllByRole('button', { name })[0];
-      expect(flat(node)).toMatchObject({ minHeight: layout.controlSm, backgroundColor: colors.card });
+      expect(flat(node)).toMatchObject({
+        minHeight: layout.controlSm,
+        backgroundColor: colors.rail,
+        borderColor: colors.card,
+        borderWidth: 3,
+        ...shadow.card,
+      });
     }
-    expect(flat(screen.getByRole('button', { name: '닫기' }))).toMatchObject({ backgroundColor: colors.card });
   });
 
   it('a bookmarked problem shows a disabled 책갈피됨 that does not bookmark again', async () => {

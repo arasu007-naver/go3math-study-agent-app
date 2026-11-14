@@ -40,7 +40,7 @@ describe('DiaryPanel', () => {
     await waitFor(() => expect(screen.getByLabelText('5일 풀이 2문제')).toBeTruthy());
     await fireEvent.press(screen.getByLabelText('5일 풀이 2문제'));
     await waitFor(() => expect(recordFetchers.fetchDay).toHaveBeenCalledWith(day));
-    // 단계 4b D5: 날 탭은 공용 Chip(role=tab), 닫기는 옆의 IconButton
+    // 단계 4b D5: 날 탭은 공용 Chip(role=tab), 닫기(✕)는 칩 안
     expect(screen.getByRole('tab', { name: dayLabel }).props.accessibilityState.selected).toBe(true);
     expect(screen.getByRole('tab', { name: '공지' }).props.accessibilityState.selected).toBe(false);
 

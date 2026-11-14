@@ -42,7 +42,7 @@ describe('QuizResponseModal', () => {
 
   it('지우기 is a secondary Button and 답 보내기 a primary Button', async () => {
     await render(<QuizResponseModal {...props} />);
-    expect(bg('지우기')).toBe(colors.card);
+    expect(bg('지우기')).toBe(colors.rail);
     expect(bg('답 보내기')).toBe(colors.accent);
     await fireEvent.press(screen.getByRole('button', { name: '답 보내기' }));
     expect(mockWebView.postMessage).toHaveBeenCalledWith(JSON.stringify({ type: 'GET_IMAGE' }));

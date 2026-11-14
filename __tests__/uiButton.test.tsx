@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Button, buttonLook } from '../src/ui/Button';
-import { colors } from '../src/ui/theme';
+import { colors, shadow } from '../src/ui/theme';
 
 const sheet = StyleSheet.create({ smuggle: { marginTop: 8, backgroundColor: 'red' } });
 
@@ -96,6 +96,14 @@ describe('Button', () => {
   });
 });
 
+describe('Button secondary look', () => {
+  it('is the common raised look: gray fill, black label, thick white border, shadow', async () => {
+    await render(<Button variant="secondary" title="해답" onPress={() => {}} />);
+    expect(flat()).toMatchObject({ backgroundColor: colors.rail, borderColor: colors.card, borderWidth: 3, ...shadow.card });
+    expect(StyleSheet.flatten(screen.getByText('해답').props.style).color).toBe(colors.text);
+  });
+});
+
 describe('Button expanded', () => {
   it('reports expanded only when given', async () => {
     const { rerender } = await render(<Button variant="text" title="더 보기" onPress={() => {}} expanded={false} />);
@@ -126,7 +134,7 @@ describe('Button danger tone', () => {
 
   it('disabled ignores the tone', async () => {
     await render(<Button variant="secondary" tone="danger" title="해제" onPress={() => {}} disabled />);
-    expect(flat()).toMatchObject({ backgroundColor: colors.card, borderColor: colors.disabled });
+    expect(flat()).toMatchObject({ backgroundColor: colors.cardMuted, borderColor: colors.card });
     expect(labelColor('해제')).toBe(colors.disabled);
   });
 

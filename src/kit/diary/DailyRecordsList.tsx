@@ -36,9 +36,12 @@ export interface DailyRecordsFetchers {
 }
 
 function Zoomable({ uri, width }: { uri: string; width: number }) {
+  // 이미지를 읽지 못하면(빈 파일·없는 파일) 빈자리 대신 알린다
+  const [failed, setFailed] = useState(false);
+  if (failed) return <Text style={styles.message}>이미지를 불러오지 못했어요.</Text>;
   return (
     <ReactNativeZoomableView maxZoom={10} minZoom={0.5} zoomStep={0.5} initialZoom={1} disablePanOnInitialZoom bindToBorders>
-      <DynamicDimensionsImage width={width} source={{ uri }} />
+      <DynamicDimensionsImage width={width} source={{ uri }} handleError={() => setFailed(true)} />
     </ReactNativeZoomableView>
   );
 }

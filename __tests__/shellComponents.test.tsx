@@ -8,7 +8,7 @@ import { Stage } from '../src/host/Stage';
 import { initialRouterState } from '../src/agent/commandRouter';
 import type { AgentSession, SessionSnapshot } from '../src/agent/session';
 import type { Instruction } from '../src/agent/commandRouter';
-import { colors, layout } from '../src/ui/theme';
+import { colors, layout, shadow } from '../src/ui/theme';
 
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 jest.mock('../src/host/widgets', () => ({ widgets: {} }));
@@ -23,7 +23,7 @@ describe('InstructionCard', () => {
     const onChoice = jest.fn();
     await render(<InstructionCard instruction={instruction([{ id: 'a', label: '풀기' }, { id: 'b', label: '나중에' }])} paused={false} onChoice={onChoice} onDismiss={() => {}} />);
     expect(bg('풀기')).toBe(colors.accent);
-    expect(bg('나중에')).toBe(colors.card);
+    expect(bg('나중에')).toBe(colors.rail);
     await fireEvent.press(screen.getByRole('button', { name: '나중에' }));
     expect(onChoice).toHaveBeenCalledWith('b');
   });
@@ -31,7 +31,7 @@ describe('InstructionCard', () => {
   it('with no choices shows a secondary 확인 that dismisses', async () => {
     const onDismiss = jest.fn();
     await render(<InstructionCard instruction={instruction([])} paused={false} onChoice={() => {}} onDismiss={onDismiss} />);
-    expect(bg('확인')).toBe(colors.card);
+    expect(bg('확인')).toBe(colors.rail);
     await fireEvent.press(screen.getByRole('button', { name: '확인' }));
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
@@ -77,7 +77,7 @@ describe('Stage', () => {
     const session = { showLocalComponent: jest.fn(), restoreStage: jest.fn() } as unknown as AgentSession & { showLocalComponent: jest.Mock };
     await render(<Stage state={snapshot(null)} session={session} />);
     const toggle = screen.getByRole('button', { name: '내 책갈피' });
-    expect(StyleSheet.flatten(toggle.props.style)).toMatchObject({ minWidth: layout.hit, minHeight: layout.hit });
+    expect(StyleSheet.flatten(toggle.props.style)).toMatchObject({ minWidth: layout.hit, minHeight: layout.hit, ...shadow.card });
     await fireEvent.press(toggle);
     expect(session.showLocalComponent).toHaveBeenCalledWith('problem_list', { source: { kind: 'bookmarks' } });
   });

@@ -11,7 +11,9 @@ jest.mock('../src/kit/math/MathJaxWrapper', () => {
   };
 });
 
+import { StyleSheet } from 'react-native';
 import { ConceptLookupPanel, type ConceptFetchers } from '../src/kit/concepts/ConceptLookupPanel';
+import { colors, radius, shadow } from '../src/ui/theme';
 
 const concepts: Record<number, any[]> = {
   10: [
@@ -41,6 +43,28 @@ describe('ConceptLookupPanel - chapter tooltip and picked chips', () => {
     expect(screen.getByText('개념을 누르면 여기에 설명이 나옵니다.')).toBeTruthy();
   });
 
+  it('subject and chapter chips use the common button look; the selected one only turns its label accent', async () => {
+    await render(<Harness />);
+    const chapter = await screen.findByRole('tab', { name: '지수' });
+    const subject = screen.getByRole('tab', { name: '수학I' });
+    const look = { backgroundColor: colors.rail, borderColor: colors.card, borderWidth: 3, ...shadow.card };
+    const labelColor = (t: string) => StyleSheet.flatten(screen.getByText(t).props.style).color;
+    for (const chip of [subject, chapter]) expect(StyleSheet.flatten(chip.props.style)).toMatchObject(look);
+    // 첫 과목은 자동으로 골라진다, 단원은 눌러야 고른다
+    expect(labelColor('수학I')).toBe(colors.accent);
+    expect(labelColor('지수')).toBe(colors.text);
+    await fireEvent.press(chapter);
+    expect(labelColor('지수')).toBe(colors.accent);
+  });
+
+  it('subject and chapter rows start with a label and a › separator, like the search rows', async () => {
+    await render(<Harness />);
+    await screen.findByText('지수');
+    expect(screen.getByText('과목')).toBeTruthy();
+    expect(screen.getByText('단원 선택')).toBeTruthy();
+    expect(screen.getAllByTestId('concept-row-sep', { includeHiddenElements: true })).toHaveLength(2);
+  });
+
   it('pressing a chapter opens the tooltip with its concepts; pressing outside closes it', async () => {
     await render(<Harness />);
     await fireEvent.press(await screen.findByText('지수'));
@@ -56,7 +80,31 @@ describe('ConceptLookupPanel - chapter tooltip and picked chips', () => {
     await fireEvent.press(await screen.findByText('지수법칙'));
     expect(screen.queryByTestId('concept-tooltip')).toBeNull();
     expect(screen.getByLabelText('지수법칙 빼기')).toBeTruthy();
+    // 고른 개념 칩은 좌우가 완전히 둥글다(알약 모양), 라벨에 이모지는 없다
+    expect(StyleSheet.flatten(screen.getByLabelText('지수법칙 빼기').parent!.props.style).borderRadius).toBe(radius.pill);
+    expect(screen.getByText('개념 목록 (터치하여 설명 보기)')).toBeTruthy();
     expect(screen.getByTestId('concept-detail').props.children).toBe('지수법칙|a^m a^n');
+  });
+
+  it('the 책갈피 button above the concept title bookmarks the shown concept once', async () => {
+    const addBookmark = jest.fn(async () => {});
+    await render(<Harness fetchers={{ ...fakeFetchers, addBookmark }} />);
+    // 개념을 고르기 전에는 버튼이 없다
+    await screen.findByText('지수');
+    expect(screen.queryByRole('button', { name: '책갈피' })).toBeNull();
+    await fireEvent.press(screen.getByText('지수'));
+    await fireEvent.press(await screen.findByText('지수법칙'));
+    await fireEvent.press(screen.getByRole('button', { name: '책갈피' }));
+    expect(addBookmark).toHaveBeenCalledWith(100);
+    const done = await screen.findByRole('button', { name: '책갈피됨' });
+    expect(done.props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it('has no 책갈피 button when the fetchers cannot bookmark', async () => {
+    await render(<Harness />);
+    await fireEvent.press(await screen.findByText('지수'));
+    await fireEvent.press(await screen.findByText('지수법칙'));
+    expect(screen.queryByRole('button', { name: '책갈피' })).toBeNull();
   });
 
   it('picked chips stay across chapters, are not duplicated, and switch the explanation', async () => {

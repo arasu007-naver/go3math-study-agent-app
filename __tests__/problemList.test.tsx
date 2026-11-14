@@ -1,4 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+
+// 개념 설명 렌더러 대역: 넘겨받은 제목|설명을 글자로 보인다
+jest.mock('../src/kit/math/MathJaxWrapper', () => {
+  const { Text } = require('react-native');
+  return { __esModule: true, default: (p: any) => <Text testID="concept-statement" accessibilityHint={p.plain ? 'plain' : 'boxed'}>{`${p.titleStatement ?? ''}|${p.statement}`}</Text> };
+});
+
+import { StyleSheet } from 'react-native';
 import { initialRouterState, routeCommand } from '../src/agent/commandRouter';
 import { createProblemListFetchers } from '../src/adapters/problemListFetchers';
 import { getMemberMathPreExams, getUnitsOfMathCollection } from '../src/api/rest';
@@ -318,6 +326,12 @@ describe('ProblemListPanel selection border and buttons', () => {
     const removeButtons = screen.getAllByText('책갈피 해제');
     expect(answerButtons.length).toBe(2);
     expect(removeButtons.length).toBe(2);
+    // 항목 버튼은 공용 보조 버튼(회색 바탕 · 검은 글자 · 흰 테두리)
+    for (const name of ['해답', '책갈피 해제']) {
+      const node = screen.getAllByRole('button', { name })[0];
+      expect(StyleSheet.flatten(node.props.style)).toMatchObject({ backgroundColor: colors.rail, borderColor: colors.card });
+      expect(StyleSheet.flatten(screen.getAllByText(name)[0].props.style).color).toBe(colors.text);
+    }
 
     // 2번 '책갈피 해제' -> 누른 문항이 현재 문제가 되고 책갈피가 풀린다
     fireEvent.press(removeButtons[1]);
@@ -327,5 +341,32 @@ describe('ProblemListPanel selection border and buttons', () => {
     // After removal, only 1 problem remains
     await waitFor(() => expect(screen.queryByLabelText('2번 문제')).toBeNull());
     expect(screen.getByLabelText('1번 문제')).toBeTruthy();
+  });
+});
+
+describe('ProblemListPanel concept bookmarks', () => {
+  const list = [
+    { sourceType: 'MATH_CONCEPT', sourceId: 7, image: 'https://img/c7.png' },
+    { sourceType: 'UNIT', sourceId: 101, image: 'https://img/101.png' },
+  ];
+
+  it('a concept item says 내용 instead of 해답 and its bubble shows only the concept description', async () => {
+    const fetchConcept = jest.fn(async () => ({ rawStatement: '등비수열 설명', imgPath: '' }));
+    const fetchers: ProblemListFetchers = { fetchProblems: jest.fn(async () => ({ title: '🔖 내 책갈피', problems: list })), fetchConcept };
+    await render(<BookmarksPanel fetchers={fetchers} onSelectProblem={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('🔖 내 책갈피')).toBeTruthy());
+    // 개념 항목은 '내용', 문제 항목은 그대로 '해답'
+    expect(screen.getAllByRole('button', { name: '내용' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: '해답' })).toHaveLength(1);
+
+    await fireEvent.press(screen.getByRole('button', { name: '내용' }));
+    expect(fetchConcept).toHaveBeenCalledWith(7);
+    const bubble = await screen.findByTestId('answer-bubble');
+    expect(bubble.props.accessibilityLabel).toBe('내용');
+    // 제목 없이 설명만 넘긴다
+    const body = await screen.findByTestId('concept-statement');
+    expect(body.props.children).toBe('|등비수열 설명');
+    // 말풍선에 이미 테두리가 있어 설명 상자 테두리는 없앤다
+    expect(body.props.accessibilityHint).toBe('plain');
   });
 });
