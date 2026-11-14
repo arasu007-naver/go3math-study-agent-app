@@ -118,7 +118,7 @@ export default function NotebookScreen() {
   const units = session.problems;
   const answerUrl = UNITANSWER(currentSheet.sourceType, currentSheet.sourceId);
 
-  // taskId 없이 열렸으면(책갈피는 첫 풀이 때 발급, 그 밖은 task 생성 지연) 저장할 때 발급받고, 그 뒤로는 그 task에 붙인다
+  // task(study)는 첫 풀이를 저장할 때 spec으로 만들고, 그 뒤로는 그 task에 붙인다(이어 푸는 task는 taskId가 이미 있다)
   const recordOf = async (imageUrl: string) => {
     const taskId = session.spec ? await ensureTaskId(session.taskId, session.spec) : session.taskId;
     if (taskId && taskId !== session.taskId) solveStore.dispatch({ ...session, taskId });

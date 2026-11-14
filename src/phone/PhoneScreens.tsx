@@ -26,7 +26,7 @@ import { useMyInfo } from '../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { UNITANSWER } from '../config/api.constants';
 import { ensureTaskId, type TaskSpec } from '../adapters/ensureTask';
-import { notebookArgs, topicFetchers, topicLiveSpec } from '../host/widgets';
+import { notebookArgs, topicFetchers, topicSpec } from '../host/widgets';
 import { DailyRecordsList } from '../kit/diary/DailyRecordsList';
 import { RecordsCalendar } from '../kit/diary/RecordsCalendar';
 import { NoticesPanel } from '../kit/notices/NoticesPanel';
@@ -274,7 +274,7 @@ export function TopicResultScreen({ tab }: { tab: ResultTab }) {
         fetchers={topicFetchers}
         topicId={topicId}
         onSelectUnit={({ unitIdx }) => session.emit('unit_selected', { topicId, unitIdx })}
-        renderFooter={({ unitIdx, unit }) => <SolutionRow tab={tab} index={unitIdx} problem={unit} spec={topicLiveSpec(topicId)} />}
+        renderFooter={({ unitIdx, unit }) => <SolutionRow tab={tab} index={unitIdx} problem={unit} spec={topicSpec(topicId)} />}
       />
     </View>
   );

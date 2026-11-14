@@ -19,6 +19,9 @@ describe('describeTask', () => {
       lines: ['📆 6월, 9월', '🔢 번호: 21, 22'],
     });
     expect(describeTask({ id: 1, taskType: 'topic', topicTitle: '수열의 극한', topicDescription: '기본', visitCnt: 1 }).subtitle).toBe('기본  #1번');
+    // 실황 수업 기록의 collectionId는 lesson_note.id라서 서버가 붙인 topicTitle은 엉뚱한 주제다 — 쓰지 않는다
+    expect(describeTask({ id: 4, taskType: 'topic-live', topicTitle: '엉뚱한 주제', visitCnt: 1 })).toMatchObject({ title: '📝 주제 실황 수업', subtitle: '#1번' });
+    expect(describeTask({ id: 5, taskType: 'hotline', visitCnt: 2 })).toMatchObject({ title: '📝 선생님 실황 수업', subtitle: '#2번' });
     expect(describeTask({ id: 2, taskType: 'collection', title: '모음', description: '설명', visitCnt: 2 }).title).toBe('📝 모음');
     expect(describeTask({ id: 3, taskType: 'bookmark', task: JSON.stringify({ tutor: { name: '김쌤' }, units: [1, 2] }), visitCnt: 5 }).subtitle).toBe(
       '🥸 김쌤 님의 북마크 수업 / 2문항  #5번',

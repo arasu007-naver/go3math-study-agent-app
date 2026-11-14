@@ -149,6 +149,15 @@ export const ONLINE_CLASS_OF_TUTOR = gql`
   }
 `;
 
+/** 선생님 수업을 시작할 때 발급된 lesson_note id만 받는다(hotline task의 collectionId) */
+export const ONLINE_CLASS_LESSON_NOTE = gql`
+  query onlineClassLessonNoteQuery($tutorId: String!) {
+    onlineClassOfTutor(tutorId: $tutorId) {
+      lessonNoteId
+    }
+  }
+`;
+
 export const UNIT_VIDEO_LIST = gql`
   query getVideosOfUnit {
     videos {
