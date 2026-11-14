@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { StyleSheet, Text, View } from 'react-native';
+import { cleanMathText } from '../math/MathJaxWrapper';
 import type { KeyValueStore } from '../../storage/types';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
@@ -53,8 +54,9 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
     [existing, localActivity],
   );
   // 추천 칩: 주제 힌트 뒤에 조회한 개념 제목. 같은 문구는 한 번만
+  // 제목(rawTitle)은 HTML 엔티티·수식 표기를 담을 수 있어 개념 조회 패널과 같은 글자로 정리한다(저장하는 기록은 원문 그대로)
   const hints = useMemo(
-    () => [...new Set([...(topicHints ?? []), ...activities.concepts.map((c) => c.title)])].filter(Boolean),
+    () => [...new Set([...(topicHints ?? []), ...activities.concepts.map((c) => cleanMathText(c.title))])].filter(Boolean),
     [topicHints, activities],
   );
   const quizCount = activities.quizIds.length;

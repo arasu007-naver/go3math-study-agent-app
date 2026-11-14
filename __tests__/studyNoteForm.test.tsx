@@ -3,6 +3,9 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 import { StudyNoteForm } from '../src/kit/study-note/StudyNoteForm';
 import { colors, layout } from '../src/ui/theme';
 
+// 양식이 개념 제목을 정리하려고 MathJaxWrapper(cleanMathText)를 가져온다 — WebView 네이티브 모듈은 Jest에 없다
+jest.mock('react-native-webview', () => ({ WebView: () => null }));
+
 // 시트 밖에서 그리므로 gorhom 입력칸은 RN TextInput으로 바꾼다
 // 스크롤 영역은 testID를 붙여 gorhom 스크롤 뷰를 쓰는지 확인한다
 jest.mock('@gorhom/bottom-sheet', () => {
@@ -216,6 +219,16 @@ describe('StudyNoteForm - 활동 기록', () => {
     await settle();
     expect(screen.getByText('추천:')).toBeTruthy();
     expect(screen.getByRole('button', { name: '일반항' })).toBeTruthy();
+  });
+
+  // 개념 제목(rawTitle)은 HTML 엔티티·수식 표기를 담을 수 있다 — 개념 조회 패널과 같은 글자로 보여 주고 써넣는다
+  it('개념 제목은 정리한 글자로 보여 주고 입력칸에도 그렇게 들어간다', async () => {
+    const { ui } = setup({}, { store: withLocal(acts({ concepts: [{ id: 3, title: '수열 &amp; 급수' }] })) });
+    await render(ui);
+    await settle();
+    expect(screen.queryByText('수열 &amp; 급수')).toBeNull();
+    await fireEvent.press(screen.getByText('수열 & 급수'));
+    expect(screen.getByLabelText('공부한 내용').props.value).toBe('수열 & 급수');
   });
 
   it('topicHints와 같은 제목의 개념은 칩 하나로 보여 준다', async () => {
