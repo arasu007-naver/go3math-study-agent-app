@@ -200,11 +200,11 @@ describe('NotebookScreen - list modal opens on the current problem', () => {
 });
 
 describe('NotebookScreen - canvas sheets (Gate B Q4)', () => {
-  it('answer and workouts sheets open at 보기 50% with 넓게 70% and stop above the toolbar', async () => {
+  it('answer and workouts sheets open at 보기 50% of the 30·50·70·90% steps and stop above the toolbar', async () => {
     await render(<NotebookScreen />);
     for (const p of lastSheets(2)) {
-      expect(p.snapPoints).toEqual(['50%', '70%']);
-      expect(p.index).toBe(0);
+      expect(p.snapPoints).toEqual(['30%', '50%', '70%', '90%']);
+      expect(p.snapPoints[p.index]).toBe('50%');
       expect(p.bottomInset).toBe(layout.toolbarH + 20);
       expect(p.enableDynamicSizing).toBe(false);
       expect(p.enableContentPanningGesture).toBe(false);

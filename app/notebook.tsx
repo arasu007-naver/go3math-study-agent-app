@@ -13,7 +13,7 @@ import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
 import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
 import { centerListItem } from '@/src/kit/canvas/centerListItem';
 import { ConceptStatement, isConceptType } from '@/src/kit/concepts/ConceptStatement';
-import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
+import { CANVAS_SHEET_SNAPS, CANVAS_SHEET_VIEW, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import { ANSWER_PAGE_STYLE_JS } from '@/src/kit/ui/answerPageStyle';
@@ -250,7 +250,7 @@ export default function NotebookScreen() {
       <BottomSheetModal
         ref={workoutSheetListRef}
         snapPoints={CANVAS_SHEET_SNAPS}
-        index={0}
+        index={CANVAS_SHEET_VIEW}
         bottomInset={sheetBottomInset}
         enableDynamicSizing={false}
         enableContentPanningGesture={false}

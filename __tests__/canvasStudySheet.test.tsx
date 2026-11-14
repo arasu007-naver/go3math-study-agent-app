@@ -43,13 +43,16 @@ const hidden = (id: string) =>
   StyleSheet.flatten(screen.getByTestId(id, { includeHiddenElements: true }).props.style).display === 'none';
 const ui = () => <CanvasStudySheet sheetRef={createRef()} answerLabel="해답" answer={<Answer />} />;
 
+/** 시트가 열리는 높이(snapPoints[index]) */
+const openHeight = () => last().snapPoints[last().index];
+
 describe('CanvasStudySheet', () => {
   it('starts on the answer tab at 50%', async () => {
     await render(ui());
     expect(screen.getByRole('tab', { name: '해답' }).props.accessibilityState).toMatchObject({ selected: true });
     expect(hidden('study-tab-answer')).toBe(false);
     expect(hidden('study-tab-concept')).toBe(true);
-    expect(last().index).toBe(0);
+    expect(openHeight()).toBe('50%');
   });
 
   it('switching to 개념 hides the answer without unmounting it and opens next time at 70%', async () => {
@@ -66,13 +69,13 @@ describe('CanvasStudySheet', () => {
   it('switching tabs does not move the open sheet; closing on 개념 reopens at 70%', async () => {
     await render(ui());
     await fireEvent.press(screen.getByRole('tab', { name: '개념' }));
-    expect(last().index).toBe(0);
+    expect(openHeight()).toBe('50%');
     await act(() => last().onDismiss());
-    expect(last().index).toBe(1);
+    expect(openHeight()).toBe('70%');
     await fireEvent.press(screen.getByRole('tab', { name: '해답' }));
-    expect(last().index).toBe(1);
+    expect(openHeight()).toBe('70%');
     await act(() => last().onDismiss());
-    expect(last().index).toBe(0);
+    expect(openHeight()).toBe('50%');
   });
 
   it('keeps the last tab across re-renders', async () => {
@@ -86,7 +89,7 @@ describe('CanvasStudySheet', () => {
     const { BottomSheetView } = require('@gorhom/bottom-sheet');
     await render(ui());
     const p = last();
-    expect(p.snapPoints).toEqual(['50%', '70%']);
+    expect(p.snapPoints).toEqual(['30%', '50%', '70%', '90%']);
     expect(p.bottomInset).toBe(layout.toolbarH + 20);
     expect(p.enableDynamicSizing).toBe(false);
     expect(p.enableContentPanningGesture).toBe(false);

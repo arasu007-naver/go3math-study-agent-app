@@ -1,13 +1,15 @@
 import fs from 'fs';
 import path from 'path';
-import { CANVAS_SHEET_SNAPS } from '../src/kit/canvas/FloatingToolbar';
+import { CANVAS_SHEET_SNAPS, CANVAS_SHEET_VIEW, CANVAS_SHEET_WIDE } from '../src/kit/canvas/FloatingToolbar';
 
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 
 const read = (f: string) => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
 
-test('canvas sheets snap to 보기 50% and 넓게 70%', () => {
-  expect([...CANVAS_SHEET_SNAPS]).toEqual(['50%', '70%']);
+test('canvas sheets snap to 30·50·70·90% and open at 보기 50% or 넓게 70%', () => {
+  expect([...CANVAS_SHEET_SNAPS]).toEqual(['30%', '50%', '70%', '90%']);
+  expect(CANVAS_SHEET_SNAPS[CANVAS_SHEET_VIEW]).toBe('50%');
+  expect(CANVAS_SHEET_SNAPS[CANVAS_SHEET_WIDE]).toBe('70%');
 });
 
 // 이 두 라우트는 렌더 테스트가 없어 소스로 고정한다. 시트 높이·inset·본문 규칙은 canvasStudySheet.test.tsx가 한 번 고정한다

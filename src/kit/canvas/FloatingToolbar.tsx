@@ -32,8 +32,14 @@ export type FloatingToolbarProps = {
 
 const NO_INSETS = { left: 0, right: 0, bottom: 0 };
 
-/** 캔버스 시트(해답·내 풀이·개념 검색)의 두 단계: 보기 50%, 넓게 70%(Gate B Q4, Gate C §4) */
-export const CANVAS_SHEET_SNAPS = ['50%', '70%'];
+/**
+ * 캔버스 시트(해답·내 풀이·개념 검색)의 높이 단계. 손잡이를 끌어 단계 사이로 옮긴다.
+ * 여는 높이는 그대로 보기 50%·넓게 70%(Gate B Q4, Gate C §4)이고, 끌어서 30%까지 줄이거나 90%까지 늘릴 수 있다.
+ */
+export const CANVAS_SHEET_SNAPS = ['30%', '50%', '70%', '90%'];
+/** 여는 높이의 단계 번호(CANVAS_SHEET_SNAPS의 index): 보기 50% · 넓게 70% */
+export const CANVAS_SHEET_VIEW = 1;
+export const CANVAS_SHEET_WIDE = 2;
 
 /** 캔버스 시트 아래 끝이 툴바 위 끝에서 멈추게 하는 bottomInset. 툴바가 bottom: insets.bottom에 놓이는 것과 같은 기준 */
 export function useCanvasSheetBottomInset() {

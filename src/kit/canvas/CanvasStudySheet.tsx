@@ -6,7 +6,7 @@ import { pickedConceptsStore } from '../../state/concepts';
 import { SheetHandle } from '../../ui/SheetHandle';
 import { space } from '../../ui/theme';
 import { ConceptLookupPanel } from '../concepts/ConceptLookupPanel';
-import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset } from './FloatingToolbar';
+import { CANVAS_SHEET_SNAPS, CANVAS_SHEET_VIEW, CANVAS_SHEET_WIDE, useCanvasSheetBottomInset } from './FloatingToolbar';
 
 type Tab = 'concept' | 'answer';
 
@@ -27,7 +27,7 @@ export function CanvasStudySheet({
 }) {
   const [tab, setTab] = useState<Tab>('answer');
   // 여는 높이는 닫힐 때만 정한다 — index prop이 열린 동안 바뀌면 시트가 움직인다(실기기 확인)
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState(CANVAS_SHEET_VIEW);
   // 고른 개념은 공용 store에 둔다 — 시트를 닫거나 캔버스를 나가도 남고, 검색 dock '개념' 탭과 같이 쓴다
   const pickedConcepts = pickedConceptsStore.useStore();
   const bottomInset = useCanvasSheetBottomInset();
@@ -38,7 +38,7 @@ export function CanvasStudySheet({
       ref={sheetRef}
       snapPoints={CANVAS_SHEET_SNAPS}
       index={openIndex}
-      onDismiss={() => setOpenIndex(tab === 'concept' ? 1 : 0)}
+      onDismiss={() => setOpenIndex(tab === 'concept' ? CANVAS_SHEET_WIDE : CANVAS_SHEET_VIEW)}
       bottomInset={bottomInset}
       enableDynamicSizing={false}
       enableContentPanningGesture={false}
