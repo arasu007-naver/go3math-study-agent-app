@@ -255,6 +255,8 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                     }
                 }
 
+                // 아직 현재 스크립트가 없으면(화면에 막 들어왔을 때) 맞춰 볼 대상이 없다 — 예전에는 여기서 targetScript.id를 읽다 오류가 났다
+                if (!targetScript) return;
                 let dScript = _.filter(scriptsArray, (src: any) => (src.id == targetScript.id) && (src.sourceType == targetScript.sourceType) && (src.sourceId == targetScript.sourceId));
                 if (dScript.length > 0) {
                     setReleaseScriptUrl('default');
