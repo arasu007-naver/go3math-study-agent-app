@@ -14,6 +14,7 @@ import { ONLINE_TUTOR_CLASS_MESSAGE_ADDED } from '@/src/api/graphql/subscription
 import { UNITANSWER, UNITIMAGE } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
 import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
+import { centerListItem } from '@/src/kit/canvas/centerListItem';
 import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import LegacyHotlineClassCanvasPanel from '@/src/kit/canvas/note-canvas/hotline-class-canvas';
 import { storage } from '@/src/kit/canvas/note-canvas/legacy';
@@ -67,6 +68,7 @@ export default function HotlineClassScreen() {
   const isFocused = useIsFocused();
   const panelRef = useRef<PanelHandle | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
+  const sheetListRef = useRef<FlatList>(null);
 
   const [topicUnits, setTopicUnits] = useState<Unit[]>([]);
   const [currentSheet, setCurrentSheet] = useState<Unit | null>(null);
@@ -181,7 +183,9 @@ export default function HotlineClassScreen() {
 
   const answerUrl = currentSheet ? UNITANSWER(currentSheet.sourceType, currentSheet.sourceId) : undefined;
   const problemUrl = currentSheet ? UNITIMAGE(currentSheet.sourceType, currentSheet.sourceId) : undefined;
-  const modalWidth = Math.round(width * 0.6);
+  // 목록을 열 때 가운데에 둘 현재 문제(패널이 changeUnit으로 알려 준 것)
+  const currentIndex = topicUnits.findIndex((u) => u.sourceType === currentSheet?.sourceType && Number(u.sourceId) === Number(currentSheet?.sourceId));
+  const modalWidth = Math.round(width * 0.82);
   const modalHeight = Math.round(height * 0.65);
 
   const actions: FloatingAction[] = [
@@ -208,6 +212,7 @@ export default function HotlineClassScreen() {
             { width: modalWidth, height: modalHeight, top: Math.round((height - modalHeight) / 2), left: Math.round((width - modalWidth) / 2) },
           ]}>
           <FlatList
+            {...centerListItem(sheetListRef, currentIndex, 360, 16)}
             data={topicUnits}
             horizontal
             keyExtractor={(item, index) => `${item.sourceType}-${item.sourceId}-${index}`}
@@ -286,7 +291,8 @@ const styles = StyleSheet.create({
   toastText: { ...type.bodyStrong, color: colors.onAccent },
   modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: colors.scrim },
   listContainer: { position: 'absolute', backgroundColor: colors.card, padding: 20, borderRadius: 12, elevation: 5 },
-  listItem: { marginRight: 16 },
+  // 폭 고정 — 이미지가 오기 전에도 카드 자리가 있어야 목록을 열 때 현재 문제로 스크롤된다
+  listItem: { width: 360, marginRight: 16 },
   // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)
   answerRow: { flex: 1, flexDirection: 'row', gap: 6, paddingHorizontal: 6 },
   answerPane: { flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.card },

@@ -11,6 +11,7 @@ import { UNIT_TRIES } from '@/src/api/graphql/queries';
 import { UNITANSWER } from '@/src/config/api.constants';
 import { canvasAction } from '@/src/kit/canvas/CanvasChrome';
 import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
+import { centerListItem } from '@/src/kit/canvas/centerListItem';
 import { CANVAS_SHEET_SNAPS, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
@@ -19,7 +20,6 @@ import { ensureTaskId } from '@/src/adapters/ensureTask';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { solveStore, type SolveProblem } from '@/src/state/solve';
 import { Button } from '@/src/ui/Button';
-import { Chip } from '@/src/ui/Chip';
 import { SheetHandle } from '@/src/ui/SheetHandle';
 import { colors, radius, shadow, space } from '@/src/ui/theme';
 
@@ -47,12 +47,12 @@ export default function NotebookScreen() {
   const sheetRef = useRef<BottomSheetModal>(null);
   const sheetBottomInset = useCanvasSheetBottomInset();
   const workoutSheetListRef = useRef<BottomSheetModal>(null);
+  const sheetListRef = useRef<FlatList>(null);
   const [currentSheet, setCurrentSheet] = useState<SolveProblem | undefined>(session?.problems[session.index]);
   const [sheetListVisible, setSheetListVisible] = useState(false);
   const [workoutNotes, setWorkoutNotes] = useState<string[]>([]);
   const [pageLoadProgress, setPageLoadProgress] = useState(0);
   const [bookmarkedKeys, setBookmarkedKeys] = useState<Set<string>>(new Set());
-  const [showingAnswerKeys, setShowingAnswerKeys] = useState<Set<string>>(new Set());
 
   const [createNewRecord] = useMutation<{ createRecord: { id: number } }>(CREATE_RECORD, {
     onError: (e) => console.warn('[notebook] createRecord failed:', e.message),
@@ -79,18 +79,6 @@ export default function NotebookScreen() {
       console.warn('[notebook] handleBookmark failed:', e);
     }
   }, [addBookmark]);
-
-  const toggleAnswer = useCallback((key: string) => {
-    setShowingAnswerKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
-  }, []);
 
   const handlePresentModalPress = useCallback(() => sheetRef.current?.present(), []);
   const handlePresentWorkoutSheetListModalPress = useCallback(() => workoutSheetListRef.current?.present(), []);
@@ -157,7 +145,7 @@ export default function NotebookScreen() {
     setTimeout(handlePresentWorkoutSheetListModalPress, 20);
   };
 
-  const modalWidth = Math.round((width * 60) / 100);
+  const modalWidth = Math.round(width * 0.82);
   const modalHeight = Math.round(height * 0.65);
   const itemWidth = Math.min(380, Math.floor(modalWidth - 48));
   const bodyHeight = Math.max(260, modalHeight - 130);
@@ -178,58 +166,35 @@ export default function NotebookScreen() {
           ]}
         >
           <FlatList
+            {...centerListItem(sheetListRef, units.indexOf(currentSheet), itemWidth, 16)}
             data={units}
             keyExtractor={(item, index) => `${item.sourceType}-${item.sourceId}-${index}`}
             horizontal
             contentContainerStyle={styles.listContent}
             renderItem={({ item, index }) => {
-              const itemKey = `${item.sourceType}-${item.sourceId}-${index}`;
-              const isShowingAnswer = showingAnswerKeys.has(itemKey);
               const isBookmarked = bookmarkedKeys.has(`${item.sourceType}-${item.sourceId}`);
-              const itemAnswerUrl = UNITANSWER(item.sourceType, item.sourceId);
 
               return (
                 <View style={[styles.itemCard, { width: itemWidth }]}>
-                  {/* 카드 바디 (문제 이미지 또는 해답 웹뷰) */}
+                  {/* 카드 바디 (문제 이미지) */}
                   <View style={[styles.itemBody, { height: bodyHeight }]}>
-                    {isShowingAnswer ? (
-                      <View style={styles.answerWrapper}>
-                        <View style={[styles.answerContainer, { height: bodyHeight - 17 }]}>
-                          {itemAnswerUrl ? (
-                            <WebView
-                              originWhitelist={['*']}
-                              source={{ uri: itemAnswerUrl }}
-                              style={styles.answerWebView}
-                              startInLoadingState
-                              nestedScrollEnabled
-                              renderLoading={() => <Go3MathLoader style={styles.fullSize} />}
-                            />
-                          ) : null}
-                        </View>
-                        <View style={styles.accentBar} />
-                      </View>
-                    ) : (
-                      <ScrollView style={styles.problemScrollView} contentContainerStyle={styles.problemScrollContent} showsVerticalScrollIndicator={false}>
-                        <ImageAdjustCard imgPath={item.image} imgWidth={itemWidth} index={index}>
-                          <></>
-                        </ImageAdjustCard>
-                      </ScrollView>
-                    )}
+                    <ScrollView style={styles.problemScrollView} contentContainerStyle={styles.problemScrollContent} showsVerticalScrollIndicator={false}>
+                      <ImageAdjustCard imgPath={item.image} imgWidth={itemWidth} index={index}>
+                        <></>
+                      </ImageAdjustCard>
+                    </ScrollView>
                   </View>
 
                   {/* 아래 한 줄 버튼 그룹 */}
                   <View style={styles.cardButtonGroup}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      title={isBookmarked ? '책갈피됨' : '책갈피'}
+                      disabled={isBookmarked}
+                      onPress={() => handleBookmark(item)}
+                    />
                     <Button variant="secondary" size="sm" title="교체" onPress={() => setCurrentSheet(item)} />
-                    <View style={styles.cardButtonGroupRight}>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        title={isBookmarked ? '책갈피됨' : '책갈피'}
-                        disabled={isBookmarked}
-                        onPress={() => handleBookmark(item)}
-                      />
-                      <Chip label={isShowingAnswer ? '문제' : '해답'} selected={isShowingAnswer} onPress={() => toggleAnswer(itemKey)} />
-                    </View>
                   </View>
                 </View>
               );
@@ -333,46 +298,13 @@ const styles = StyleSheet.create({
   problemScrollContent: {
     alignItems: 'center',
   },
-  answerWrapper: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-  },
-  answerContainer: {
-    width: '100%',
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  answerWebView: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  accentBar: {
-    height: 9,
-    backgroundColor: colors.accentSoftPress,
-    width: '100%',
-    marginTop: 8,
-    borderRadius: radius.sm,
-  },
   cardButtonGroup: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 8,
-  },
-  cardButtonGroupRight: {
-    flexDirection: 'row',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     gap: space.sm,
-  },
-  fullSize: {
     width: '100%',
-    height: '100%',
+    marginTop: 8,
   },
   buttonContainerStyle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: 44, marginTop: 6 },
   // 시트 높이(보기·넓게)를 내용이 채운다(고정 높이 대신 flex)

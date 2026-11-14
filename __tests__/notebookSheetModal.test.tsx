@@ -97,23 +97,21 @@ describe('NotebookScreen - Problem List Modal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders problem items with 교체, 책갈피, and 해답 buttons in a single-line group', async () => {
+  it('renders problem items with 책갈피 then 교체 in a single-line group, and no 해답 button', async () => {
     await render(<NotebookScreen />);
 
     // Open problem list modal
     fireEvent.press(screen.getByText('목록'));
 
-    // Both problems should display button groups: '교체', '책갈피', '해답'
     await waitFor(() => {
       expect(screen.getAllByText('교체').length).toBe(2);
     });
+    expect(screen.getAllByText('책갈피').length).toBe(2);
+    expect(screen.queryByText('해답')).toBeNull();
 
-    const bookmarkButtons = screen.getAllByText('책갈피');
-    expect(bookmarkButtons.length).toBe(2);
-
-    // 2 in problem list cards; the toolbar button is now 개념·해답
-    const answerButtons = screen.getAllByText('해답');
-    expect(answerButtons.length).toBe(2);
+    // 교체가 예전 해답 자리(책갈피 오른쪽)에 온다
+    const labels = screen.getAllByText(/^(책갈피|교체)$/).map((n) => n.props.children);
+    expect(labels).toEqual(['책갈피', '교체', '책갈피', '교체']);
   });
 
   it('calls addBookmark GraphQL mutation when 책갈피 button is clicked', async () => {
@@ -140,42 +138,9 @@ describe('NotebookScreen - Problem List Modal', () => {
     // Should update title to '책갈피됨'
     expect(screen.getByText('책갈피됨')).toBeTruthy();
   });
-
-  it('toggles body WebView with answer URL when 해답 button is clicked', async () => {
-    await render(<NotebookScreen />);
-
-    fireEvent.press(screen.getByText('목록'));
-
-    // Initially problem images are shown
-    await waitFor(() => {
-      expect(screen.getAllByTestId('mock-problem-image').length).toBe(2);
-    });
-
-    // Click '해답' on first item (101)
-    const answerButtons = screen.getAllByText('해답');
-    fireEvent.press(answerButtons[0]);
-
-    // Should now show answer WebView with the correct URL
-    await waitFor(() => {
-      expect(screen.getByTestId('mock-webview')).toBeTruthy();
-      expect(screen.getByLabelText(/unit-answer\/101/)).toBeTruthy();
-    });
-
-    // The button title toggles to '문제'
-    expect(screen.getByText('문제')).toBeTruthy();
-
-    // Wait for GoButton debounce (400ms) before pressing again
-    await new Promise((r) => setTimeout(r, 450));
-
-    // Clicking '문제' toggles back to the problem image
-    fireEvent.press(screen.getByText('문제'));
-    await waitFor(() => {
-      expect(screen.queryByTestId('mock-webview')).toBeNull();
-    });
-  });
 });
 
-describe('NotebookScreen - list modal uses shared Button and Chip', () => {
+describe('NotebookScreen - list modal uses shared Button', () => {
   beforeEach(() => jest.clearAllMocks());
   const openList = async () => {
     await render(<NotebookScreen />);
@@ -193,14 +158,6 @@ describe('NotebookScreen - list modal uses shared Button and Chip', () => {
     expect(flat(screen.getByRole('button', { name: '닫기' }))).toMatchObject({ backgroundColor: colors.card });
   });
 
-  it('해답/문제 is a Chip that reports its selection', async () => {
-    await openList();
-    const chip = screen.getAllByRole('button', { name: '해답' })[0];
-    expect(chip.props.accessibilityState).toMatchObject({ selected: false });
-    await fireEvent.press(chip);
-    await waitFor(() => expect(screen.getByRole('button', { name: '문제' }).props.accessibilityState).toMatchObject({ selected: true }));
-  });
-
   it('a bookmarked problem shows a disabled 책갈피됨 that does not bookmark again', async () => {
     await openList();
     await fireEvent.press(screen.getAllByRole('button', { name: '책갈피' })[0]);
@@ -209,6 +166,31 @@ describe('NotebookScreen - list modal uses shared Button and Chip', () => {
     expect(done.props.accessibilityState).toMatchObject({ disabled: true });
     await fireEvent.press(done);
     expect(mockAddBookmark).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('NotebookScreen - list modal opens on the current problem', () => {
+  it('scrolls the list so the current problem is centered each time it opens', async () => {
+    const { FlatList } = require('react-native');
+    const scrollToOffset = jest.spyOn(FlatList.prototype, 'scrollToOffset').mockImplementation(() => {});
+    const openAndLayout = async () => {
+      await fireEvent.press(screen.getByText('목록'));
+      await waitFor(() => expect(screen.getAllByRole('button', { name: '교체' }).length).toBe(2));
+      // 문제 목록(가로 FlatList)이 폭 410으로 배치된다
+      await fireEvent(screen.getByTestId('canvas-sheet-list'), 'layout', { nativeEvent: { layout: { width: 410, height: 500, x: 0, y: 0 } } });
+    };
+    await render(<NotebookScreen />);
+
+    // 첫 문제가 현재 문제 — 처음이라 가운데에 올 수 없어 맨 앞
+    await openAndLayout();
+    expect(scrollToOffset).toHaveBeenLastCalledWith({ offset: 0, animated: false });
+
+    // 둘째 문제로 바꾸면 목록이 닫힌다. 다시 열면 둘째 카드(폭 380, 간격 16)가 가운데: 396 - (410-380)/2
+    await fireEvent.press(screen.getAllByRole('button', { name: '교체' })[1]);
+    await waitFor(() => expect(screen.queryByRole('button', { name: '닫기' })).toBeNull());
+    await openAndLayout();
+    expect(scrollToOffset).toHaveBeenLastCalledWith({ offset: 381, animated: false });
+    scrollToOffset.mockRestore();
   });
 });
 
