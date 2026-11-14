@@ -802,7 +802,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             let dataUrl;
             dataUrl = canvas.toDataURL({
               format: "png",
-              multiplier: 1920/classScale,
+              multiplier: 1/classScale, // 높이 1920 기준으로 맞춘다
             });
             setTimeout(async () => {
               window.ReactNativeWebView.postMessage(JSON.stringify({content: dataUrl, contentMeta:'SNAPSHOT' }));
@@ -813,7 +813,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             let dataUrl;
             dataUrl = canvas.toDataURL({
               format: "png",
-              multiplier: 1920/classScale,
+              multiplier: 1/classScale, // 높이 1920 기준으로 맞춘다
             });
             window.ReactNativeWebView.postMessage(JSON.stringify({content: dataUrl, contentMeta:'SNAPSHOT' }));
             setTimeout(async () => {
