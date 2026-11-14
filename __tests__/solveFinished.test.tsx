@@ -13,7 +13,7 @@ jest.mock('../src/storage', () => ({
   },
 }));
 
-import { useSolveFinished } from '../src/host/useSolveFinished';
+import { isCanvasOpen, useSolveFinished } from '../src/host/useSolveFinished';
 import { emptyActivities, loadActivity } from '../src/kit/study-note/activity';
 import { canvasActivityStore } from '../src/state/canvasActivity';
 import { storage } from '../src/storage';
@@ -82,5 +82,34 @@ describe('활동 기록', () => {
     expect(canvasActivityStore.getState()).toEqual(emptyActivities());
     await next.unmount();
     expect(mockData.size).toBe(0);
+  });
+
+  // 새 캔버스는 열려 있던 캔버스를 스택에서 빼고 올라간다(widgets.openCanvas) — 새 화면이 먼저 마운트되고 옛 화면이 나중에 언마운트돼도 기록이 섞이지 않는다
+  it('새 캔버스가 뜨면 열려 있던 캔버스의 기록을 먼저 그 task에 남긴다', async () => {
+    const old = await render(<Probe taskId={7} count={0} />);
+    collect();
+    const next = await render(<Probe taskId={8} count={0} />);
+    expect(loadActivity(storage, 7)).toEqual({ v: 1, concepts: [{ id: 1, title: '일반항' }], quizIds: [45] });
+    expect(canvasActivityStore.getState()).toEqual(emptyActivities());
+
+    canvasActivityStore.dispatch({ type: 'quiz', quizId: 50 });
+    await old.unmount();
+    expect(loadActivity(storage, 7).quizIds).toEqual([45]);
+    expect(loadActivity(storage, 8)).toEqual(emptyActivities());
+    expect(canvasActivityStore.getState().quizIds).toEqual([50]);
+    expect(isCanvasOpen()).toBe(true);
+
+    await next.unmount();
+    expect(loadActivity(storage, 8).quizIds).toEqual([50]);
+    expect(loadActivity(storage, 7).quizIds).toEqual([45]);
+    expect(isCanvasOpen()).toBe(false);
+  });
+
+  it('isCanvasOpen은 캔버스가 떠 있는 동안만 true', async () => {
+    expect(isCanvasOpen()).toBe(false);
+    const view = await render(<Probe count={0} />);
+    expect(isCanvasOpen()).toBe(true);
+    await view.unmount();
+    expect(isCanvasOpen()).toBe(false);
   });
 });

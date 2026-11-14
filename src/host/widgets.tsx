@@ -1,6 +1,6 @@
 // 위젯 = kit 패널을 감싸는 얇은 어댑터(§4.4): fetcher 주입, kit 콜백 → 에이전트 이벤트 변환, 프리셋 반영.
 import { useRef, type MutableRefObject, type ReactElement } from 'react';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import moment from 'moment';
 import { UPDATE_VISIT_COUNT } from '../api/graphql/mutations';
 import type { DiarySolveTarget } from '../kit/diary/DailyRecordsList';
@@ -21,6 +21,7 @@ import { UNITIMAGE } from '../config/api.constants';
 import { apolloClient } from '../state/bootstrap';
 import { solveStore, type SolveProblem } from '../state/solve';
 import { storage } from '../storage';
+import { isCanvasOpen } from './useSolveFinished';
 
 export const topicFetchers = createTopicFetchers(apolloClient);
 const problemListFetchers = createProblemListFetchers(apolloClient);
@@ -37,20 +38,26 @@ export type WidgetProps = { props: Record<string, unknown>; session: AgentSessio
 /** 문제 묶음 → 책갈피/목록 task에 넣는 문제 식별자 목록 */
 const unitsOf = (problems: { sourceType: string; sourceId: number }[]) => problems.map(({ sourceType, sourceId }) => ({ sourceType, sourceId }));
 
+/** 캔버스 화면은 겹쳐 쌓지 않는다 — 열려 있는 캔버스가 있으면 스택에서 빼고 새 캔버스를 올린다 */
+function openCanvas(href: Href) {
+  if (isCanvasOpen()) router.replace(href);
+  else router.push(href);
+}
+
 /** 문제 목록의 연필 버튼: 문제 묶음을 넘기고 풀이 화면(/notebook)으로 */
 export function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number, spec?: TaskSpec) {
   solveStore.dispatch({ title, problems, index, taskId, topicId, spec });
-  router.push('/notebook');
+  openCanvas('/notebook');
 }
 
 /** 실황 수업 dock의 주제 실황 수업: 주제 실황 캔버스 화면(/topic-live-class)으로. task는 그 화면이 첫 풀이 저장 때 topicLiveSpec으로 만든다 */
 export function openTopicLiveClass(topicId: number, taskId?: number) {
-  router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(taskId ? { taskId: String(taskId) } : {}) } });
+  openCanvas({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(taskId ? { taskId: String(taskId) } : {}) } });
 }
 
 /** 실황 수업 dock의 선생님 수업: 선생님 수업 캔버스 화면(/hotline-class)으로. task는 그 화면이 첫 풀이 저장 때 hotlineSpec으로 만든다 */
 export function openHotlineClass(tutorId: string, taskId?: number) {
-  router.push({ pathname: '/hotline-class', params: { tutorId, ...(taskId ? { taskId: String(taskId) } : {}) } });
+  openCanvas({ pathname: '/hotline-class', params: { tutorId, ...(taskId ? { taskId: String(taskId) } : {}) } });
 }
 
 /** 실황 수업 dock·문제 목록이 공유하는 실황 수업 spec */

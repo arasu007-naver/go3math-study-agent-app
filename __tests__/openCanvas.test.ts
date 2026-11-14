@@ -4,16 +4,20 @@ import { solveStore } from '../src/state/solve';
 
 jest.mock('react-native-mmkv', () => ({ createMMKV: () => ({ getString: () => undefined, set: () => {}, remove: () => {} }) }));
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
-jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
+jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn() } }));
+let mockCanvasOpen = false;
+jest.mock('../src/host/useSolveFinished', () => ({ isCanvasOpen: () => mockCanvasOpen }));
 const mockMutate = jest.fn();
 jest.mock('../src/state/bootstrap', () => ({ apolloClient: { mutate: (...a: unknown[]) => mockMutate(...a) } }));
 jest.mock('../src/agent/useAgentSession', () => ({ getAgentSession: () => ({ emit: jest.fn() }) }));
 
 const push = router.push as jest.Mock;
+const replace = router.replace as jest.Mock;
 const problems = [{ sourceType: 'exam', sourceId: 1, image: '' }];
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockCanvasOpen = false;
   solveStore.dispatch(null);
 });
 
@@ -39,6 +43,18 @@ describe('open* canvas', () => {
     expect(mockMutate).not.toHaveBeenCalled();
     expect(push).toHaveBeenNthCalledWith(1, { pathname: '/topic-live-class', params: { topicId: '101' } });
     expect(push).toHaveBeenNthCalledWith(2, { pathname: '/hotline-class', params: { tutorId: 'tutor1' } });
+  });
+
+  // 캔버스 위에 캔버스를 쌓지 않는다 — 열려 있던 캔버스를 스택에서 빼고 새 캔버스가 올라간다
+  it('replaces an open canvas instead of stacking a second one', () => {
+    mockCanvasOpen = true;
+    openNotebook('t', problems, 0);
+    openTopicLiveClass(101);
+    openHotlineClass('tutor1');
+    expect(push).not.toHaveBeenCalled();
+    expect(replace).toHaveBeenNthCalledWith(1, '/notebook');
+    expect(replace).toHaveBeenNthCalledWith(2, { pathname: '/topic-live-class', params: { topicId: '101' } });
+    expect(replace).toHaveBeenNthCalledWith(3, { pathname: '/hotline-class', params: { tutorId: 'tutor1' } });
   });
 
   it('search results carry their task type to the canvas', () => {
