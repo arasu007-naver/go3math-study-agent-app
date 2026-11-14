@@ -21,7 +21,7 @@ import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
 import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizResponseModal';
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
-import { ensureTaskId } from '@/src/adapters/ensureTask';
+import { ensureTaskId, findLiveClassTaskId } from '@/src/adapters/ensureTask';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { hotlineSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
@@ -49,8 +49,20 @@ const HotlineClassCanvasPanel = LegacyHotlineClassCanvasPanel as unknown as Comp
 export default function HotlineClassScreen() {
   const params = useLocalSearchParams<{ tutorId?: string; taskId?: string }>();
   const tutorId = params.tutorId ?? '';
-  const taskId = Number(params.taskId ?? 0);
+  // 이어 푸는 task가 있으면 그 id, 없으면 0 — 첫 풀이를 저장할 때 task를 만들어 채운다
+  const [taskId, setTaskId] = useState(Number(params.taskId ?? 0));
   const { countSolved } = useSolveFinished({ taskId: taskId || undefined, kind: 'hotline' });
+  // 같은 수업에 여러 번 들어올 수 있다: 이 수업(lesson_note)의 내 task가 이미 있으면 그 task를 이어서 쓴다(없으면 첫 풀이 저장 때 만든다)
+  useEffect(() => {
+    if (!tutorId || Number(params.taskId ?? 0)) return;
+    let alive = true;
+    void findLiveClassTaskId(hotlineSpec(tutorId)).then((id) => {
+      if (alive && id) setTaskId((cur) => cur || id);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [tutorId, params.taskId]);
   const { width, height } = useWindowDimensions();
   const isFocused = useIsFocused();
   const panelRef = useRef<PanelHandle | null>(null);
@@ -157,10 +169,11 @@ export default function HotlineClassScreen() {
 
   if (!tutorId) return <Redirect href="/" />;
 
-  // 캔버스를 열 때 task 생성이 늦었으면(taskId 0) 저장할 때 다시 확보한다
+  // task(study)는 캔버스에 들어올 때가 아니라 첫 풀이를 저장할 때 만든다. 그 뒤 저장과 solve_finished는 그 task를 쓴다
   const onSave = async (imageUrl: string, sourceType: string, sourceId: number) => {
     countSolved();
     const recordTaskId = (await ensureTaskId(taskId || undefined, hotlineSpec(tutorId))) ?? 0;
+    if (recordTaskId && recordTaskId !== taskId) setTaskId(recordTaskId);
     void createNewRecord({
       variables: { sourceType, sourceId: Number(sourceId), taskId: recordTaskId, fileName: imageUrl, photoUnitId: 0, tutorId },
     });

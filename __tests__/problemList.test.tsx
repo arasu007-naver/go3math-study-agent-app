@@ -73,6 +73,12 @@ describe('problemListFetchers (legacy goNoteTab sources)', () => {
     expect(set.problems).toEqual([{ sourceType: 'PREMISE', sourceId: 33, image: expect.stringMatching(/\/premise\/33\.png$/) }]);
   });
 
+  it.each(['units', 'problems'])('list task uses its stored %s', async (key) => {
+    const task = { id: 7, taskType: 'list', task: JSON.stringify({ [key]: [{ sourceType: 'UNIT', sourceId: 34 }] }) };
+    const set = await createProblemListFetchers(client(task)).fetchProblems({ kind: 'task', taskId: 7 });
+    expect(set.problems).toEqual([{ sourceType: 'UNIT', sourceId: 34, image: expect.stringMatching(/34\.png$/) }]);
+  });
+
   it('bookmarks source loads my bookmarks (MY_BOOKMARKS)', async () => {
     const bookmarks = [{ sourceType: 'UNIT', sourceId: 51, image: 'https://img/51.png', essayId: null, tries: [] }];
     const c = { query: jest.fn(async () => ({ data: { bookmarks } })) } as any;
@@ -94,6 +100,32 @@ describe('problemListFetchers (legacy goNoteTab sources)', () => {
       { sourceType: 'UNIT', sourceId: 41, image: expect.stringMatching(/41\.png$/) },
       { sourceType: 'MATH_ESSAY', sourceId: 7, image: expect.stringMatching(/7\.png$/) },
     ]);
+  });
+
+  it.each(['hotline', 'topic-live'])('%s task loads the units of the lesson_note whose id is its collectionId', async (taskType) => {
+    const c = { query: jest.fn(async () => ({ data: { taskOfId: { id: 20, taskType, collectionId: '77' } } })) } as any;
+    const units = JSON.stringify({ 'UNIT-41': { sourceType: 'UNIT', sourceId: 41 }, 'MATH_ESSAY-7': { sourceType: 'MATH_ESSAY', sourceId: '7' } });
+    const fetchLessonNote = jest.fn(async () => ({ id: 77, units, topicId: 15 }));
+    const set = await createProblemListFetchers(c, { fetchLessonNote }).fetchProblems({ kind: 'task', taskId: 20 });
+    expect(fetchLessonNote).toHaveBeenCalledWith(77, 'app-jwt');
+    expect(c.query).toHaveBeenCalledTimes(1);
+    expect(set.problems).toEqual([
+      { sourceType: 'UNIT', sourceId: 41, image: expect.stringMatching(/41\.png$/) },
+      { sourceType: 'MATH_ESSAY', sourceId: 7, image: expect.stringMatching(/7\.png$/) },
+    ]);
+  });
+
+  it('a live class task whose lesson_note has no units yet falls back to the units of its topic', async () => {
+    const c = {
+      query: jest.fn(async ({ variables }: any) =>
+        variables.taskId
+          ? { data: { taskOfId: { id: 21, taskType: 'topic-live', collectionId: 78 } } }
+          : { data: { getUnitsInTopic: JSON.stringify([{ sourceType: 'UNIT', sourceId: 5 }]) } },
+      ),
+    } as any;
+    const set = await createProblemListFetchers(c, { fetchLessonNote: async () => ({ id: 78, units: null, topicId: 15 }) }).fetchProblems({ kind: 'task', taskId: 21 });
+    expect(c.query).toHaveBeenLastCalledWith(expect.objectContaining({ variables: { topicId: 15 } }));
+    expect(set.problems.map((p) => p.sourceId)).toEqual([5]);
   });
 
   it('fails without a token or for an unknown task', async () => {

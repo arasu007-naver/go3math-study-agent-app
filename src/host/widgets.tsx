@@ -6,8 +6,7 @@ import { UPDATE_VISIT_COUNT } from '../api/graphql/mutations';
 import type { DiarySolveTarget } from '../kit/diary/DailyRecordsList';
 import type { AgentSession } from '../agent/session';
 import { createProblemListFetchers } from '../adapters/problemListFetchers';
-import { ensureTaskId, type TaskSpec } from '../adapters/ensureTask';
-import { getAgentSession } from '../agent/useAgentSession';
+import type { TaskSpec } from '../adapters/ensureTask';
 import { createTopicFetchers } from '../adapters/topicFetchers';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
 import { ExamSearchPanel, type ExamSearchMode } from '../kit/exam-search/ExamSearchPanel';
@@ -29,69 +28,39 @@ const studyNoteFetchers = createStudyNoteFetchers(apolloClient);
 
 export type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
 
-/** task 생성이 이보다 오래 걸리면 taskId 없이 캔버스를 연다(늦게 온 성공은 ensureTask 캐시에 남는다) */
-export const ENSURE_TASK_TIMEOUT_MS = 2500;
-
 /**
- * 캔버스를 열기 전 taskId를 확보한다(없고 spec이 있을 때만 task를 만든다). 실패·시간 초과여도 undefined로 캔버스는 연다.
- * 책갈피는 여기서 만들지 않는다 — 처음 풀이를 저장할 때 발급받는다(풀이 화면이 spec으로 ensureTaskId)
+ * 캔버스는 task 없이 연다. task(study)는 풀이를 처음 올릴 때 만든다 — 캔버스에는 유형(spec)만 넘기고,
+ * 저장하는 화면이 그 spec으로 ensureTaskId를 부른다(태블릿: 캔버스 스냅샷 저장, 폰: 풀이 사진 업로드).
+ * 열어만 보고 풀지 않은 공부는 학습 기록에 남지 않는다. taskId는 이미 있는 task를 이어 풀 때만 넘어온다.
  */
-function resolveTaskId(taskId: number | undefined, spec: TaskSpec | undefined): Promise<number | undefined> {
-  if (taskId || !spec || spec.taskType === 'bookmark') return Promise.resolve(taskId);
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<undefined>((resolve) => {
-    timer = setTimeout(() => {
-      getAgentSession().emit('client_error', {
-        where: 'study_note.ensure_task_timeout',
-        message: `createTask did not finish within ${ENSURE_TASK_TIMEOUT_MS}ms`,
-      });
-      resolve(undefined);
-    }, ENSURE_TASK_TIMEOUT_MS);
-  });
-  return Promise.race([ensureTaskId(taskId, spec), timeout]).finally(() => clearTimeout(timer));
-}
-
-/** open* 하나가 taskId를 기다리는 동안 들어온 다른 open*은 무시한다(연타로 캔버스가 두 번 열리지 않게) */
-let opening = false;
-async function openWithTask(taskId: number | undefined, spec: TaskSpec | undefined, navigate: (id: number | undefined) => void) {
-  if (opening) return;
-  opening = true;
-  try {
-    navigate(await resolveTaskId(taskId, spec));
-  } finally {
-    opening = false;
-  }
-}
 
 /** 문제 묶음 → 책갈피/목록 task에 넣는 문제 식별자 목록 */
 const unitsOf = (problems: { sourceType: string; sourceId: number }[]) => problems.map(({ sourceType, sourceId }) => ({ sourceType, sourceId }));
 
 /** 문제 목록의 연필 버튼: 문제 묶음을 넘기고 풀이 화면(/notebook)으로 */
 export function openNotebook(title: string | undefined, problems: SolveProblem[], index: number, taskId?: number, topicId?: number, spec?: TaskSpec) {
-  return openWithTask(taskId, spec, (id) => {
-    solveStore.dispatch({ title, problems, index, taskId: id, topicId, spec });
-    router.push('/notebook');
-  });
+  solveStore.dispatch({ title, problems, index, taskId, topicId, spec });
+  router.push('/notebook');
 }
 
-/** 실황 수업 dock의 주제 실황 수업: 주제 실황 캔버스 화면(/topic-live-class)으로 */
-export function openTopicLiveClass(topicId: number, taskId?: number, spec?: TaskSpec) {
-  return openWithTask(taskId, spec, (id) =>
-    router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(id ? { taskId: String(id) } : {}) } }),
-  );
+/** 실황 수업 dock의 주제 실황 수업: 주제 실황 캔버스 화면(/topic-live-class)으로. task는 그 화면이 첫 풀이 저장 때 topicLiveSpec으로 만든다 */
+export function openTopicLiveClass(topicId: number, taskId?: number) {
+  router.push({ pathname: '/topic-live-class', params: { topicId: String(topicId), ...(taskId ? { taskId: String(taskId) } : {}) } });
 }
 
-/** 실황 수업 dock의 선생님 수업: 선생님 수업 캔버스 화면(/hotline-class)으로 */
-export function openHotlineClass(tutorId: string, taskId?: number, spec?: TaskSpec) {
-  return openWithTask(taskId, spec, (id) =>
-    router.push({ pathname: '/hotline-class', params: { tutorId, ...(id ? { taskId: String(id) } : {}) } }),
-  );
+/** 실황 수업 dock의 선생님 수업: 선생님 수업 캔버스 화면(/hotline-class)으로. task는 그 화면이 첫 풀이 저장 때 hotlineSpec으로 만든다 */
+export function openHotlineClass(tutorId: string, taskId?: number) {
+  router.push({ pathname: '/hotline-class', params: { tutorId, ...(taskId ? { taskId: String(taskId) } : {}) } });
 }
 
 /** 실황 수업 dock·문제 목록이 공유하는 실황 수업 spec */
-export const topicLiveSpec = (topicId: number): TaskSpec => ({ taskType: 'topic', task: { topicId } });
+/** 주제의 문제를 혼자 풀 때(풀이 캔버스·폰 사진) */
+export const topicSpec = (topicId: number): TaskSpec => ({ taskType: 'topic', task: { topicId } });
+/** 주제 실황 수업 */
+export const topicLiveSpec = (topicId: number): TaskSpec => ({ taskType: 'topic-live', task: { topicId } });
 export const hotlineSpec = (tutorId: string): TaskSpec => ({ taskType: 'hotline', task: { tutorId } });
-export const listSpec = (problems: { sourceType: string; sourceId: number }[]): TaskSpec => ({ taskType: 'list', task: { problems: unitsOf(problems) } });
+/** 문제 목록 task: 책갈피처럼 문제 식별자를 task.units에 담는다(이어 풀 때 그 목록을 다시 연다) */
+export const listSpec = (problems: { sourceType: string; sourceId: number }[]): TaskSpec => ({ taskType: 'list', task: { units: unitsOf(problems) } });
 
 function TopicListWidget({ props, session }: WidgetProps) {
   return (
@@ -121,14 +90,14 @@ function ProblemPreviewWidget({ props, session }: WidgetProps) {
           unitIdx,
           taskId,
           topicId,
-          topicLiveSpec(topicId),
+          topicSpec(topicId),
         )
       }
     />
   );
 }
 
-/** 문제 목록 출처별 [taskId, topicId, spec]: task는 이미 taskId가 있고, 나머지는 없으면 만든다 */
+/** 문제 목록 출처별 [taskId, topicId, spec]: task는 이미 taskId가 있고, 나머지는 첫 풀이 저장 때 spec으로 만든다 */
 export function notebookArgs(source: ProblemSource, problems: { sourceType: string; sourceId: number }[]): [number | undefined, undefined, TaskSpec | undefined] {
   switch (source.kind) {
     case 'task':
@@ -192,9 +161,9 @@ function ProblemListWidget({ props, session }: WidgetProps) {
       onSolve={({ index, set }) =>
         // 실황 수업(주제·선생님)은 문제 하나가 아니라 선생님 진행을 따라가는 실황 캔버스로 연다
         void (source.kind === 'topic_live'
-          ? openTopicLiveClass(source.topicId, undefined, topicLiveSpec(source.topicId))
+          ? openTopicLiveClass(source.topicId)
           : source.kind === 'hotline'
-            ? openHotlineClass(source.tutorId, undefined, hotlineSpec(source.tutorId))
+            ? openHotlineClass(source.tutorId)
             : openNotebook(set.title, set.problems, index, ...notebookArgs(source, set.problems)))
       }
     />

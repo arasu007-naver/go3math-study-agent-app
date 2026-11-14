@@ -9,7 +9,7 @@ import { createTimelineFetchers } from '../../adapters/timelineFetchers';
 import { logout } from '../../auth/logout';
 import { useMyInfo } from '../../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../../config/exam.constants';
-import { hotlineSpec, openHotlineClass, openTopicLiveClass, solveDiaryProblem, topicFetchers, topicLiveSpec } from '../../host/widgets';
+import { openHotlineClass, openTopicLiveClass, solveDiaryProblem, topicFetchers } from '../../host/widgets';
 import { DiaryPanel } from '../../kit/diary/DiaryPanel';
 import { LiveClassListPanel } from '../../kit/live-class/LiveClassListPanel';
 import { MessageBoxPanel } from '../../kit/profile/MessageBoxPanel';
@@ -140,8 +140,8 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
               fetchers={liveClassFetchers}
               onOpen={(source) => {
                 session.showLocalComponent('problem_list', { source });
-                if (source.kind === 'topic_live') void openTopicLiveClass(source.topicId, undefined, topicLiveSpec(source.topicId));
-                else if (source.kind === 'hotline') void openHotlineClass(source.tutorId, undefined, hotlineSpec(source.tutorId));
+                if (source.kind === 'topic_live') void openTopicLiveClass(source.topicId);
+                else if (source.kind === 'hotline') void openHotlineClass(source.tutorId);
               }}
             />
           )}

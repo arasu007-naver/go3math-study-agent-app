@@ -39,7 +39,7 @@ export interface TimelineFetchers {
 }
 
 export const TASKS_PAGE_SIZE = 36; // 기존 TASKS_PAGE_SIZE
-const CARD_TYPES = ['selection', 'collection', 'topic', 'bookmark'];
+const CARD_TYPES = ['selection', 'collection', 'topic', 'topic-live', 'hotline', 'bookmark'];
 
 const MAJORS: Record<string, string> = {
   A: '문과', '0': '문과', B: '이과', '1': '이과', CALCULUS: '미적분', STATISTICS: '확률과 통계', GEOMETRY: '기하학',
@@ -72,6 +72,11 @@ export function describeTask(t: TimelineTask): { title: string; subtitle: string
       return { title: `📝 ${t.title ?? ''}`, subtitle: `${t.description ?? ''}${visits}`, lines: [] };
     case 'topic':
       return { title: `📝 ${t.topicTitle ?? ''}`, subtitle: `${t.topicDescription ?? ''}${visits}`, lines: [] };
+    // 실황 수업 기록: collectionId는 lesson_note.id다(주제 id가 아니다) — 서버가 collectionId로 붙여 주는 topicTitle은 쓰지 않는다
+    case 'topic-live':
+      return { title: '📝 주제 실황 수업', subtitle: visits.trim(), lines: [] };
+    case 'hotline':
+      return { title: '📝 선생님 실황 수업', subtitle: visits.trim(), lines: [] };
     default: {
       const b = parseTask(t.task);
       const count = `${(b.units ?? []).length}문항${visits}`;
