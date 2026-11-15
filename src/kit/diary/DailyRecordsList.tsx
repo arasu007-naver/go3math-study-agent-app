@@ -35,7 +35,7 @@ export interface DailyRecordsFetchers {
   addBookmark(sourceType: string, sourceId: number): Promise<void>;
 }
 
-function Zoomable({ uri, width }: { uri: string; width: number }) {
+export function Zoomable({ uri, width }: { uri: string; width: number }) {
   // 이미지를 읽지 못하면(빈 파일·없는 파일) 빈자리 대신 알린다
   const [failed, setFailed] = useState(false);
   if (failed) return <Text style={styles.message}>이미지를 불러오지 못했어요.</Text>;
