@@ -162,12 +162,13 @@ type StudyNoteUpload  = { id: number; imageUrl: string; createdAt: string /* KST
 |---|---|---|
 | 풀이 업로드 | `user_action_log` `SOLUTION_SAVE` | 새 `taskId` 칸 |
 | 퀴즈 답 | `user_action_log` `LIVE_CLASS_QUIZ_ANSWER` | 새 `taskId` 칸(앱이 보냄, §7.1) |
-| 선생님이 보낸 퀴즈 | `quiz_log`(새 표) | 그 학생이 받은 퀴즈: 학습장 `activities.quizIds` ∪ 그 task 퀴즈 답의 quizId. `quiz_log`에 수업 회차(`liveClassId`)를 두면 회차·시간대로도 찾는다 |
+| 선생님이 보낸 퀴즈 | `quiz_log`(새 표, api-v2 `docs/sql/2026-11-15-quiz_log.sql`) | `quiz_log.lessonNoteId = task.collectionId`. 실황 수업은 시작할 때 `lesson_note` 한 행을 만들고, 학생의 실황 수업 task(`topic-live`·`hotline`)는 그 id를 `collectionId`로 갖는다 |
 
 서버 일(사용자 담당)
 - `user_action_log`에 `taskId INT NULL` + 인덱스 `(userId, taskId, committedAt)`. `extraStatement`는 풀이 저장에서 이미 `{sourceType}:{sourceId}`로 쓰므로 task 키로 겸하지 않는다.
 - 풀이 저장·퀴즈 답을 쓸 때 taskId를 채운다. 실황 수업 참여는 task가 생기기 전이라 비어 있고 '돌아보기'에 들지 않는다.
-- `quiz_log`: 선생님이 실황 수업 중 보낸 퀴즈(퀴즈 id, 선생님, 수업 종류·회차, 문제, 내용, 보낸 시각).
+- `quiz_log`: 선생님이 실황 수업 중 보낸 퀴즈(quizId, 선생님, 수업 종류, `lessonNoteId`, 주제·회차, 문제, 보낸 시각). 퀴즈 본문은 `unit_quizzes`에서 quizId로 잇는다. `addTopicLiveClassQuiz`·`addHotlineClassQuiz`가 보낼 때 한 행씩 쓰며, 그 수업의 `lessonNoteId`가 필요하다.
+- `user_action_log.taskId`: api-v2 `docs/sql/2026-11-15-user_action_log_taskId.sql`.
 - `GET /api/study-notes/{taskId}/activities` 응답 항목: `{ id, type, createdAt, imageUrl?, quizId?, content? }`, `type`은 `SOLUTION_UPLOAD` | `QUIZ_ANSWER` | `QUIZ_SENT`.
 
 앱
