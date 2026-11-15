@@ -18,6 +18,7 @@ import { ProfileActions } from '../../kit/profile/ProfileActions';
 import { ResearchPanel } from '../../kit/research/ResearchPanel';
 import { TimelinePanel, noteSheetProps } from '../../kit/timeline/TimelinePanel';
 import { apolloClient } from '../../state/bootstrap';
+import { useStudyDataVersion } from '../../state/studyData';
 import { storage } from '../../storage';
 import { layout, motion } from '../../ui/theme';
 import { Toast } from '../../ui/toast/Toast';
@@ -53,6 +54,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
 
   const [dock, setDock] = useState<Panel | null>('timeline');
   const myInfo = useMyInfo();
+  const studyVersion = useStudyDataVersion();
   const [toastFor, setToastFor] = useState<string | null>(null);
   const [unread, setUnread] = useState(false);
   const seen = useRef<string | null>(null);
@@ -114,6 +116,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
           {dock === 'timeline' && (
             <TimelinePanel
               fetchers={timelineFetchers}
+              refreshKey={studyVersion}
               onSelectTask={(t) => {
                 setDock(null);
                 session.emit('task_selected', {

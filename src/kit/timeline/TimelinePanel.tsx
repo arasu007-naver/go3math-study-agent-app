@@ -148,12 +148,15 @@ export function TimelinePanel({
   onSelectTask,
   onOpenNote,
   pageSize = TASKS_PAGE_SIZE,
+  refreshKey = 0,
 }: {
   fetchers: TimelineFetchers;
   onSelectTask(task: TimelineTask): void;
   /** 주면 카드에 학습장 요약 줄과 버튼을 보인다 */
   onOpenNote?(task: TimelineTask): void;
   pageSize?: number;
+  /** 바뀌면 첫 페이지를 다시 조회한다(보이는 카드는 그대로 두고 조용히 바꾼다) */
+  refreshKey?: number;
 }) {
   const [tasks, setTasks] = useState<TimelineTask[] | null>(null);
   const [page, setPage] = useState(0);
@@ -188,6 +191,13 @@ export function TimelinePanel({
   useEffect(() => {
     void load(0);
   }, [load]);
+
+  const lastKey = useRef(refreshKey);
+  useEffect(() => {
+    if (lastKey.current === refreshKey) return;
+    lastKey.current = refreshKey;
+    void load(0);
+  }, [refreshKey, load]);
 
   if (error && !tasks) return <Text style={styles.empty}>학습 기록을 불러오지 못했어요. ({error})</Text>;
   if (!tasks) return <SkeletonCards button />;

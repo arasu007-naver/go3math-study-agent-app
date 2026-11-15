@@ -41,6 +41,18 @@ describe('TimelinePanel', () => {
     expect(onSelectTask).toHaveBeenCalledWith(selection);
   });
 
+  it('refetches page 0 when refreshKey changes, keeping the cards on screen', async () => {
+    const fetchTasks = jest.fn(async () => [selection]);
+    const f = fetchers(fetchTasks);
+    const { rerender } = await render(<TimelinePanel fetchers={f} onSelectTask={jest.fn()} refreshKey={0} />);
+    await waitFor(() => expect(screen.getByText('기출 검색')).toBeTruthy());
+    expect(fetchTasks).toHaveBeenCalledTimes(1);
+    await rerender(<TimelinePanel fetchers={f} onSelectTask={jest.fn()} refreshKey={1} />);
+    expect(screen.getByText('기출 검색')).toBeTruthy();
+    await waitFor(() => expect(fetchTasks).toHaveBeenCalledTimes(2));
+    expect(fetchTasks).toHaveBeenLastCalledWith({ page: 0, pageSize: 36 });
+  });
+
   it('shows the empty placeholder', async () => {
     render(<TimelinePanel fetchers={fetchers(async () => [])} onSelectTask={jest.fn()} />);
     await waitFor(() => expect(screen.getByText('기출 검색이나 주제별 문제 모음 등을 조회한 기록이 없습니다.')).toBeTruthy());
