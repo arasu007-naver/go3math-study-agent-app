@@ -160,7 +160,7 @@ type StudyNoteUpload  = { id: number; imageUrl: string; createdAt: string /* KST
 | 기록 | 원천 | task에 잇기 |
 |---|---|---|
 | 풀이 업로드 | `user_unit_history`(지금과 같음 — 옛 업로드도 보이게. `SOLUTION_SAVE` 로그는 아직 쓰지 않는다) | `taskId`가 이미 있다 |
-| 퀴즈 답 | `user_action_log` `LIVE_CLASS_QUIZ_ANSWER` | 새 `taskId` 칸(앱이 보냄, §7.1) |
+| 퀴즈 답 | `quiz_log` `eventType = 'ANSWER'` 행(api-v2 `docs/sql/2026-11-15-quiz_log_answer.sql`) — 답안 모달 캔버스 `toDataURL`을 스토리지에 올린 `answerUrl`, 학생 `userId`·`taskId`, `responseId`. `user_action_log` `LIVE_CLASS_QUIZ_ANSWER`는 Study Log 피드용으로만 쓴다 | `taskId`(앱이 보냄, §7.1) |
 | 선생님이 보낸 퀴즈 | `quiz_log`(새 표, api-v2 `docs/sql/2026-11-15-quiz_log.sql`) | `quiz_log.lessonNoteId = task.collectionId`. 실황 수업은 시작할 때 `lesson_note` 한 행을 만들고, 학생의 실황 수업 task(`topic-live`·`hotline`)는 그 id를 `collectionId`로 갖는다 |
 
 서버 일(사용자 담당)
