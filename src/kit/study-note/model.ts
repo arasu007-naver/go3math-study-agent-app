@@ -27,6 +27,8 @@ export type StudyNote = {
   achievementRate?: number | null;
   noteType?: string | null;
   tutorDescription?: string | null;
+  /** 캔버스 활동 기록(activity.ts의 Activities)을 JSON 문자열로 만든 것 */
+  activities?: string | null;
 };
 
 export type StudyNoteInput = {
@@ -34,6 +36,8 @@ export type StudyNoteInput = {
   difficulties?: string;
   expectations?: string;
   achievementRate?: number;
+  /** Activities JSON 문자열. 기록이 있을 때만 보낸다 */
+  activities?: string;
 };
 
 export type FormState = {

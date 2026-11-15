@@ -77,8 +77,11 @@ export type TaskCreateDeps = {
   findExistingTask(a: { taskType: string; collectionId: number }): Promise<number | undefined>;
   /** 가장 최근의 내 bookmark task가 이 지문(같은 책갈피 목록)이면 그 id(만들지 않는다). 아니면 undefined */
   findBookmarkTask(fingerprint: string): Promise<number | undefined>;
-  /** 서버 findMyTask: 내 task를 찾거나 없으면 만들어 id를 준다(실패는 -1) */
-  findMyTask(variables: { taskType: string; targetId: number }): Promise<number>;
+  /**
+   * 서버 findMyTask(graphql-api-server checkUserTask): 내 task를 찾으면 방문 수를 올리고 그 id를, 없으면 만들어 id를 준다(실패는 -1).
+   * topic·hotline·topic-live는 targetId(collectionId)로, selection·bookmark는 taskString(task 컬럼과 글자 그대로 같아야 한다)으로 찾는다
+   */
+  findMyTask(variables: { taskType: string; targetId?: number; taskString?: string }): Promise<number>;
 };
 
 /**
@@ -110,18 +113,26 @@ export function createFindLiveClassTask(deps: TaskCreateDeps, report: (where: st
   };
 }
 
+/** findMyTask 결과가 양수 id일 때만 돌려준다(-1 등은 실패) */
+async function foundOrCreated(deps: TaskCreateDeps, variables: Parameters<TaskCreateDeps['findMyTask']>[0]): Promise<number> {
+  const id = await deps.findMyTask(variables);
+  if (!(id > 0)) throw new Error(`findMyTask(${variables.taskType}, ${variables.targetId ?? variables.taskString}) returned ${id}`);
+  return id;
+}
+
 export function createTaskOf(deps: TaskCreateDeps): (spec: TaskSpec) => Promise<number> {
   return async (spec) => {
     switch (spec.taskType) {
+      // topic·selection은 서버 createTask가 늘 새 행을 넣으므로(앱을 다시 켜면 같은 주제·검색 카드가 늘어난다) findMyTask로 내 task를 찾아 이어 쓴다
       case 'topic':
-        return deps.createTask({ taskType: spec.taskType, collectionId: Number(spec.task.topicId) });
+        return foundOrCreated(deps, { taskType: spec.taskType, targetId: Number(spec.task.topicId) });
+      case 'selection':
+        return foundOrCreated(deps, { taskType: spec.taskType, taskString: JSON.stringify(spec.task) });
       case 'hotline': {
         const lessonNoteId = await liveLessonNoteId(deps, spec);
         if (!lessonNoteId) throw new Error('hotline lesson_note not found');
         // 서버 findMyTask가 (나, lesson_note)로 이미 있는 task를 찾아 주므로 같은 수업에 task가 두 번 생기지 않는다
-        const id = await deps.findMyTask({ taskType: spec.taskType, targetId: lessonNoteId });
-        if (!(id > 0)) throw new Error(`findMyTask(hotline, ${lessonNoteId}) returned ${id}`);
-        return id;
+        return foundOrCreated(deps, { taskType: spec.taskType, targetId: lessonNoteId });
       }
       case 'topic-live': {
         const lessonNoteId = await liveLessonNoteId(deps, spec);

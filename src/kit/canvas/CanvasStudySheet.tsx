@@ -2,6 +2,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useState, type ReactNode, type RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Chip } from '../../ui/Chip';
+import { canvasActivityStore } from '../../state/canvasActivity';
 import { pickedConceptsStore } from '../../state/concepts';
 import { SheetHandle } from '../../ui/SheetHandle';
 import { space } from '../../ui/theme';
@@ -51,7 +52,15 @@ export function CanvasStudySheet({
           <Chip raised label={answerLabel} accessibilityRole="tab" selected={tab === 'answer'} onPress={() => setTab('answer')} />
         </View>
         <View testID="study-tab-concept" style={[styles.body, tab !== 'concept' && styles.hidden]}>
-          <ConceptLookupPanel picked={pickedConcepts} onPickedChange={pickedConceptsStore.dispatch} />
+          <ConceptLookupPanel
+            picked={pickedConcepts}
+            onPickedChange={(next) => {
+              // 이번에 새로 고른 것만 학습장 활동 기록에 남긴다 — 검색 dock에서 골라 둔 것은 이 캔버스의 기록이 아니다
+              const added = next.filter((c) => !pickedConcepts.some((p) => p.id === c.id));
+              if (added.length) canvasActivityStore.dispatch({ type: 'concepts', concepts: added });
+              pickedConceptsStore.dispatch(next);
+            }}
+          />
         </View>
         <View testID="study-tab-answer" style={[styles.body, tab !== 'answer' && styles.hidden]}>
           {answer}

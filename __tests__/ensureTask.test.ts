@@ -82,10 +82,25 @@ describe('createTaskOf', () => {
       ...over,
     }) as jest.Mocked<TaskCreateDeps>;
 
-  it('topic: collectionId is the topic id', async () => {
+  it('topic: finds or creates my task for the topic id (same topic reuses its task after an app restart)', async () => {
     const d = deps();
-    expect(await createTaskOf(d)({ taskType: 'topic', task: { topicId: 3 } })).toBe(50);
-    expect(d.createTask).toHaveBeenCalledWith({ taskType: 'topic', collectionId: 3 });
+    expect(await createTaskOf(d)({ taskType: 'topic', task: { topicId: 3 } })).toBe(60);
+    expect(d.findMyTask).toHaveBeenCalledWith({ taskType: 'topic', targetId: 3 });
+    expect(d.createTask).not.toHaveBeenCalled();
+  });
+
+  it('topic / selection: a negative findMyTask result is a failure, not a task id', async () => {
+    const d = deps({ findMyTask: jest.fn(async () => -1) });
+    await expect(createTaskOf(d)({ taskType: 'topic', task: { topicId: 3 } })).rejects.toThrow('findMyTask');
+    await expect(createTaskOf(d)({ taskType: 'selection', task: { major: 'A' } })).rejects.toThrow('findMyTask');
+    expect(d.createTask).not.toHaveBeenCalled();
+  });
+
+  it('list: the server cannot find list tasks, so it still creates one', async () => {
+    const d = deps();
+    expect(await createTaskOf(d)({ taskType: 'list', task: { units: [] } })).toBe(50);
+    expect(d.createTask).toHaveBeenCalledWith({ taskType: 'list', task: '{"units":[]}' });
+    expect(d.findMyTask).not.toHaveBeenCalled();
   });
 
   it('topic-live: collectionId is the lesson_note id of the running class', async () => {
@@ -111,10 +126,11 @@ describe('createTaskOf', () => {
     expect(d.findMyTask).not.toHaveBeenCalled();
   });
 
-  it('selection keeps its content in task JSON', async () => {
+  it('selection: finds or creates my task by its task JSON (same search reuses its task)', async () => {
     const d = deps();
-    await createTaskOf(d)({ taskType: 'selection', task: { major: 'A' } });
-    expect(d.createTask).toHaveBeenCalledWith({ taskType: 'selection', task: '{"major":"A"}' });
+    expect(await createTaskOf(d)({ taskType: 'selection', task: { major: 'A' } })).toBe(60);
+    expect(d.findMyTask).toHaveBeenCalledWith({ taskType: 'selection', taskString: '{"major":"A"}' });
+    expect(d.createTask).not.toHaveBeenCalled();
   });
 
   it('topic-live: reuses my task for the same lesson_note instead of creating another', async () => {

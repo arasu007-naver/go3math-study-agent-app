@@ -14,9 +14,15 @@ jest.mock('@gorhom/bottom-sheet', () => ({
   BottomSheetView: ({ children }: any) => children,
 }));
 
+const mockPanelProps: any[] = [];
 jest.mock('../src/kit/concepts/ConceptLookupPanel', () => {
   const { Text } = require('react-native');
-  return { ConceptLookupPanel: () => <Text>concept-panel</Text> };
+  return {
+    ConceptLookupPanel: (p: any) => {
+      mockPanelProps.push(p);
+      return <Text>concept-panel</Text>;
+    },
+  };
 });
 
 jest.mock('react-native-safe-area-context', () => {
@@ -25,6 +31,8 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 import { CanvasStudySheet } from '../src/kit/canvas/CanvasStudySheet';
+import { canvasActivityStore } from '../src/state/canvasActivity';
+import { pickedConceptsStore } from '../src/state/concepts';
 
 let mountCount = 0;
 function Answer() {
@@ -110,5 +118,23 @@ describe('CanvasStudySheet', () => {
   it('labels the answer tab with answerLabel', async () => {
     await render(<CanvasStudySheet sheetRef={createRef()} answerLabel="답안 예시" answer={null} />);
     expect(screen.getByRole('tab', { name: '답안 예시' })).toBeTruthy();
+  });
+
+  // 검색 dock에서 미리 골라 둔 개념은 이번 캔버스 기록이 아니다
+  it('records only concepts newly picked in this sheet', async () => {
+    const one = { id: 1, rawTitle: '일반항' } as any;
+    const two = { id: 2, rawTitle: '점화식' } as any;
+    pickedConceptsStore.dispatch([one]);
+    canvasActivityStore.dispatch({ type: 'reset' });
+    await render(ui());
+    const panel = () => mockPanelProps[mockPanelProps.length - 1];
+    expect(panel().picked).toEqual([one]);
+    await act(() => panel().onPickedChange([one, two]));
+    expect(canvasActivityStore.getState().concepts).toEqual([{ id: 2, title: '점화식' }]);
+    expect(pickedConceptsStore.getState()).toEqual([one, two]);
+    // 고른 것을 빼도 기록은 남는다
+    await act(() => panel().onPickedChange([one]));
+    expect(canvasActivityStore.getState().concepts).toEqual([{ id: 2, title: '점화식' }]);
+    await act(() => pickedConceptsStore.dispatch([]));
   });
 });
