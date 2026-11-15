@@ -19,8 +19,9 @@ import { createProfileEditors } from '../adapters/profileEditors';
 import { createRecordFetchers } from '../adapters/recordFetchers';
 import { createSolutionPhotoUploader, type SolutionTarget } from '../adapters/solutionPhoto';
 import { createTimelineFetchers } from '../adapters/timelineFetchers';
-import { ChatTimeline } from '../agent/tablet/ChatTimeline';
+import { StudyLogPanel } from '../agent/StudyLogPanel';
 import { useAgentSession } from '../agent/useAgentSession';
+import { useStudyDataVersion } from '../state/studyData';
 import { logout } from '../auth/logout';
 import { useMyInfo } from '../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
@@ -81,12 +82,27 @@ function TabPage({ children }: { children: ReactNode }) {
   );
 }
 
+/** 학습 데이터가 바뀌거나(studyDataVersion) 탭이 다시 보일 때마다 커지는 값 — 둘 다 늘기만 해서 합도 늘기만 한다 */
+function useTabRefreshKey(): number {
+  const version = useStudyDataVersion();
+  const focused = useIsFocused();
+  const [shown, setShown] = useState(0);
+  const was = useRef(focused);
+  useEffect(() => {
+    if (focused && !was.current) setShown((n) => n + 1);
+    was.current = focused;
+  }, [focused]);
+  return version + shown;
+}
+
 export function TimelineTabScreen() {
   const { session } = useAgentSession();
+  const refreshKey = useTabRefreshKey();
   return (
     <TabPage>
       <TimelinePanel
         fetchers={timelineFetchers}
+        refreshKey={refreshKey}
         onSelectTask={(t) => {
           session.emit('task_selected', {
             taskId: Number(t.id),
@@ -177,9 +193,15 @@ export function ChatTabScreen() {
     else if (stage.componentId === 'problem_preview') openTopic('chat', Number(stage.props.topicId));
   }, [stage, focused]);
 
+  const refreshKey = useTabRefreshKey();
+
   return (
     <TabPage>
-      <ChatTimeline state={state} session={session} />
+      <StudyLogPanel
+        state={state}
+        session={session}
+        refreshKey={refreshKey}
+      />
     </TabPage>
   );
 }

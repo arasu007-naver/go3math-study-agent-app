@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { getAgentSession } from '../agent/useAgentSession';
 import { appendActivity } from '../kit/study-note/activity';
 import { canvasActivityStore } from '../state/canvasActivity';
+import { bumpStudyData } from '../state/studyData';
 import { storage } from '../storage';
 
 type Args = { taskId?: number; kind: 'self' | 'topic_live' | 'hotline' };
@@ -37,6 +38,7 @@ export function useSolveFinished(a: Args): { countSolved(): void } {
         owner = null;
       }
       getAgentSession().emit('solve_finished', { ...(taskId ? { taskId } : {}), kind, solvedCount: count.current });
+      bumpStudyData();
     };
   }, []);
   const countSolved = useCallback(() => {

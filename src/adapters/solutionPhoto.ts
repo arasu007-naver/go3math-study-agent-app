@@ -6,6 +6,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import { CREATE_RECORD } from '../api/graphql/mutations';
 import { requestStorageUrl } from '../api/rest';
 import { authStore } from '../state/auth';
+import { bumpStudyData } from '../state/studyData';
 
 /** resolveTaskId: taskId가 없을 때, 스캔·업로드가 끝난 뒤 task를 확보한다(스캔을 닫으면 부르지 않는다) */
 export type SolutionTarget = { sourceType: string; sourceId: number; taskId?: number; resolveTaskId?(): Promise<number | undefined> };
@@ -32,6 +33,7 @@ export function createSolutionPhotoUploader(client: ApolloClient): SolutionPhoto
       mutation: CREATE_RECORD,
       variables: { sourceType, sourceId, taskId: taskId ?? (await resolveTaskId?.()) ?? 0, fileName: signedUrl.split('?')[0], photoUnitId: 0 },
     });
+    bumpStudyData();
     return true;
   };
 }

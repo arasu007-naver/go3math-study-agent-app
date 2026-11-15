@@ -20,6 +20,7 @@ import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
 import { UNITIMAGE } from '../config/api.constants';
 import { apolloClient } from '../state/bootstrap';
 import { solveStore, type SolveProblem } from '../state/solve';
+import { bumpStudyData } from '../state/studyData';
 import { storage } from '../storage';
 import { isCanvasOpen } from './useSolveFinished';
 
@@ -250,6 +251,7 @@ function StudyNoteWidget({ props, session, dismissRef }: SheetWidgetProps) {
     if (forTask !== taskId || finishedFor.current === forTask) return;
     finishedFor.current = forTask;
     session.emit(result === 'saved' ? 'study_note_saved' : 'study_note_dismissed', { taskId: forTask });
+    if (result === 'saved') bumpStudyData();
     session.closeSheet();
   };
   dismissRef.current = () => finish(taskId, 'dismissed');

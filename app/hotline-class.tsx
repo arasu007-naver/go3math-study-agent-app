@@ -23,6 +23,7 @@ import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizRespo
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
 import { ensureTaskId, findLiveClassTaskId } from '@/src/adapters/ensureTask';
+import { bumpStudyData } from '@/src/state/studyData';
 import { fetchConcept } from '@/src/adapters/problemListFetchers';
 import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { hotlineSpec } from '@/src/host/widgets';
@@ -245,7 +246,16 @@ export default function HotlineClassScreen() {
         quiz={liveQuiz}
         appToken={authStore.getState().appToken ?? ''}
         onClose={() => setLiveQuiz(null)}
-        onSubmitted={() => showToast('답안을 보냈습니다.')}
+        resolveTaskId={async () => {
+          // 풀이 올리기와 같은 task — 아직 없으면 지금 만들고 이후 풀이 올리기도 그 task를 쓴다
+          const id = await ensureTaskId(taskId || undefined, hotlineSpec(tutorId));
+          if (id && id !== taskId) setTaskId(id);
+          return id;
+        }}
+        onSubmitted={() => {
+          bumpStudyData();
+          showToast('답안을 보냈습니다.');
+        }}
         onError={(msg) => showToast(msg)}
       />
       <CanvasStudySheet

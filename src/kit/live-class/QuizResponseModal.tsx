@@ -12,6 +12,7 @@ import { WebView } from 'react-native-webview';
 import { useMutation } from '@apollo/client/react';
 import MathJaxWrapper from '../math/MathJaxWrapper';
 import { ADD_LIVE_CLASS_QUIZ_RESPONSE } from '../../api/graphql/mutations';
+import { apiV3, isUnavailable } from '../../api/rest/apiV3';
 import { uploadQuizAnswerToStorage } from '../canvas/note-canvas/canvas-utils';
 import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
@@ -31,7 +32,10 @@ interface QuizResponseModalProps {
     onClose: () => void;
     onSubmitted?: () => void;
     onError?: (message: string) => void;
+    /** 답을 보내기 직전에 부른다 — 풀이 올리기와 같은 task id(없으면 만든다). 실패·undefined면 task id 없이 보낸다 */
+    resolveTaskId?: () => Promise<number | undefined>;
 }
+
 
 const DRAWING_CANVAS_HTML = `
 <!DOCTYPE html>
@@ -156,6 +160,7 @@ export default function QuizResponseModal({
     onClose,
     onSubmitted,
     onError,
+    resolveTaskId,
 }: QuizResponseModalProps) {
     const webViewRef = useRef<WebView>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -164,6 +169,26 @@ export default function QuizResponseModal({
     useEffect(() => {
         setIsSubmitting(false);
     }, [quiz?.quizId]);
+
+    /**
+     * Java API(api-v3) POST /api/live-class-quizzes/{quizId}/responses — 답안과 Study Log(task id 포함)를 남긴다.
+     * Java에 닿지 못하면(배포 전 404, 401·403, 5xx, 네트워크) 기존 GraphQL로 task id 없이 보낸다. 400 같은 요청 오류는 그대로 알린다.
+     */
+    const sendAnswer = async (quizId: number, answerUrl: string, taskId: number | undefined) => {
+        if (appToken) {
+            try {
+                await apiV3(`/api/live-class-quizzes/${quizId}/responses`, appToken, {
+                    method: 'POST',
+                    body: { answerUrl, ...(taskId ? { taskId } : {}) },
+                });
+                return;
+            } catch (e) {
+                if (!isUnavailable(e)) throw e;
+                console.warn('[quiz] Java POST live-class-quizzes 실패, GraphQL로 보냄:', String((e as Error)?.message ?? e));
+            }
+        }
+        await addQuizResponse({ variables: { quizId, answerUrl } });
+    };
 
     if (!quiz) return null;
 
@@ -199,12 +224,9 @@ export default function QuizResponseModal({
                         throw new Error('답안 이미지 업로드에 실패했습니다.');
                     }
 
-                    await addQuizResponse({
-                        variables: {
-                            quizId: Number(quiz.quizId),
-                            answerUrl,
-                        },
-                    });
+                    const quizId = Number(quiz.quizId);
+                    const taskId = await resolveTaskId?.().catch(() => undefined);
+                    await sendAnswer(quizId, answerUrl, taskId);
 
                     onSubmitted?.();
                     onClose();
