@@ -23,9 +23,9 @@ import { storage } from '../../storage';
 import { layout, motion } from '../../ui/theme';
 import { Toast } from '../../ui/toast/Toast';
 import { DockWrapper } from '../DockWrapper';
+import { StudyLogPanel, initialTab, type StudyLogTab } from '../StudyLogPanel';
 import type { AgentSession, SessionSnapshot } from '../session';
 import { ChatRail, RAIL_W } from './ChatRail';
-import { ChatTimeline } from './ChatTimeline';
 import type { DockKind } from './DrawerFooter';
 
 // 태블릿 모드(§4.5, §4.6): 왼쪽에 끌어서 옮길 수 있는 세로 pill 툴바가 늘 떠 있고, 항목을 누르면 툴바 오른쪽에 dock이 열린다(Stage는 그대로).
@@ -57,6 +57,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   const studyVersion = useStudyDataVersion();
   const [toastFor, setToastFor] = useState<string | null>(null);
   const [unread, setUnread] = useState(false);
+  const [chatTab, setChatTab] = useState<StudyLogTab>('notes');
   const seen = useRef<string | null>(null);
 
   const stageId = state.stage?.componentId;
@@ -68,19 +69,28 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   useEffect(() => {
     if (!ins || seen.current === ins.messageId) return;
     seen.current = ins.messageId;
-    if (dock === 'chat') return;
+    // 메시지 탭이 보이면 그대로 보인다. 학습장 탭을 보는 중이면 탭을 바꾸지 않고(보던 카드를 잃지 않게) toast + 메시지 탭 점
+    if (dock === 'chat' && chatTab === 'messages') return;
+    if (dock === 'chat') {
+      setToastFor(ins.messageId);
+      setUnread(true);
+      return;
+    }
     if (dock !== null || (!ins.requiresResponse && (ins.source === 'tutor' || problemStage))) {
       setToastFor(ins.messageId);
       setUnread(true);
     } else {
+      setChatTab('messages');
       setDock('chat');
     }
-  }, [ins, problemStage, dock]);
+  }, [ins, problemStage, dock, chatTab]);
 
-  // instruction이 사라지면 채팅 dock을 닫는다
+  // instruction이 사라지면 채팅 dock을 닫는다 — 학습장 탭을 보고 있으면 닫지 않는다
   const prevIns = useRef(ins);
+  const chatTabRef = useRef(chatTab);
+  chatTabRef.current = chatTab;
   useEffect(() => {
-    if (prevIns.current && !ins) setDock((d) => (d === 'chat' ? null : d));
+    if (prevIns.current && !ins && chatTabRef.current === 'messages') setDock((d) => (d === 'chat' ? null : d));
     prevIns.current = ins;
   }, [ins]);
 
@@ -93,9 +103,16 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   }, [stage]);
 
   const openChat = () => {
+    const tab = initialTab(ins, unread);
     setToastFor(null);
-    setUnread(false);
+    if (tab === 'messages') setUnread(false);
+    setChatTab(tab);
     setDock('chat');
+  };
+
+  const changeChatTab = (tab: StudyLogTab) => {
+    if (tab === 'messages') setUnread(false);
+    setChatTab(tab);
   };
 
   const toggleDock = (kind: Panel) => {
@@ -112,7 +129,16 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
 
       {dock && (
         <DockWrapper title={DOCK_TITLES[dock]} left={layout.gutter + RAIL_W + layout.gutter} onClose={() => setDock(null)}>
-          {dock === 'chat' && <ChatTimeline state={state} session={session} />}
+          {dock === 'chat' && (
+            <StudyLogPanel
+              tab={chatTab}
+              onTab={changeChatTab}
+              messagesUnread={unread}
+              state={state}
+              session={session}
+              refreshKey={studyVersion}
+            />
+          )}
           {dock === 'timeline' && (
             <TimelinePanel
               fetchers={timelineFetchers}
@@ -174,7 +200,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
         </DockWrapper>
       )}
 
-      {toastFor && ins?.messageId === toastFor && !chatShown && (
+      {toastFor && ins?.messageId === toastFor && !(chatShown && chatTab === 'messages') && (
         <Toast
           title={ins.source === 'tutor' ? '튜터 메시지' : '에이전트'}
           text={toastPreview(ins.text)}
