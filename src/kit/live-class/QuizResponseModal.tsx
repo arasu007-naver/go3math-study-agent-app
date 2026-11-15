@@ -13,8 +13,7 @@ import { useMutation } from '@apollo/client/react';
 import MathJaxWrapper from '../math/MathJaxWrapper';
 import { ADD_LIVE_CLASS_QUIZ_RESPONSE } from '../../api/graphql/mutations';
 import { apiV3, isUnavailable } from '../../api/rest/apiV3';
-import { uploadQuizAnswerToStorage } from '../canvas/note-canvas/canvas-utils';
-import { Button } from '../../ui/Button';
+import { uploadQuizAnswerToStorage } from '../canvas/note-canvas/canvas-utils';import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
 import { colors, shadow, type } from '../../ui/theme';
 
@@ -258,15 +257,15 @@ export default function QuizResponseModal({
                         <IconButton size="sm" icon="close" accessibilityLabel="퀴즈 닫기" onPress={onClose} disabled={isSubmitting} />
                     </View>
 
-                    {/* 1. 상단: 퀴즈 수식 및 내용 */}
+                    {/* 1. 상단: 퀴즈 수식 및 내용 — 내용 높이만큼 다 보인다(모달의 절반을 넘으면 그 안에서 스크롤) */}
                     <View style={styles.quizBox}>
                         <MathJaxWrapper
                             statement={quiz.content}
-                            fontSize={32}
+                            fontSize={18}
                             color="#1e293b"
                             fullView={true}
-                            autoSize={false}
-                            style={styles.mathWrapper}
+                            autoHeight={true}
+                            maxHeight={QUIZ_MAX_HEIGHT}
                         />
                     </View>
 
@@ -299,6 +298,8 @@ export default function QuizResponseModal({
 
 const MODAL_WIDTH = Math.min(SCREEN_WIDTH * 0.9, 900);
 const MODAL_HEIGHT = Math.min(SCREEN_HEIGHT * 0.9, 800);
+// 퀴즈 내용이 아주 길어도 답을 쓸 캔버스가 남도록 모달 높이의 절반까지만 차지한다
+const QUIZ_MAX_HEIGHT = Math.floor(MODAL_HEIGHT * 0.5);
 
 const styles = StyleSheet.create({
     overlay: {
@@ -329,8 +330,6 @@ const styles = StyleSheet.create({
     },
     quizBox: {
         width: '100%',
-        maxHeight: 180,
-        minHeight: 80,
         backgroundColor: colors.card,
         borderRadius: 16,
         borderWidth: 1,
@@ -338,10 +337,6 @@ const styles = StyleSheet.create({
         padding: 4,
         marginBottom: 12,
         overflow: 'hidden',
-    },
-    mathWrapper: {
-        width: '100%',
-        flex: 1,
     },
     canvasContainer: {
         flex: 1,

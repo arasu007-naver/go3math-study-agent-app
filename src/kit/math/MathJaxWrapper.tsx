@@ -26,6 +26,9 @@ export interface MathJaxWrapperProps {
   /** fullView에서 렌더링된 내용 크기에 맞춰 WebView 크기를 조절 (최대 폭: maxWidth) */
   autoSize?: boolean;
   maxWidth?: number;
+  /** fullView에서 폭은 그대로 두고(줄바꿈 유지) 높이만 렌더링된 내용에 맞춘다. maxHeight를 넘으면 그 안에서 스크롤 */
+  autoHeight?: boolean;
+  maxHeight?: number;
   /** fullView에서 설명 상자의 테두리·바탕을 없앤다(말풍선처럼 이미 테두리가 있는 곳) */
   plain?: boolean;
 }
@@ -106,6 +109,7 @@ export function buildMathJaxHtmlDocument({
   color = '#1f2937',
   compact = false,
   plain = false,
+  reportHeight = false,
 }: {
   title?: string;
   statement?: string;
@@ -114,6 +118,7 @@ export function buildMathJaxHtmlDocument({
   color?: string;
   compact?: boolean;
   plain?: boolean;
+  reportHeight?: boolean;
 }): string {
   const processedTitle = processHtmlImages(title, iPath);
   const processedStatement = processHtmlImages(statement, iPath);
@@ -238,6 +243,18 @@ export function buildMathJaxHtmlDocument({
       : '<div class="empty-desc">상세 설명이 준비 중인 개념입니다.</div>'
     }
       </div>
+      ${reportHeight
+      ? `<script>
+        // 수식 렌더링·이미지 로딩으로 내용 높이가 바뀔 때마다 RN에 알린다
+        new ResizeObserver(function () {
+          var h = Math.ceil(document.body.getBoundingClientRect().height);
+          if (h > 0 && window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'content_height', height: h }));
+          }
+        }).observe(document.body);
+      </script>`
+      : ''
+    }
     </body>
     </html>
   `;
@@ -255,9 +272,12 @@ export default function MathJaxWrapper({
   inline = true,
   autoSize = false,
   maxWidth = 480,
+  autoHeight = false,
+  maxHeight,
   plain = false,
 }: MathJaxWrapperProps) {
   const [contentSize, setContentSize] = useState<{ width: number; height: number } | null>(null);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
 
   // 1) 인라인 모드: 칩/버튼 내부에서 즉시 텍스트 표시
   if (!fullView && inline) {
@@ -290,6 +310,7 @@ export default function MathJaxWrapper({
     color,
     compact: autoSize,
     plain,
+    reportHeight: autoHeight,
   });
 
   // autoSize: 측정 전에는 maxWidth 폭으로 렌더링한 뒤, 측정된 내용 크기로 줄임
@@ -299,15 +320,22 @@ export default function MathJaxWrapper({
       : { flex: 0, width: maxWidth, height: Math.ceil(fontSize * 1.8) }
     : null;
 
+  // autoHeight: 측정 전에는 한 줄 높이로 두었다가, 측정된 내용 높이(최대 maxHeight)로 맞춤
+  const autoHeightStyle = autoHeight
+    ? { flex: 0, height: Math.min(contentHeight ?? Math.ceil(fontSize * 1.8), maxHeight ?? Infinity) }
+    : null;
+
   return (
-    <View style={[styles.fullViewContainer, style, autoSizeStyle]}>
+    <View style={[styles.fullViewContainer, style, autoSizeStyle, autoHeightStyle]}>
       <WebView
         originWhitelist={['*']}
         source={{ html: htmlSource }}
-        onMessage={autoSize ? (event: WebViewMessageEvent) => {
+        onMessage={autoSize || autoHeight ? (event: WebViewMessageEvent) => {
           const message = JSON.parse(event.nativeEvent.data);
           if (message.type === 'content_size') {
             setContentSize({ width: message.width, height: message.height });
+          } else if (message.type === 'content_height') {
+            setContentHeight(message.height);
           }
         } : undefined}
         style={styles.webView}

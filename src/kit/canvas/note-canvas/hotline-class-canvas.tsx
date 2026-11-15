@@ -251,7 +251,8 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                     let tScript = _.filter(scriptsArray, (src: any) => (Number(src.id) == Number(targetScriptId)));
                     if (tScript.length > 0) {
                         setCurrentScript(tScript[0])
-                        setReleaseScriptUrl(tScript[0].releaseScriptUrl);
+                        // 배포된 스크립트가 없는 문제(releaseScriptUrl 없음)는 스크립트 없는 문제처럼 문제만 띄운다 — 비워 두면 캔버스가 끝없이 로딩한다
+                        setReleaseScriptUrl(tScript[0].releaseScriptUrl || 'default');
                         return;
                     }
                 }

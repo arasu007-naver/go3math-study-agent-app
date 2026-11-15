@@ -382,4 +382,20 @@ describe('ProblemListPanel concept bookmarks', () => {
     // 말풍선에 이미 테두리가 있어 설명 상자 테두리는 없앤다
     expect(body.props.accessibilityHint).toBe('plain');
   });
+
+  it('BookmarksPanel closes the 내용 and 해답 bubbles when a dock or toast opens over the stage', async () => {
+    const fetchConcept = jest.fn(async () => ({ rawStatement: '등비수열 설명', imgPath: '' }));
+    const fetchers: ProblemListFetchers = { fetchProblems: jest.fn(async () => ({ title: '🔖 내 책갈피', problems: list })), fetchConcept };
+    await render(<BookmarksPanel fetchers={fetchers} onSelectProblem={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('🔖 내 책갈피')).toBeTruthy());
+
+    for (const name of ['내용', '해답']) {
+      await fireEvent.press(screen.getByRole('button', { name }));
+      expect(await screen.findByTestId('answer-bubble')).toBeTruthy();
+      await act(async () => notifyOverlayOpened());
+      expect(screen.queryByTestId('answer-bubble')).toBeNull();
+      // 버튼도 '닫기'에서 원래 이름으로 돌아온다
+      expect(screen.getByRole('button', { name })).toBeTruthy();
+    }
+  });
 });
