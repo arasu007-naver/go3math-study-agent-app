@@ -143,16 +143,15 @@ type StudyNoteUpload  = { id: number; imageUrl: string; createdAt: string /* KST
 - 답 보내기는 **풀이 올리기와 같은 task id**를 쓴다. 그 캔버스에서 이미 풀이를 올려 task가 있으면 그 id다.
 - 아직 풀이를 올리지 않아 task가 없으면, **답을 보내기 전에 task를 만들고**(풀이 올리기와 같은 `ensureTaskId` + 같은 spec) 그 task id와 함께 답을 보낸다. 만든 id는 캔버스가 기억해 이후 풀이 올리기도 같은 task를 쓴다.
 
-필요한 서버 일(사용자 담당)
-1. `addLiveClassQuizResponse`가 `LIVE_CLASS_QUIZ_ANSWER`를 쓴다(기록 실패는 답 저장을 실패시키지 않는다).
-2. `addLiveClassQuizResponse(quizId, answerUrl, taskId: Int)` — 선택 인자 `taskId`를 받아 기록의 `extraStatement`에 `task:{taskId}`로 남긴다(`ix_action_extra_time`으로 찾는다). `description`에도 `taskId`를 넣는다.
-3. `GET /api/study-notes/{taskId}/activities`가 풀이 업로드와 퀴즈 답을 함께, 시각 오름차순으로 준다. 항목에 종류를 더한다(제안: `type: "SOLUTION_UPLOAD" | "QUIZ_ANSWER"`, 퀴즈면 `quizId`). `imageUrl`은 퀴즈면 `answerUrl`.
+서버 (2026-11-15 구현)
+- 답 보내기는 **api-v2 `POST /api/live-class-quizzes/{quizId}/responses`** `{answerUrl, taskId?}` → 201 `{id}`(사용자 결정: GraphQL이 아니라 api-v2). `quiz_responses`에 답안을 넣고 `user_action_log` `LIVE_CLASS_QUIZ_ANSWER`(targetId = quizId, targetUserId = 선생님, taskId, `description.answerUrl`)를 남긴다. taskId는 본인 task여야 한다(남의 것 403).
+- 선생님 퀴즈 송출은 GraphQL `addTopicLiveClassQuiz`·`addHotlineClassQuiz`가 `quiz_log`에 남긴다.
+- `GET /api/study-notes/{taskId}/activities`가 풀이 업로드·퀴즈 답·선생님 퀴즈를 합쳐 준다(§7.2).
 
-앱 쪽
-- 펼친 영역의 항목에 종류 표시(예: "풀이 업로드" / "퀴즈 답")를 붙인다. `type`이 없는 옛 응답은 풀이 업로드로 읽는다.
-- 실황 수업 화면(`app/topic-live-class.tsx`, `app/hotline-class.tsx`)이 `QuizResponseModal`에 `resolveTaskId()`를 넘긴다. 풀이 올리기와 같은 `ensureTaskId(taskId, spec)`를 부르고 화면의 taskId를 갱신한다. 모달은 답 이미지 업로드 뒤 이 id를 `taskId` 변수로 보낸다.
-- task를 만들지 못하면(네트워크 등) taskId 없이 답을 보낸다. 답 보내기 자체는 막지 않는다.
-- 서버가 아직 `taskId` 인자를 모르면 GraphQL이 요청을 거절한다. 그때(`Unknown argument "taskId"` 류의 검증 오류)는 taskId 없이 한 번 더 보낸다. 서버 배포 순서와 상관없이 답 보내기가 깨지지 않는다.
+앱
+- `QuizResponseModal`이 위 Java API로 보낸다. Java에 닿지 못하면(404·401·403·5xx·네트워크, 토큰 없음) 기존 GraphQL `addLiveClassQuizResponse`로 task id 없이 보낸다. 400 같은 요청 오류는 그대로 알린다.
+- 실황 수업 화면이 `resolveTaskId()`를 넘긴다(풀이 올리기와 같은 `ensureTaskId` + spec). task를 만들지 못하면 task id 없이 보낸다.
+- 펼친 영역 항목에 종류("풀이 업로드" / "퀴즈 답" / "선생님 퀴즈")를 붙인다.
 
 ## 7.2 '돌아보기' = user_action_log ∪ quiz_log (사용자 결정, 2026-11-15)
 
@@ -160,7 +159,7 @@ type StudyNoteUpload  = { id: number; imageUrl: string; createdAt: string /* KST
 
 | 기록 | 원천 | task에 잇기 |
 |---|---|---|
-| 풀이 업로드 | `user_action_log` `SOLUTION_SAVE` | 새 `taskId` 칸 |
+| 풀이 업로드 | `user_unit_history`(지금과 같음 — 옛 업로드도 보이게. `SOLUTION_SAVE` 로그는 아직 쓰지 않는다) | `taskId`가 이미 있다 |
 | 퀴즈 답 | `user_action_log` `LIVE_CLASS_QUIZ_ANSWER` | 새 `taskId` 칸(앱이 보냄, §7.1) |
 | 선생님이 보낸 퀴즈 | `quiz_log`(새 표, api-v2 `docs/sql/2026-11-15-quiz_log.sql`) | `quiz_log.lessonNoteId = task.collectionId`. 실황 수업은 시작할 때 `lesson_note` 한 행을 만들고, 학생의 실황 수업 task(`topic-live`·`hotline`)는 그 id를 `collectionId`로 갖는다 |
 

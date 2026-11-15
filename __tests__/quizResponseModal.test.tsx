@@ -17,10 +17,13 @@ jest.mock('../src/kit/math/MathJaxWrapper', () => () => null);
 const mockUpload = jest.fn();
 jest.mock('../src/kit/canvas/note-canvas/canvas-utils', () => ({ uploadQuizAnswerToStorage: (...a: unknown[]) => mockUpload(...a) }));
 const mockAddResponse = jest.fn();
-const mockAddWithTask = jest.fn();
-jest.mock('@apollo/client/react', () => ({
-  useMutation: (doc: any) => [doc.definitions[0].name.value === 'addLiveClassQuizResponseWithTaskMutation' ? mockAddWithTask : mockAddResponse],
-}));
+jest.mock('@apollo/client/react', () => ({ useMutation: () => [mockAddResponse] }));
+const mockApiV3 = jest.fn();
+jest.mock('../src/api/rest/apiV3', () => {
+  const actual = jest.requireActual('../src/api/rest/apiV3');
+  return { ...actual, apiV3: (...a: unknown[]) => mockApiV3(...a) };
+});
+const { ApiV3Error } = jest.requireActual('../src/api/rest/apiV3');
 
 import QuizResponseModal from '../src/kit/live-class/QuizResponseModal';
 
@@ -75,44 +78,56 @@ describe('QuizResponseModal', () => {
     expect(state('지우기')).toMatchObject({ disabled: false });
   });
 
-  describe('task id', () => {
-    beforeEach(() => mockUpload.mockResolvedValue('https://answer'));
+  describe('답 보내기 경로', () => {
+    beforeEach(() => {
+      mockUpload.mockResolvedValue('https://answer');
+      mockApiV3.mockResolvedValue({ id: 31 });
+    });
 
-    it('풀이 올리기와 같은 task id를 함께 보낸다', async () => {
+    it('Java API로 풀이 올리기와 같은 task id를 함께 보낸다', async () => {
       const onSubmitted = jest.fn();
       await render(<QuizResponseModal {...props} onSubmitted={onSubmitted} resolveTaskId={async () => 77} />);
       await sendDrawing();
       await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
-      expect(mockAddWithTask).toHaveBeenCalledWith({ variables: { quizId: 3, answerUrl: 'https://answer', taskId: 77 } });
+      expect(mockApiV3).toHaveBeenCalledWith('/api/live-class-quizzes/3/responses', 't', { method: 'POST', body: { answerUrl: 'https://answer', taskId: 77 } });
       expect(mockAddResponse).not.toHaveBeenCalled();
     });
 
-    it('서버가 taskId 인자를 모르면 task id 없이 한 번 더 보낸다', async () => {
-      mockAddWithTask.mockRejectedValueOnce(new Error('Unknown argument "taskId" on field "Mutation.addLiveClassQuizResponse".'));
-      const onSubmitted = jest.fn();
-      await render(<QuizResponseModal {...props} onSubmitted={onSubmitted} resolveTaskId={async () => 77} />);
-      await sendDrawing();
-      await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
-      expect(mockAddResponse).toHaveBeenCalledWith({ variables: { quizId: 3, answerUrl: 'https://answer' } });
-    });
-
-    it('다른 오류는 다시 보내지 않고 알린다', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockAddWithTask.mockRejectedValueOnce(new Error('서버 오류'));
-      const onError = jest.fn();
-      await render(<QuizResponseModal {...props} onError={onError} resolveTaskId={async () => 77} />);
-      await sendDrawing();
-      await waitFor(() => expect(onError).toHaveBeenCalledWith('서버 오류'));
-      expect(mockAddResponse).not.toHaveBeenCalled();
-    });
-
-    it('task를 확보하지 못하면 task id 없이 보낸다', async () => {
+    it('task를 확보하지 못하면 task id 없이 Java API로 보낸다', async () => {
       const onSubmitted = jest.fn();
       await render(<QuizResponseModal {...props} onSubmitted={onSubmitted} resolveTaskId={async () => { throw new Error('x'); }} />);
       await sendDrawing();
       await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+      expect(mockApiV3).toHaveBeenCalledWith('/api/live-class-quizzes/3/responses', 't', { method: 'POST', body: { answerUrl: 'https://answer' } });
+    });
+
+    it('Java에 닿지 못하면(404) GraphQL로 task id 없이 보낸다', async () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      mockApiV3.mockRejectedValueOnce(new ApiV3Error(404, 'not found'));
+      const onSubmitted = jest.fn();
+      await render(<QuizResponseModal {...props} onSubmitted={onSubmitted} resolveTaskId={async () => 77} />);
+      await sendDrawing();
+      await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
       expect(mockAddResponse).toHaveBeenCalledWith({ variables: { quizId: 3, answerUrl: 'https://answer' } });
-      expect(mockAddWithTask).not.toHaveBeenCalled();
+    });
+
+    it('400 같은 요청 오류는 GraphQL로 다시 보내지 않고 알린다', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      mockApiV3.mockRejectedValueOnce(new ApiV3Error(400, '퀴즈를 찾을 수 없습니다'));
+      const onError = jest.fn();
+      await render(<QuizResponseModal {...props} onError={onError} resolveTaskId={async () => 77} />);
+      await sendDrawing();
+      await waitFor(() => expect(onError).toHaveBeenCalledWith('퀴즈를 찾을 수 없습니다'));
+      expect(mockAddResponse).not.toHaveBeenCalled();
+    });
+
+    it('토큰이 없으면 GraphQL로 보낸다', async () => {
+      const onSubmitted = jest.fn();
+      await render(<QuizResponseModal {...props} appToken="" onSubmitted={onSubmitted} />);
+      await sendDrawing();
+      await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+      expect(mockApiV3).not.toHaveBeenCalled();
+      expect(mockAddResponse).toHaveBeenCalledWith({ variables: { quizId: 3, answerUrl: 'https://answer' } });
     });
   });
 });
