@@ -22,6 +22,25 @@ export const AppCtx = createContext({
 
 export const storage = createMMKV();
 
+/**
+ * 실황 강의 guide에 실려 온 releaseScriptUrl을 스크립트 목록 캐시('live-scripts')에 반영한다 — 기존 utils/storage.ts 그대로.
+ * 목록은 화면에 들어올 때 한 번 받아 두므로, 수업 중 새로 등록된 release 스크립트는 캐시에 없다.
+ * @returns 캐시가 바뀌었으면 true
+ */
+export function cacheLiveReleaseScriptUrl(guide: any): boolean {
+  if (!guide?.releaseScriptUrl || !(Number(guide.scriptId) > 0)) return false;
+  const scripts: any[] = JSON.parse(storage.getString('live-scripts') || '[]');
+  const cached = scripts.find((src) => Number(src.id) == Number(guide.scriptId));
+  if (cached?.releaseScriptUrl === guide.releaseScriptUrl) return false;
+  if (cached) {
+    cached.releaseScriptUrl = guide.releaseScriptUrl;
+  } else {
+    scripts.push({ id: guide.scriptId, sourceType: guide.sourceType, sourceId: guide.sourceId, releaseScriptUrl: guide.releaseScriptUrl });
+  }
+  storage.set('live-scripts', JSON.stringify(scripts));
+  return true;
+}
+
 export const getBase64StringFromDataURL = (dataURL: string) => dataURL.replace('data:', '').replace(/^.+,/, '');
 
 export const sleep = (milliSec: number) => new Promise((resolve) => setTimeout(resolve, milliSec > 9600 ? 9600 : milliSec));

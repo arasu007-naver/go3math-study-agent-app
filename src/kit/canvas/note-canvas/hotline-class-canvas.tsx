@@ -32,7 +32,7 @@ import HotlineClassCanvasTemplate from '../templates/live-class-canvas-template'
 import { AppCtx } from './legacy';
 import { requestStorageUrl } from '../../../api/rest';
 import FullScreenWrapper from './screen-wrapper'
-import { storage } from './legacy';
+import { storage, cacheLiveReleaseScriptUrl } from './legacy';
 import { getBase64StringFromDataURL, sleep, findLargestSmallerThan } from './legacy'
 import { DEFAULT_IMAGE_URL, CACHE_URL } from '../../../config/api.constants';
 import {
@@ -102,6 +102,16 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
             hideModal();
             if (guide.action === 'snapshot') {
                 sendBoardAction({ actionType: 'SAVE' })
+                return;
+            }
+
+            // 수업 중 새로 등록된 release 스크립트 — guide 의 releaseScriptUrl 로 목록 캐시를 갱신한다.
+            // 이미 이 유닛으로 전환된 상태라면 갱신된 캐시로 스크립트를 다시 불러온다.
+            if (cacheLiveReleaseScriptUrl(guide) && currentScriptId == Number(guide.scriptId)) {
+                storage.set('syncPoint', JSON.stringify(guide));
+                setLastGuide({ studyIdx: 0, step: 'refresh' });
+                setTargetGuide(guide);
+                refreshMenuscript();
                 return;
             }
 
