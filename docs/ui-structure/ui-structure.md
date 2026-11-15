@@ -10,9 +10,10 @@
 | 기준 | `feat/study-note` @ `76b99e3` |
 | 라우팅 | expo-router ~6.0.24 (app/ 디렉터리, Expo SDK 54). React Navigation 직접 정의 없음 |
 | 분석 날짜 | 2026-11-10 |
+| 부분 갱신 | 2026-11-15 · main @ 8491ce5 — Phone 탭 결과 화면만 갱신(해답 화면 → 해답 시트, 개념 조회 시트, 나갈 때 학습장, PhoneScreens.tsx 근거 줄) |
 | 레이아웃 모드 | Phone / Tablet — useDeviceMode(): 짧은 변 ≥ 600 진입, < 560 이탈, 200ms 디바운스 (src/layout/deviceMode.ts) |
-| 노드 | 66개 (navigator 6, external 1, screen 24, bottomsheet 6, modeless 16, modal 13) |
-| 엣지 | 115개 (contains 29, deeplink 1, navigate 35, present 50) |
+| 노드 | 64개 (navigator 6, external 1, screen 20, bottomsheet 8, modeless 16, modal 13) |
+| 엣지 | 123개 (contains 25, deeplink 1, navigate 28, present 69) |
 
 블록 모양: 사각형 Screen, 이중 사각형 Modal, 둥근 사각형 Modeless, 사다리꼴 Bottom Sheet, 원 External. 실선 navigate, 점선 present, 굵은 선 deeplink. `contains`는 subgraph로 그렸고 엣지 표에는 남겼다.
 
@@ -31,27 +32,23 @@ flowchart TD
         timeline_index["History<br/>TimelineTabScreen<br/>app/(main)/timeline/index.tsx"]
         timeline_problems["문제 목록<br/>TimelineProblemsScreen<br/>app/(main)/timeline/problems.tsx"]
         timeline_topic["⚠ orphan · 주제 문제<br/>TimelineTopicScreen<br/>app/(main)/timeline/topic.tsx"]
-        timeline_solution["해답<br/>SolutionResultScreen<br/>app/(main)/timeline/solution.tsx"]
       end
       subgraph nav_search["[Stack] 검색 탭<br/>SearchTabLayout<br/>app/(main)/search/_layout.tsx"]
         direction TB
         search_index["검색<br/>SearchTabScreen<br/>app/(main)/search/index.tsx"]
         search_problems["문제 목록<br/>SearchProblemsScreen<br/>app/(main)/search/problems.tsx"]
         search_topic["주제 문제<br/>SearchTopicScreen<br/>app/(main)/search/topic.tsx"]
-        search_solution["해답<br/>SolutionResultScreen<br/>app/(main)/search/solution.tsx"]
       end
       subgraph nav_diary["[Stack] Diary 탭<br/>DiaryTabLayout<br/>app/(main)/diary/_layout.tsx"]
         direction TB
         diary_index["Diary<br/>DiaryTabScreen<br/>app/(main)/diary/index.tsx"]
         diary_day["그날 풀이 기록<br/>DiaryDayScreen<br/>app/(main)/diary/day.tsx"]
-        diary_solution["답안 예시<br/>SolutionResultScreen<br/>app/(main)/diary/solution.tsx"]
       end
       subgraph nav_chat["[Stack] Study Log 탭<br/>ChatTabLayout<br/>app/(main)/chat/_layout.tsx"]
         direction TB
         chat_index["Study Log<br/>ChatTabScreen<br/>app/(main)/chat/index.tsx"]
         chat_problems["문제 목록<br/>ChatProblemsScreen<br/>app/(main)/chat/problems.tsx"]
         chat_topic["주제 문제<br/>ChatTopicScreen<br/>app/(main)/chat/topic.tsx"]
-        chat_solution["해답<br/>SolutionResultScreen<br/>app/(main)/chat/solution.tsx"]
       end
       agent_home["에이전트 홈 (Stage)<br/>AgentHome<br/>app/(main)/index.tsx"]
       profile["내 정보 탭<br/>ProfileTabScreen<br/>app/(main)/profile.tsx"]
@@ -84,6 +81,8 @@ flowchart TD
     pencil_popover[["펜 설정 팝오버<br/>PencilPropsModal<br/>src/kit/canvas/note-canvas/pencil-props-modal.tsx"]]
   end
   ext(("External"))
+  phone_answer_sheet[/"해답 시트 (폰)<br/>useAnswerSheet · PhoneSheet<br/>src/phone/PhoneStudySheets.tsx"\]
+  phone_concept_sheet[/"개념 조회 시트 (폰)<br/>ConceptLookup · ConceptLookupPanel<br/>src/phone/PhoneStudySheets.tsx"\]
   study_note_sheet[/"학습장 시트<br/>SheetHost<br/>src/host/SheetHost.tsx"\]
   global_loading("⚠ orphan · 앱 차단 로딩<br/>GlobalLoadingOverlay<br/>src/kit/ui/loading-view/global-overlay.tsx")
   tablet_launch("태블릿 런치 로고<br/>TabletLaunchOverlay<br/>src/ui/TabletLaunchOverlay.tsx")
@@ -128,22 +127,34 @@ flowchart TD
   search_index -->|"탭: 토픽"| search_topic
   chat_index -->|"에이전트 show_component problem_list (채팅 탭 포커스 중)"| chat_problems
   chat_index -->|"에이전트 show_component problem_preview (채팅 탭 포커스 중)"| chat_topic
-  timeline_problems -->|"탭: 눈(해답)"| timeline_solution
-  timeline_topic -->|"탭: 눈(해답)"| timeline_solution
   timeline_problems -->|"헤더 뒤로 (dismissTo)"| timeline_index
   timeline_topic -->|"헤더 뒤로 (dismissTo)"| timeline_index
-  search_problems -->|"탭: 눈(해답)"| search_solution
-  search_topic -->|"탭: 눈(해답)"| search_solution
   search_problems -->|"헤더 뒤로 (dismissTo)"| search_index
   search_topic -->|"헤더 뒤로 (dismissTo)"| search_index
-  chat_problems -->|"탭: 눈(해답)"| chat_solution
-  chat_topic -->|"탭: 눈(해답)"| chat_solution
   chat_problems -->|"헤더 뒤로 (dismissTo)"| chat_index
   chat_topic -->|"헤더 뒤로 (dismissTo)"| chat_index
   diary_index -->|"탭: 달력 날짜"| diary_day
-  diary_day -->|"탭: 답안 예시"| diary_solution
+  timeline_problems -.->|"탭: 눈(해답)"| phone_answer_sheet
+  timeline_topic -.->|"탭: 눈(해답)"| phone_answer_sheet
+  timeline_problems -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  timeline_topic -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  search_problems -.->|"탭: 눈(해답)"| phone_answer_sheet
+  search_topic -.->|"탭: 눈(해답)"| phone_answer_sheet
+  search_problems -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  search_topic -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  chat_problems -.->|"탭: 눈(해답)"| phone_answer_sheet
+  chat_topic -.->|"탭: 눈(해답)"| phone_answer_sheet
+  chat_problems -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  chat_topic -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  diary_day -.->|"탭: 답안 예시"| phone_answer_sheet
   nav_root -.->|"앱 시작 (Android 태블릿만)"| tablet_launch
   timeline_index -.->|"탭: 학습장"| study_note_sheet
+  timeline_problems -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  timeline_topic -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  search_problems -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  search_topic -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  chat_problems -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  chat_topic -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
   dock_timeline -.->|"탭: 학습장"| study_note_sheet
   notebook -.->|"화면 나감 → solve_finished → 에이전트 show_component(study_note) (푼 문제 ≥1·에이전트가 응답할 때 (mockAgent로만 확인))"| study_note_sheet
   topic_live -.->|"화면 나감 → solve_finished → 에이전트 show_component(study_note) (푼 문제 ≥1·에이전트가 응답할 때 (mockAgent로만 확인))"| study_note_sheet
@@ -221,23 +232,16 @@ flowchart TD
   linkStyle 26 stroke:#475467,stroke-width:1.6px
   linkStyle 27 stroke:#475467,stroke-width:1.6px
   linkStyle 28 stroke:#475467,stroke-width:1.6px
-  linkStyle 29 stroke:#475467,stroke-width:1.6px
-  linkStyle 30 stroke:#475467,stroke-width:1.6px
-  linkStyle 31 stroke:#475467,stroke-width:1.6px
-  linkStyle 32 stroke:#475467,stroke-width:1.6px
-  linkStyle 33 stroke:#475467,stroke-width:1.6px
-  linkStyle 34 stroke:#475467,stroke-width:1.6px
-  linkStyle 35 stroke:#475467,stroke-width:1.6px
   classDef screen fill:#eef7f1,stroke:#3f8f63,color:#1d1d1b,stroke-width:1.4px
   classDef modal fill:#fdecec,stroke:#c0392b,color:#1d1d1b,stroke-width:1.4px
   classDef modeless fill:#e8f4fd,stroke:#2b7bb9,color:#1d1d1b,stroke-width:1.4px
   classDef bottomsheet fill:#f4ebfd,stroke:#8e44ad,color:#1d1d1b,stroke-width:1.4px
   classDef external fill:#eeeeee,stroke:#666,color:#1d1d1b,stroke-width:1.4px
   classDef orphan stroke-dasharray:5 4,stroke:#999,color:#777,fill:#f5f5f3
-  class welcome,auth_callback,public_questions,public_solution,notebook,topic_live,hotline,agent_home,profile,timeline_index,timeline_problems,timeline_solution,search_index,search_problems,search_topic,search_solution,chat_index,chat_problems,chat_topic,chat_solution,diary_index,diary_day,diary_solution screen
+  class welcome,auth_callback,public_questions,public_solution,notebook,topic_live,hotline,agent_home,profile,timeline_index,timeline_problems,search_index,search_problems,search_topic,chat_index,chat_problems,chat_topic,diary_index,diary_day screen
   class clear_confirm,pencil_popover,concept_detail,name_edit_modal,pdf_viewer,upload_alert,bookmark_alert,quiz_modal,nb_list_modal,tl_list_modal,hl_list_modal modal
   class tablet_launch,chat_rail,dock_timeline,dock_notice,dock_search,dock_live,dock_profile,dock_chat,agent_toast,canvas_toolbar,landscape_notice,tl_toast,tl_memo,hl_toast,hl_memo modeless
-  class study_note_sheet,concept_sheet,nb_answer_sheet,nb_workout_sheet,tl_answer_sheet,hl_answer_sheet bottomsheet
+  class phone_answer_sheet,phone_concept_sheet,study_note_sheet,concept_sheet,nb_answer_sheet,nb_workout_sheet,tl_answer_sheet,hl_answer_sheet bottomsheet
   class ext external
   class timeline_topic,global_loading,tl_popup,hl_popup orphan
 ```
@@ -257,27 +261,23 @@ flowchart TD
         timeline_index["History<br/>TimelineTabScreen<br/>app/(main)/timeline/index.tsx"]
         timeline_problems["문제 목록<br/>TimelineProblemsScreen<br/>app/(main)/timeline/problems.tsx"]
         timeline_topic["⚠ orphan · 주제 문제<br/>TimelineTopicScreen<br/>app/(main)/timeline/topic.tsx"]
-        timeline_solution["해답<br/>SolutionResultScreen<br/>app/(main)/timeline/solution.tsx"]
       end
       subgraph nav_search["[Stack] 검색 탭<br/>SearchTabLayout<br/>app/(main)/search/_layout.tsx"]
         direction TB
         search_index["검색<br/>SearchTabScreen<br/>app/(main)/search/index.tsx"]
         search_problems["문제 목록<br/>SearchProblemsScreen<br/>app/(main)/search/problems.tsx"]
         search_topic["주제 문제<br/>SearchTopicScreen<br/>app/(main)/search/topic.tsx"]
-        search_solution["해답<br/>SolutionResultScreen<br/>app/(main)/search/solution.tsx"]
       end
       subgraph nav_diary["[Stack] Diary 탭<br/>DiaryTabLayout<br/>app/(main)/diary/_layout.tsx"]
         direction TB
         diary_index["Diary<br/>DiaryTabScreen<br/>app/(main)/diary/index.tsx"]
         diary_day["그날 풀이 기록<br/>DiaryDayScreen<br/>app/(main)/diary/day.tsx"]
-        diary_solution["답안 예시<br/>SolutionResultScreen<br/>app/(main)/diary/solution.tsx"]
       end
       subgraph nav_chat["[Stack] Study Log 탭<br/>ChatTabLayout<br/>app/(main)/chat/_layout.tsx"]
         direction TB
         chat_index["Study Log<br/>ChatTabScreen<br/>app/(main)/chat/index.tsx"]
         chat_problems["문제 목록<br/>ChatProblemsScreen<br/>app/(main)/chat/problems.tsx"]
         chat_topic["주제 문제<br/>ChatTopicScreen<br/>app/(main)/chat/topic.tsx"]
-        chat_solution["해답<br/>SolutionResultScreen<br/>app/(main)/chat/solution.tsx"]
       end
       profile["내 정보 탭<br/>ProfileTabScreen<br/>app/(main)/profile.tsx"]
     end
@@ -287,6 +287,8 @@ flowchart TD
     public_solution["공개 해답<br/>PublicSolutionViewScreen<br/>app/public-solution.tsx"]
   end
   ext(("External"))
+  phone_answer_sheet[/"해답 시트 (폰)<br/>useAnswerSheet · PhoneSheet<br/>src/phone/PhoneStudySheets.tsx"\]
+  phone_concept_sheet[/"개념 조회 시트 (폰)<br/>ConceptLookup · ConceptLookupPanel<br/>src/phone/PhoneStudySheets.tsx"\]
   study_note_sheet[/"학습장 시트<br/>SheetHost<br/>src/host/SheetHost.tsx"\]
   global_loading("⚠ orphan · 앱 차단 로딩<br/>GlobalLoadingOverlay<br/>src/kit/ui/loading-view/global-overlay.tsx")
   concept_detail[["개념 설명 모달<br/>ConceptLookupPanel (inline Modal)<br/>src/kit/concepts/ConceptLookupPanel.tsx"]]
@@ -305,21 +307,33 @@ flowchart TD
   search_index -->|"탭: 토픽"| search_topic
   chat_index -->|"에이전트 show_component problem_list (채팅 탭 포커스 중)"| chat_problems
   chat_index -->|"에이전트 show_component problem_preview (채팅 탭 포커스 중)"| chat_topic
-  timeline_problems -->|"탭: 눈(해답)"| timeline_solution
-  timeline_topic -->|"탭: 눈(해답)"| timeline_solution
   timeline_problems -->|"헤더 뒤로 (dismissTo)"| timeline_index
   timeline_topic -->|"헤더 뒤로 (dismissTo)"| timeline_index
-  search_problems -->|"탭: 눈(해답)"| search_solution
-  search_topic -->|"탭: 눈(해답)"| search_solution
   search_problems -->|"헤더 뒤로 (dismissTo)"| search_index
   search_topic -->|"헤더 뒤로 (dismissTo)"| search_index
-  chat_problems -->|"탭: 눈(해답)"| chat_solution
-  chat_topic -->|"탭: 눈(해답)"| chat_solution
   chat_problems -->|"헤더 뒤로 (dismissTo)"| chat_index
   chat_topic -->|"헤더 뒤로 (dismissTo)"| chat_index
   diary_index -->|"탭: 달력 날짜"| diary_day
-  diary_day -->|"탭: 답안 예시"| diary_solution
+  timeline_problems -.->|"탭: 눈(해답)"| phone_answer_sheet
+  timeline_topic -.->|"탭: 눈(해답)"| phone_answer_sheet
+  timeline_problems -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  timeline_topic -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  search_problems -.->|"탭: 눈(해답)"| phone_answer_sheet
+  search_topic -.->|"탭: 눈(해답)"| phone_answer_sheet
+  search_problems -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  search_topic -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  chat_problems -.->|"탭: 눈(해답)"| phone_answer_sheet
+  chat_topic -.->|"탭: 눈(해답)"| phone_answer_sheet
+  chat_problems -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  chat_topic -.->|"탭: 개념 조회 FAB"| phone_concept_sheet
+  diary_day -.->|"탭: 답안 예시"| phone_answer_sheet
   timeline_index -.->|"탭: 학습장"| study_note_sheet
+  timeline_problems -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  timeline_topic -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  search_problems -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  search_topic -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  chat_problems -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
+  chat_topic -.->|"화면 나감(뒤로) → 앱이 바로 연다 (개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음))"| study_note_sheet
   search_index -.->|"탭: 개념 칩 (개념 카테고리)"| concept_detail
   profile -.->|"탭: 이름 변경"| name_edit_modal
   profile -.->|"탭: 사서함 답변 (Phone: fullScreen)"| pdf_viewer
@@ -348,22 +362,15 @@ flowchart TD
   linkStyle 15 stroke:#475467,stroke-width:1.6px
   linkStyle 16 stroke:#475467,stroke-width:1.6px
   linkStyle 17 stroke:#475467,stroke-width:1.6px
-  linkStyle 18 stroke:#475467,stroke-width:1.6px
-  linkStyle 19 stroke:#475467,stroke-width:1.6px
-  linkStyle 20 stroke:#475467,stroke-width:1.6px
-  linkStyle 21 stroke:#475467,stroke-width:1.6px
-  linkStyle 22 stroke:#475467,stroke-width:1.6px
-  linkStyle 23 stroke:#475467,stroke-width:1.6px
-  linkStyle 24 stroke:#475467,stroke-width:1.6px
   classDef screen fill:#eef7f1,stroke:#3f8f63,color:#1d1d1b,stroke-width:1.4px
   classDef modal fill:#fdecec,stroke:#c0392b,color:#1d1d1b,stroke-width:1.4px
   classDef modeless fill:#e8f4fd,stroke:#2b7bb9,color:#1d1d1b,stroke-width:1.4px
   classDef bottomsheet fill:#f4ebfd,stroke:#8e44ad,color:#1d1d1b,stroke-width:1.4px
   classDef external fill:#eeeeee,stroke:#666,color:#1d1d1b,stroke-width:1.4px
   classDef orphan stroke-dasharray:5 4,stroke:#999,color:#777,fill:#f5f5f3
-  class welcome,auth_callback,public_questions,public_solution,profile,timeline_index,timeline_problems,timeline_solution,search_index,search_problems,search_topic,search_solution,chat_index,chat_problems,chat_topic,chat_solution,diary_index,diary_day,diary_solution screen
+  class welcome,auth_callback,public_questions,public_solution,profile,timeline_index,timeline_problems,search_index,search_problems,search_topic,chat_index,chat_problems,chat_topic,diary_index,diary_day screen
   class concept_detail,name_edit_modal,pdf_viewer,upload_alert,bookmark_alert modal
-  class study_note_sheet bottomsheet
+  class phone_answer_sheet,phone_concept_sheet,study_note_sheet bottomsheet
   class ext external
   class timeline_topic,global_loading orphan
 ```
@@ -636,18 +643,16 @@ flowchart TD
 | timeline_index | screen | History | TimelineTabScreen | `app/(main)/timeline/index.tsx` | /timeline | nav_timeline | — | phone | 구현 src/phone/PhoneScreens.tsx. Phone 첫 화면 |
 | timeline_problems | screen | 문제 목록 | TimelineProblemsScreen | `app/(main)/timeline/problems.tsx` | /timeline/problems | nav_timeline | — | phone | ProblemsResultScreen tab=timeline |
 | timeline_topic | screen | 주제 문제 | TimelineTopicScreen | `app/(main)/timeline/topic.tsx` | /timeline/topic | nav_timeline | — | phone | orphan. TopicResultScreen tab=timeline. 이 탭에서 여는 코드 없음(이슈 참고) |
-| timeline_solution | screen | 해답 | SolutionResultScreen | `app/(main)/timeline/solution.tsx` | /timeline/solution | nav_timeline | — | phone | WebView |
 | search_index | screen | 검색 | SearchTabScreen | `app/(main)/search/index.tsx` | /search | nav_search | — | phone | 구현 src/phone/PhoneScreens.tsx. ResearchPanel |
 | search_problems | screen | 문제 목록 | SearchProblemsScreen | `app/(main)/search/problems.tsx` | /search/problems | nav_search | — | phone | ProblemsResultScreen tab=search |
 | search_topic | screen | 주제 문제 | SearchTopicScreen | `app/(main)/search/topic.tsx` | /search/topic | nav_search | — | phone | TopicResultScreen tab=search |
-| search_solution | screen | 해답 | SolutionResultScreen | `app/(main)/search/solution.tsx` | /search/solution | nav_search | — | phone | WebView |
 | chat_index | screen | Study Log | ChatTabScreen | `app/(main)/chat/index.tsx` | /chat | nav_chat | — | phone | 구현 src/phone/PhoneScreens.tsx. ChatTimeline |
 | chat_problems | screen | 문제 목록 | ChatProblemsScreen | `app/(main)/chat/problems.tsx` | /chat/problems | nav_chat | — | phone | ProblemsResultScreen tab=chat |
 | chat_topic | screen | 주제 문제 | ChatTopicScreen | `app/(main)/chat/topic.tsx` | /chat/topic | nav_chat | — | phone | TopicResultScreen tab=chat |
-| chat_solution | screen | 해답 | SolutionResultScreen | `app/(main)/chat/solution.tsx` | /chat/solution | nav_chat | — | phone | WebView |
 | diary_index | screen | Diary | DiaryTabScreen | `app/(main)/diary/index.tsx` | /diary | nav_diary | — | phone | 구현 src/phone/PhoneScreens.tsx. 달력 + 공지 |
 | diary_day | screen | 그날 풀이 기록 | DiaryDayScreen | `app/(main)/diary/day.tsx` | /diary/day | nav_diary | — | phone | DailyRecordsList |
-| diary_solution | screen | 답안 예시 | SolutionResultScreen | `app/(main)/diary/solution.tsx` | /diary/solution | nav_diary | — | phone | WebView |
+| phone_answer_sheet | bottomsheet | 해답 시트 (폰) | useAnswerSheet · PhoneSheet | `src/phone/PhoneStudySheets.tsx` | — | — | false | phone | @gorhom BottomSheetModal, snap 50·70·90%(70%로 열림), backdropComponent 없음. 문제 목록·주제 문제·그날 풀이 기록 화면이 각각 하나씩 렌더. Android 뒤로 가기는 시트만 닫는다 |
+| phone_concept_sheet | bottomsheet | 개념 조회 시트 (폰) | ConceptLookup · ConceptLookupPanel | `src/phone/PhoneStudySheets.tsx` | — | — | false | phone | @gorhom BottomSheetModal, snap 70·90%(90%로 열림), backdropComponent 없음. 문제 목록·주제 문제 화면 오른쪽 아래 FAB로 연다. 새로 고른 개념은 학습장 활동 기록에 남는다 |
 | study_note_sheet | bottomsheet | 학습장 시트 | SheetHost | `src/host/SheetHost.tsx` | — | nav_main | true | phone, tablet | 자체 구현: RN Modal + scrim + 아래 붙은 카드. 내용 StudyNoteWidget→StudyNoteForm(src/host/widgets.tsx). Tablet은 카드 폭 560 제한 |
 | global_loading | modeless | 앱 차단 로딩 | GlobalLoadingOverlay | `src/kit/ui/loading-view/global-overlay.tsx` | — | nav_root | false | phone, tablet | orphan. pointerEvents none. beginBlocking() 호출부가 없어 표시되지 않는다 |
 | tablet_launch | modeless | 태블릿 런치 로고 | TabletLaunchOverlay | `src/ui/TabletLaunchOverlay.tsx` | — | nav_root | false | tablet | Android 태블릿만, 1초 후 페이드아웃. pointerEvents none |
@@ -705,18 +710,14 @@ flowchart TD
 | nav_timeline | timeline_index | contains | Stack.Screen index | — | `app/(main)/timeline/_layout.tsx:11` |
 | nav_timeline | timeline_problems | contains | 파일 기반 child | — | `app/(main)/timeline/_layout.tsx:9` |
 | nav_timeline | timeline_topic | contains | 파일 기반 child | — | `app/(main)/timeline/_layout.tsx:9` |
-| nav_timeline | timeline_solution | contains | 파일 기반 child | — | `app/(main)/timeline/_layout.tsx:9` |
 | nav_search | search_index | contains | Stack.Screen index | — | `app/(main)/search/_layout.tsx:11` |
 | nav_search | search_problems | contains | 파일 기반 child | — | `app/(main)/search/_layout.tsx:9` |
 | nav_search | search_topic | contains | 파일 기반 child | — | `app/(main)/search/_layout.tsx:9` |
-| nav_search | search_solution | contains | 파일 기반 child | — | `app/(main)/search/_layout.tsx:9` |
 | nav_chat | chat_index | contains | Stack.Screen index | — | `app/(main)/chat/_layout.tsx:11` |
 | nav_chat | chat_problems | contains | 파일 기반 child | — | `app/(main)/chat/_layout.tsx:9` |
 | nav_chat | chat_topic | contains | 파일 기반 child | — | `app/(main)/chat/_layout.tsx:9` |
-| nav_chat | chat_solution | contains | 파일 기반 child | — | `app/(main)/chat/_layout.tsx:9` |
 | nav_diary | diary_index | contains | Stack.Screen index | — | `app/(main)/diary/_layout.tsx:10` |
 | nav_diary | diary_day | contains | 파일 기반 child | — | `app/(main)/diary/_layout.tsx:9` |
-| nav_diary | diary_solution | contains | 파일 기반 child | — | `app/(main)/diary/_layout.tsx:9` |
 | ext | auth_callback | deeplink | OAuth 리디렉트 com.qoolla.student://auth/callback | — | `app.config.ts:30` |
 | auth_callback | welcome | navigate | Redirect /welcome | 콜백 화면에 직접 도착 | `app/auth/callback.tsx:6` |
 | nav_main | welcome | navigate | Redirect /welcome | 비로그인·로그아웃 (gate signedOut) | `app/(main)/_layout.tsx:57` |
@@ -734,27 +735,39 @@ flowchart TD
 | notebook | agent_home | navigate | 툴바: 나가기 (back, 없으면 replace /) · Redirect / | Redirect는 solveStore 비었을 때 | `app/notebook.tsx:246, :113` |
 | topic_live | agent_home | navigate | 툴바: 나가기 · 강의 미준비 토스트 후 자동 · Redirect / | Redirect는 topicId 없을 때 | `app/topic-live-class.tsx:178, :102, :163` |
 | hotline | agent_home | navigate | 툴바: 나가기 · Redirect / | Redirect는 tutorId 없을 때 | `app/hotline-class.tsx:171, :156` |
-| timeline_index | timeline_problems | navigate | 탭: 타임라인 task | — | `src/phone/PhoneScreens.tsx:95 → :65` |
-| search_index | search_problems | navigate | 기출 검색 제출 | — | `src/phone/PhoneScreens.tsx:113 → :65` |
-| search_index | search_topic | navigate | 탭: 토픽 | — | `src/phone/PhoneScreens.tsx:117 → :69` |
-| chat_index | chat_problems | navigate | 에이전트 show_component problem_list | 채팅 탭 포커스 중 | `src/phone/PhoneScreens.tsx:175` |
-| chat_index | chat_topic | navigate | 에이전트 show_component problem_preview | 채팅 탭 포커스 중 | `src/phone/PhoneScreens.tsx:176` |
-| timeline_problems | timeline_solution | navigate | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:216` |
-| timeline_topic | timeline_solution | navigate | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:216 (:253)` |
-| timeline_problems | timeline_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:194` |
-| timeline_topic | timeline_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:194` |
-| search_problems | search_solution | navigate | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:216` |
-| search_topic | search_solution | navigate | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:216 (:253)` |
-| search_problems | search_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:194` |
-| search_topic | search_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:194` |
-| chat_problems | chat_solution | navigate | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:216` |
-| chat_topic | chat_solution | navigate | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:216 (:253)` |
-| chat_problems | chat_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:194` |
-| chat_topic | chat_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:194` |
-| diary_index | diary_day | navigate | 탭: 달력 날짜 | — | `src/phone/PhoneScreens.tsx:139` |
-| diary_day | diary_solution | navigate | 탭: 답안 예시 | — | `src/phone/PhoneScreens.tsx:278` |
+| timeline_index | timeline_problems | navigate | 탭: 타임라인 task | — | `src/phone/PhoneScreens.tsx:113 → :67` |
+| search_index | search_problems | navigate | 기출 검색 제출 | — | `src/phone/PhoneScreens.tsx:131 → :67` |
+| search_index | search_topic | navigate | 탭: 토픽 | — | `src/phone/PhoneScreens.tsx:135 → :71` |
+| chat_index | chat_problems | navigate | 에이전트 show_component problem_list | 채팅 탭 포커스 중 | `src/phone/PhoneScreens.tsx:193` |
+| chat_index | chat_topic | navigate | 에이전트 show_component problem_preview | 채팅 탭 포커스 중 | `src/phone/PhoneScreens.tsx:194` |
+| timeline_problems | timeline_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:218` |
+| timeline_topic | timeline_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:218` |
+| search_problems | search_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:218` |
+| search_topic | search_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:218` |
+| chat_problems | chat_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:218` |
+| chat_topic | chat_index | navigate | 헤더 뒤로 (dismissTo) | — | `src/phone/PhoneScreens.tsx:218` |
+| diary_index | diary_day | navigate | 탭: 달력 날짜 | — | `src/phone/PhoneScreens.tsx:157` |
+| timeline_problems | phone_answer_sheet | present | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:299 → src/phone/PhoneStudySheets.tsx:58` |
+| timeline_topic | phone_answer_sheet | present | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:327 → src/phone/PhoneStudySheets.tsx:58` |
+| timeline_problems | phone_concept_sheet | present | 탭: 개념 조회 FAB | — | `src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:303)` |
+| timeline_topic | phone_concept_sheet | present | 탭: 개념 조회 FAB | — | `src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:330)` |
+| search_problems | phone_answer_sheet | present | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:299 → src/phone/PhoneStudySheets.tsx:58` |
+| search_topic | phone_answer_sheet | present | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:327 → src/phone/PhoneStudySheets.tsx:58` |
+| search_problems | phone_concept_sheet | present | 탭: 개념 조회 FAB | — | `src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:303)` |
+| search_topic | phone_concept_sheet | present | 탭: 개념 조회 FAB | — | `src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:330)` |
+| chat_problems | phone_answer_sheet | present | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:299 → src/phone/PhoneStudySheets.tsx:58` |
+| chat_topic | phone_answer_sheet | present | 탭: 눈(해답) | — | `src/phone/PhoneScreens.tsx:327 → src/phone/PhoneStudySheets.tsx:58` |
+| chat_problems | phone_concept_sheet | present | 탭: 개념 조회 FAB | — | `src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:303)` |
+| chat_topic | phone_concept_sheet | present | 탭: 개념 조회 FAB | — | `src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:330)` |
+| diary_day | phone_answer_sheet | present | 탭: 답안 예시 | — | `src/phone/PhoneScreens.tsx:343 → src/phone/PhoneStudySheets.tsx:58` |
 | nav_root | tablet_launch | present | 앱 시작 | Android 태블릿만 | `src/ui/TabletLaunchOverlay.tsx:18 (app/_layout.tsx:47)` |
-| timeline_index | study_note_sheet | present | 탭: 학습장 | — | `src/phone/PhoneScreens.tsx:97 → src/agent/session.ts:119` |
+| timeline_index | study_note_sheet | present | 탭: 학습장 | — | `src/phone/PhoneScreens.tsx:115 → src/agent/session.ts:119` |
+| timeline_problems | study_note_sheet | present | 화면 나감(뒤로) → 앱이 바로 연다 | 개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음) | `src/phone/studyNoteOnLeave.ts:41 → :33` |
+| timeline_topic | study_note_sheet | present | 화면 나감(뒤로) → 앱이 바로 연다 | 개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음) | `src/phone/studyNoteOnLeave.ts:41 → :33` |
+| search_problems | study_note_sheet | present | 화면 나감(뒤로) → 앱이 바로 연다 | 개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음) | `src/phone/studyNoteOnLeave.ts:41 → :33` |
+| search_topic | study_note_sheet | present | 화면 나감(뒤로) → 앱이 바로 연다 | 개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음) | `src/phone/studyNoteOnLeave.ts:41 → :33` |
+| chat_problems | study_note_sheet | present | 화면 나감(뒤로) → 앱이 바로 연다 | 개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음) | `src/phone/studyNoteOnLeave.ts:41 → :33` |
+| chat_topic | study_note_sheet | present | 화면 나감(뒤로) → 앱이 바로 연다 | 개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음) | `src/phone/studyNoteOnLeave.ts:41 → :33` |
 | dock_timeline | study_note_sheet | present | 탭: 학습장 | — | `src/agent/tablet/TabletAgentLayer.tsx:125 → src/agent/session.ts:119` |
 | notebook | study_note_sheet | present | 화면 나감 → solve_finished → 에이전트 show_component(study_note) | 푼 문제 ≥1·에이전트가 응답할 때 (mockAgent로만 확인) | `src/host/useSolveFinished.ts:12 → src/agent/commandRouter.ts:92` |
 | topic_live | study_note_sheet | present | 화면 나감 → solve_finished → 에이전트 show_component(study_note) | 푼 문제 ≥1·에이전트가 응답할 때 (mockAgent로만 확인) | `src/host/useSolveFinished.ts:12 → src/agent/commandRouter.ts:92` |
@@ -776,12 +789,12 @@ flowchart TD
 | dock_profile | name_edit_modal | present | 탭: 이름 변경 | — | `src/kit/profile/ProfileActions.tsx:58` |
 | profile | pdf_viewer | present | 탭: 사서함 답변 | Phone: fullScreen | `src/kit/profile/MessageBoxPanel.tsx:148 (src/kit/ui/PdfViewerModal.tsx:41)` |
 | dock_profile | pdf_viewer | present | 탭: 사서함 답변 | Tablet: 투명 카드 | `src/kit/profile/MessageBoxPanel.tsx:148 (src/kit/ui/PdfViewerModal.tsx:62)` |
-| timeline_problems | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:204, :207` |
-| timeline_topic | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:204, :207` |
-| search_problems | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:204, :207` |
-| search_topic | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:204, :207` |
-| chat_problems | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:204, :207` |
-| chat_topic | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:204, :207` |
+| timeline_problems | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:247, :251` |
+| timeline_topic | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:247, :251` |
+| search_problems | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:247, :251` |
+| search_topic | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:247, :251` |
+| chat_problems | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:247, :251` |
+| chat_topic | upload_alert | present | 탭: 카메라 → 업로드 끝 | — | `src/phone/PhoneScreens.tsx:247, :251` |
 | diary_day | bookmark_alert | present | 탭: 책갈피 | — | `src/kit/diary/DailyRecordsList.tsx:100, :103` |
 | notebook | canvas_toolbar | present | 항상 표시 | — | `src/kit/canvas/CanvasChrome.tsx:95 (src/kit/canvas/note-canvas/notebook.tsx:162)` |
 | topic_live | canvas_toolbar | present | 항상 표시 | — | `src/kit/canvas/CanvasChrome.tsx:95 (src/kit/canvas/note-canvas/topic-live-canvas.tsx:694)` |
@@ -818,13 +831,15 @@ flowchart TD
 
 검증: 엣지 115개의 근거 `파일:라인`이 모두 실제 파일의 줄 범위 안에 있고, 첫 근거 줄이 빈 줄이나 주석인 엣지는 없다. `src/kit/ui/PdfViewerModal.web.tsx`는 웹 전용 변형이라 노드로 두지 않았다. 네 개 뷰의 Mermaid는 `@mermaid-js/mermaid-cli`로 오류 없이 SVG로 렌더링됐다(2026-11-10).
 
+2026-11-15 부분 갱신: 위 검증은 기준 커밋의 엣지 115개에 대한 것이다. 그 뒤 Phone 탭 결과 화면만 `main` @ `8491ce5`에 맞춰 고쳐 엣지는 123개가 됐고, `src/phone/` 파일을 근거로 하는 엣지만 줄 번호를 다시 확인했다. 나머지 엣지의 근거 줄은 기준 커밋 그대로다.
+
 ## 미확인/이슈 목록
 
 - **[orphan]** GlobalLoadingOverlay — app/_layout.tsx:45에 마운트돼 있지만 표시 조건인 beginBlocking()(src/state/blocking.ts:24)을 부르는 곳이 없다. 표시되지 않는 오버레이.
 - **[orphan]** 해설 팝업 Sheet ×2 — topic-live-canvas.tsx:651, hotline-class-canvas.tsx:672. 여는 콜백 setShowPopupModal(:161, :169)을 부르는 곳이 없고, topic-live-canvas.tsx:278은 POPUP 컷을 건너뛴다.
 - **[중첩]** Bottom Sheet 위 Modal — 캔버스의 개념 검색 시트(@gorhom BottomSheetModal) 안 ConceptLookupPanel이 개념 칩을 누르면 RN Modal을 띄운다(ConceptLookupPanel.tsx:172). 시트 → 모달 2단 중첩.
 - **[모드]** 캔버스 3화면은 Tablet에서만 진입 — /notebook, /topic-live-class, /hotline-class를 여는 코드는 Stage 위젯·태블릿 dock뿐이다(src/phone/PhoneScreens.tsx:6 주석: 폰에는 풀이 캔버스가 없다). 라우트 자체는 폰에서도 존재하므로 딥 링크로 들어오면 열릴 수 있다(미확인).
-- **[orphan]** /timeline/topic — History 탭에서 openTopic('timeline', …)을 부르는 곳이 없다(TimelineTabScreen은 openProblems만 부른다, src/phone/PhoneScreens.tsx:95). 라우트 파일은 있지만 앱 안 진입 경로가 없는 데드 라우트. 나가는 엣지(해답·뒤로)는 TopicResultScreen 공용 코드라 남겼다.
+- **[orphan]** /timeline/topic — History 탭에서 openTopic('timeline', …)을 부르는 곳이 없다(TimelineTabScreen은 openProblems만 부른다, src/phone/PhoneScreens.tsx:113). 라우트 파일은 있지만 앱 안 진입 경로가 없는 데드 라우트. 나가는 엣지(해답 시트·개념 조회 시트·학습장·뒤로)는 TopicResultScreen 공용 코드라 남겼다.
 - **[미확인]** 캔버스 나감 → 학습장 시트 — 앱은 solve_finished만 보낸다(useSolveFinished.ts:12). 시트를 띄우는 show_component(study_note)는 에이전트 응답이고, 코드에서 확인한 것은 src/agent/mockAgent.ts:93뿐이다. 실서버 동작은 미확인.
 - **[복귀]** 주제 실황 강의 미준비 — 토스트를 2.5초 띄운 뒤 자동으로 goBack한다(topic-live-class.tsx:102). 사용자 조작 없이 화면이 닫힌다.
 - **[복귀]** 캔버스 나가기 — router.canGoBack() ? back() : replace('/'). 진입점이 모두 태블릿 홈이라 돌아가는 곳은 홈(Stage 문제 목록 유지)이다.
@@ -832,7 +847,9 @@ flowchart TD
 - **[분류]** @gorhom BottomSheetModal 4개(해답·내 풀이·답안 예시 ×2, 개념 검색)은 backdropComponent를 주지 않아 backdrop이 없다 → blocking: false로 판정. 실제 기기에서 뒤 캔버스 터치가 통과하는지는 확인하지 않았다.
 - **[분류]** 학습장 시트는 @gorhom이 아니라 RN Modal + scrim + 아래 카드로 만든 자체 시트(SheetHost.tsx:31) → Bottom Sheet, blocking: true.
 - **[데드 코드]** 어디서도 import하지 않는 UI: AgentDrawer(src/agent/tablet/AgentDrawer.tsx), DrawerFooter 컴포넌트(타입만 사용), ScriptMessageToast(src/kit/ui/toast.tsx), QFlatlist(내부 토스트 포함), src/kit/canvas/note-canvas/topic-notebook.tsx(Sheet 팝업 2개 포함). 노드로 넣지 않았다.
-- **[공유]** SolutionResultScreen 한 컴포넌트가 4개 스택(timeline·search·chat·diary)의 해답 라우트로 재사용된다. 블록은 라우트마다 따로 그렸다.
+- **[공유]** 폰 해답 시트·개념 조회 시트 — useAnswerSheet·ConceptLookup(src/phone/PhoneStudySheets.tsx)을 결과 화면마다 따로 렌더한다(해답: 문제 목록·주제 문제·그날 풀이 기록, 개념: 문제 목록·주제 문제). 블록은 하나로 그렸다. 예전 해답 화면(SolutionResultScreen, /…/solution 라우트 4개)은 없어졌다.
+- **[분류]** 폰 시트 2개(해답·개념 조회)도 backdropComponent를 주지 않아 blocking: false로 판정했다. 실제 기기에서 뒤 목록 터치가 통과하는지는 확인하지 않았다.
+- **[미확인]** 폰 결과 화면 나감 → 학습장 시트 — 캔버스와 달리 solve_finished를 보내지 않고 앱이 showLocalSheet로 바로 연다(src/phone/studyNoteOnLeave.ts:33). 화면 언마운트 때 한 번 부르며, task가 없으면 ensureTaskId로 만든다. 실기기 동작은 미확인.
 - **[참고]** 탭 바 전환(History·검색·Diary·내 정보·Study Log)은 Tabs Navigator의 기본 동작이라 navigate 엣지로 그리지 않았다. Phone 탭 바는 결과 child 화면에서 숨는다(src/layout/fullScreenRoutes.ts).
 - **[익명]** default export가 익명인 라우트·컴포넌트는 없다.
 

@@ -3,7 +3,8 @@
     "commit": "76b99e3",
     "branch": "feat/study-note",
     "router": "expo-router",
-    "generatedAt": "2026-11-10"
+    "generatedAt": "2026-11-10",
+    "updated": "2026-11-15 · main @ 8491ce5 — Phone 탭 결과 화면만 갱신(해답 화면 → 해답 시트, 개념 조회 시트, 나갈 때 학습장, PhoneScreens.tsx 근거 줄)"
   },
   "nodes": [
     {
@@ -299,21 +300,6 @@
       "note": "TopicResultScreen tab=timeline. 이 탭에서 여는 코드 없음(이슈 참고)"
     },
     {
-      "id": "timeline_solution",
-      "kind": "screen",
-      "name": "해답",
-      "component": "SolutionResultScreen",
-      "file": "app/(main)/timeline/solution.tsx",
-      "route": "/timeline/solution",
-      "parent": "nav_timeline",
-      "blocking": null,
-      "modes": [
-        "phone"
-      ],
-      "orphan": false,
-      "note": "WebView"
-    },
-    {
       "id": "search_index",
       "kind": "screen",
       "name": "검색",
@@ -357,21 +343,6 @@
       ],
       "orphan": false,
       "note": "TopicResultScreen tab=search"
-    },
-    {
-      "id": "search_solution",
-      "kind": "screen",
-      "name": "해답",
-      "component": "SolutionResultScreen",
-      "file": "app/(main)/search/solution.tsx",
-      "route": "/search/solution",
-      "parent": "nav_search",
-      "blocking": null,
-      "modes": [
-        "phone"
-      ],
-      "orphan": false,
-      "note": "WebView"
     },
     {
       "id": "chat_index",
@@ -419,21 +390,6 @@
       "note": "TopicResultScreen tab=chat"
     },
     {
-      "id": "chat_solution",
-      "kind": "screen",
-      "name": "해답",
-      "component": "SolutionResultScreen",
-      "file": "app/(main)/chat/solution.tsx",
-      "route": "/chat/solution",
-      "parent": "nav_chat",
-      "blocking": null,
-      "modes": [
-        "phone"
-      ],
-      "orphan": false,
-      "note": "WebView"
-    },
-    {
       "id": "diary_index",
       "kind": "screen",
       "name": "Diary",
@@ -464,19 +420,34 @@
       "note": "DailyRecordsList"
     },
     {
-      "id": "diary_solution",
-      "kind": "screen",
-      "name": "답안 예시",
-      "component": "SolutionResultScreen",
-      "file": "app/(main)/diary/solution.tsx",
-      "route": "/diary/solution",
-      "parent": "nav_diary",
-      "blocking": null,
+      "id": "phone_answer_sheet",
+      "kind": "bottomsheet",
+      "name": "해답 시트 (폰)",
+      "component": "useAnswerSheet · PhoneSheet",
+      "file": "src/phone/PhoneStudySheets.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": false,
       "modes": [
         "phone"
       ],
       "orphan": false,
-      "note": "WebView"
+      "note": "@gorhom BottomSheetModal, snap 50·70·90%(70%로 열림), backdropComponent 없음. 문제 목록·주제 문제·그날 풀이 기록 화면이 각각 하나씩 렌더. Android 뒤로 가기는 시트만 닫는다"
+    },
+    {
+      "id": "phone_concept_sheet",
+      "kind": "bottomsheet",
+      "name": "개념 조회 시트 (폰)",
+      "component": "ConceptLookup · ConceptLookupPanel",
+      "file": "src/phone/PhoneStudySheets.tsx",
+      "route": null,
+      "parent": null,
+      "blocking": false,
+      "modes": [
+        "phone"
+      ],
+      "orphan": false,
+      "note": "@gorhom BottomSheetModal, snap 70·90%(90%로 열림), backdropComponent 없음. 문제 목록·주제 문제 화면 오른쪽 아래 FAB로 연다. 새로 고른 개념은 학습장 활동 기록에 남는다"
     },
     {
       "id": "study_note_sheet",
@@ -1147,14 +1118,6 @@
       "source": "app/(main)/timeline/_layout.tsx:9"
     },
     {
-      "from": "nav_timeline",
-      "to": "timeline_solution",
-      "rel": "contains",
-      "trigger": "파일 기반 child",
-      "condition": null,
-      "source": "app/(main)/timeline/_layout.tsx:9"
-    },
-    {
       "from": "nav_search",
       "to": "search_index",
       "rel": "contains",
@@ -1173,14 +1136,6 @@
     {
       "from": "nav_search",
       "to": "search_topic",
-      "rel": "contains",
-      "trigger": "파일 기반 child",
-      "condition": null,
-      "source": "app/(main)/search/_layout.tsx:9"
-    },
-    {
-      "from": "nav_search",
-      "to": "search_solution",
       "rel": "contains",
       "trigger": "파일 기반 child",
       "condition": null,
@@ -1211,14 +1166,6 @@
       "source": "app/(main)/chat/_layout.tsx:9"
     },
     {
-      "from": "nav_chat",
-      "to": "chat_solution",
-      "rel": "contains",
-      "trigger": "파일 기반 child",
-      "condition": null,
-      "source": "app/(main)/chat/_layout.tsx:9"
-    },
-    {
       "from": "nav_diary",
       "to": "diary_index",
       "rel": "contains",
@@ -1229,14 +1176,6 @@
     {
       "from": "nav_diary",
       "to": "diary_day",
-      "rel": "contains",
-      "trigger": "파일 기반 child",
-      "condition": null,
-      "source": "app/(main)/diary/_layout.tsx:9"
-    },
-    {
-      "from": "nav_diary",
-      "to": "diary_solution",
       "rel": "contains",
       "trigger": "파일 기반 child",
       "condition": null,
@@ -1384,7 +1323,7 @@
       "rel": "navigate",
       "trigger": "탭: 타임라인 task",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:95 → :65"
+      "source": "src/phone/PhoneScreens.tsx:113 → :67"
     },
     {
       "from": "search_index",
@@ -1392,7 +1331,7 @@
       "rel": "navigate",
       "trigger": "기출 검색 제출",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:113 → :65"
+      "source": "src/phone/PhoneScreens.tsx:131 → :67"
     },
     {
       "from": "search_index",
@@ -1400,7 +1339,7 @@
       "rel": "navigate",
       "trigger": "탭: 토픽",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:117 → :69"
+      "source": "src/phone/PhoneScreens.tsx:135 → :71"
     },
     {
       "from": "chat_index",
@@ -1408,7 +1347,7 @@
       "rel": "navigate",
       "trigger": "에이전트 show_component problem_list",
       "condition": "채팅 탭 포커스 중",
-      "source": "src/phone/PhoneScreens.tsx:175"
+      "source": "src/phone/PhoneScreens.tsx:193"
     },
     {
       "from": "chat_index",
@@ -1416,23 +1355,7 @@
       "rel": "navigate",
       "trigger": "에이전트 show_component problem_preview",
       "condition": "채팅 탭 포커스 중",
-      "source": "src/phone/PhoneScreens.tsx:176"
-    },
-    {
-      "from": "timeline_problems",
-      "to": "timeline_solution",
-      "rel": "navigate",
-      "trigger": "탭: 눈(해답)",
-      "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:216"
-    },
-    {
-      "from": "timeline_topic",
-      "to": "timeline_solution",
-      "rel": "navigate",
-      "trigger": "탭: 눈(해답)",
-      "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:216 (:253)"
+      "source": "src/phone/PhoneScreens.tsx:194"
     },
     {
       "from": "timeline_problems",
@@ -1440,7 +1363,7 @@
       "rel": "navigate",
       "trigger": "헤더 뒤로 (dismissTo)",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:194"
+      "source": "src/phone/PhoneScreens.tsx:218"
     },
     {
       "from": "timeline_topic",
@@ -1448,23 +1371,7 @@
       "rel": "navigate",
       "trigger": "헤더 뒤로 (dismissTo)",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:194"
-    },
-    {
-      "from": "search_problems",
-      "to": "search_solution",
-      "rel": "navigate",
-      "trigger": "탭: 눈(해답)",
-      "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:216"
-    },
-    {
-      "from": "search_topic",
-      "to": "search_solution",
-      "rel": "navigate",
-      "trigger": "탭: 눈(해답)",
-      "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:216 (:253)"
+      "source": "src/phone/PhoneScreens.tsx:218"
     },
     {
       "from": "search_problems",
@@ -1472,7 +1379,7 @@
       "rel": "navigate",
       "trigger": "헤더 뒤로 (dismissTo)",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:194"
+      "source": "src/phone/PhoneScreens.tsx:218"
     },
     {
       "from": "search_topic",
@@ -1480,23 +1387,7 @@
       "rel": "navigate",
       "trigger": "헤더 뒤로 (dismissTo)",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:194"
-    },
-    {
-      "from": "chat_problems",
-      "to": "chat_solution",
-      "rel": "navigate",
-      "trigger": "탭: 눈(해답)",
-      "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:216"
-    },
-    {
-      "from": "chat_topic",
-      "to": "chat_solution",
-      "rel": "navigate",
-      "trigger": "탭: 눈(해답)",
-      "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:216 (:253)"
+      "source": "src/phone/PhoneScreens.tsx:218"
     },
     {
       "from": "chat_problems",
@@ -1504,7 +1395,7 @@
       "rel": "navigate",
       "trigger": "헤더 뒤로 (dismissTo)",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:194"
+      "source": "src/phone/PhoneScreens.tsx:218"
     },
     {
       "from": "chat_topic",
@@ -1512,7 +1403,7 @@
       "rel": "navigate",
       "trigger": "헤더 뒤로 (dismissTo)",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:194"
+      "source": "src/phone/PhoneScreens.tsx:218"
     },
     {
       "from": "diary_index",
@@ -1520,15 +1411,111 @@
       "rel": "navigate",
       "trigger": "탭: 달력 날짜",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:139"
+      "source": "src/phone/PhoneScreens.tsx:157"
+    },
+    {
+      "from": "timeline_problems",
+      "to": "phone_answer_sheet",
+      "rel": "present",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:299 → src/phone/PhoneStudySheets.tsx:58"
+    },
+    {
+      "from": "timeline_topic",
+      "to": "phone_answer_sheet",
+      "rel": "present",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:327 → src/phone/PhoneStudySheets.tsx:58"
+    },
+    {
+      "from": "timeline_problems",
+      "to": "phone_concept_sheet",
+      "rel": "present",
+      "trigger": "탭: 개념 조회 FAB",
+      "condition": null,
+      "source": "src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:303)"
+    },
+    {
+      "from": "timeline_topic",
+      "to": "phone_concept_sheet",
+      "rel": "present",
+      "trigger": "탭: 개념 조회 FAB",
+      "condition": null,
+      "source": "src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:330)"
+    },
+    {
+      "from": "search_problems",
+      "to": "phone_answer_sheet",
+      "rel": "present",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:299 → src/phone/PhoneStudySheets.tsx:58"
+    },
+    {
+      "from": "search_topic",
+      "to": "phone_answer_sheet",
+      "rel": "present",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:327 → src/phone/PhoneStudySheets.tsx:58"
+    },
+    {
+      "from": "search_problems",
+      "to": "phone_concept_sheet",
+      "rel": "present",
+      "trigger": "탭: 개념 조회 FAB",
+      "condition": null,
+      "source": "src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:303)"
+    },
+    {
+      "from": "search_topic",
+      "to": "phone_concept_sheet",
+      "rel": "present",
+      "trigger": "탭: 개념 조회 FAB",
+      "condition": null,
+      "source": "src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:330)"
+    },
+    {
+      "from": "chat_problems",
+      "to": "phone_answer_sheet",
+      "rel": "present",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:299 → src/phone/PhoneStudySheets.tsx:58"
+    },
+    {
+      "from": "chat_topic",
+      "to": "phone_answer_sheet",
+      "rel": "present",
+      "trigger": "탭: 눈(해답)",
+      "condition": null,
+      "source": "src/phone/PhoneScreens.tsx:327 → src/phone/PhoneStudySheets.tsx:58"
+    },
+    {
+      "from": "chat_problems",
+      "to": "phone_concept_sheet",
+      "rel": "present",
+      "trigger": "탭: 개념 조회 FAB",
+      "condition": null,
+      "source": "src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:303)"
+    },
+    {
+      "from": "chat_topic",
+      "to": "phone_concept_sheet",
+      "rel": "present",
+      "trigger": "탭: 개념 조회 FAB",
+      "condition": null,
+      "source": "src/phone/PhoneStudySheets.tsx:75 (src/phone/PhoneScreens.tsx:330)"
     },
     {
       "from": "diary_day",
-      "to": "diary_solution",
-      "rel": "navigate",
+      "to": "phone_answer_sheet",
+      "rel": "present",
       "trigger": "탭: 답안 예시",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:278"
+      "source": "src/phone/PhoneScreens.tsx:343 → src/phone/PhoneStudySheets.tsx:58"
     },
     {
       "from": "nav_root",
@@ -1544,7 +1531,55 @@
       "rel": "present",
       "trigger": "탭: 학습장",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:97 → src/agent/session.ts:119"
+      "source": "src/phone/PhoneScreens.tsx:115 → src/agent/session.ts:119"
+    },
+    {
+      "from": "timeline_problems",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감(뒤로) → 앱이 바로 연다",
+      "condition": "개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음)",
+      "source": "src/phone/studyNoteOnLeave.ts:41 → :33"
+    },
+    {
+      "from": "timeline_topic",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감(뒤로) → 앱이 바로 연다",
+      "condition": "개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음)",
+      "source": "src/phone/studyNoteOnLeave.ts:41 → :33"
+    },
+    {
+      "from": "search_problems",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감(뒤로) → 앱이 바로 연다",
+      "condition": "개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음)",
+      "source": "src/phone/studyNoteOnLeave.ts:41 → :33"
+    },
+    {
+      "from": "search_topic",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감(뒤로) → 앱이 바로 연다",
+      "condition": "개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음)",
+      "source": "src/phone/studyNoteOnLeave.ts:41 → :33"
+    },
+    {
+      "from": "chat_problems",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감(뒤로) → 앱이 바로 연다",
+      "condition": "개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음)",
+      "source": "src/phone/studyNoteOnLeave.ts:41 → :33"
+    },
+    {
+      "from": "chat_topic",
+      "to": "study_note_sheet",
+      "rel": "present",
+      "trigger": "화면 나감(뒤로) → 앱이 바로 연다",
+      "condition": "개념 조회 또는 풀이 사진 업로드 · task가 없으면 만든다(실패하면 열지 않음)",
+      "source": "src/phone/studyNoteOnLeave.ts:41 → :33"
     },
     {
       "from": "dock_timeline",
@@ -1720,7 +1755,7 @@
       "rel": "present",
       "trigger": "탭: 카메라 → 업로드 끝",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:204, :207"
+      "source": "src/phone/PhoneScreens.tsx:247, :251"
     },
     {
       "from": "timeline_topic",
@@ -1728,7 +1763,7 @@
       "rel": "present",
       "trigger": "탭: 카메라 → 업로드 끝",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:204, :207"
+      "source": "src/phone/PhoneScreens.tsx:247, :251"
     },
     {
       "from": "search_problems",
@@ -1736,7 +1771,7 @@
       "rel": "present",
       "trigger": "탭: 카메라 → 업로드 끝",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:204, :207"
+      "source": "src/phone/PhoneScreens.tsx:247, :251"
     },
     {
       "from": "search_topic",
@@ -1744,7 +1779,7 @@
       "rel": "present",
       "trigger": "탭: 카메라 → 업로드 끝",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:204, :207"
+      "source": "src/phone/PhoneScreens.tsx:247, :251"
     },
     {
       "from": "chat_problems",
@@ -1752,7 +1787,7 @@
       "rel": "present",
       "trigger": "탭: 카메라 → 업로드 끝",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:204, :207"
+      "source": "src/phone/PhoneScreens.tsx:247, :251"
     },
     {
       "from": "chat_topic",
@@ -1760,7 +1795,7 @@
       "rel": "present",
       "trigger": "탭: 카메라 → 업로드 끝",
       "condition": null,
-      "source": "src/phone/PhoneScreens.tsx:204, :207"
+      "source": "src/phone/PhoneScreens.tsx:247, :251"
     },
     {
       "from": "diary_day",
@@ -1936,7 +1971,7 @@
     "[orphan] 해설 팝업 Sheet ×2 — topic-live-canvas.tsx:651, hotline-class-canvas.tsx:672. 여는 콜백 setShowPopupModal(:161, :169)을 부르는 곳이 없고, topic-live-canvas.tsx:278은 POPUP 컷을 건너뛴다.",
     "[중첩] Bottom Sheet 위 Modal — 캔버스의 개념 검색 시트(@gorhom BottomSheetModal) 안 ConceptLookupPanel이 개념 칩을 누르면 RN Modal을 띄운다(ConceptLookupPanel.tsx:172). 시트 → 모달 2단 중첩.",
     "[모드] 캔버스 3화면은 Tablet에서만 진입 — /notebook, /topic-live-class, /hotline-class를 여는 코드는 Stage 위젯·태블릿 dock뿐이다(src/phone/PhoneScreens.tsx:6 주석: 폰에는 풀이 캔버스가 없다). 라우트 자체는 폰에서도 존재하므로 딥 링크로 들어오면 열릴 수 있다(미확인).",
-    "[orphan] /timeline/topic — History 탭에서 openTopic('timeline', …)을 부르는 곳이 없다(TimelineTabScreen은 openProblems만 부른다, src/phone/PhoneScreens.tsx:95). 라우트 파일은 있지만 앱 안 진입 경로가 없는 데드 라우트. 나가는 엣지(해답·뒤로)는 TopicResultScreen 공용 코드라 남겼다.",
+    "[orphan] /timeline/topic — History 탭에서 openTopic('timeline', …)을 부르는 곳이 없다(TimelineTabScreen은 openProblems만 부른다, src/phone/PhoneScreens.tsx:113). 라우트 파일은 있지만 앱 안 진입 경로가 없는 데드 라우트. 나가는 엣지(해답 시트·개념 조회 시트·학습장·뒤로)는 TopicResultScreen 공용 코드라 남겼다.",
     "[미확인] 캔버스 나감 → 학습장 시트 — 앱은 solve_finished만 보낸다(useSolveFinished.ts:12). 시트를 띄우는 show_component(study_note)는 에이전트 응답이고, 코드에서 확인한 것은 src/agent/mockAgent.ts:93뿐이다. 실서버 동작은 미확인.",
     "[복귀] 주제 실황 강의 미준비 — 토스트를 2.5초 띄운 뒤 자동으로 goBack한다(topic-live-class.tsx:102). 사용자 조작 없이 화면이 닫힌다.",
     "[복귀] 캔버스 나가기 — router.canGoBack() ? back() : replace('/'). 진입점이 모두 태블릿 홈이라 돌아가는 곳은 홈(Stage 문제 목록 유지)이다.",
@@ -1944,7 +1979,9 @@
     "[분류] @gorhom BottomSheetModal 4개(해답·내 풀이·답안 예시 ×2, 개념 검색)은 backdropComponent를 주지 않아 backdrop이 없다 → blocking: false로 판정. 실제 기기에서 뒤 캔버스 터치가 통과하는지는 확인하지 않았다.",
     "[분류] 학습장 시트는 @gorhom이 아니라 RN Modal + scrim + 아래 카드로 만든 자체 시트(SheetHost.tsx:31) → Bottom Sheet, blocking: true.",
     "[데드 코드] 어디서도 import하지 않는 UI: AgentDrawer(src/agent/tablet/AgentDrawer.tsx), DrawerFooter 컴포넌트(타입만 사용), ScriptMessageToast(src/kit/ui/toast.tsx), QFlatlist(내부 토스트 포함), src/kit/canvas/note-canvas/topic-notebook.tsx(Sheet 팝업 2개 포함). 노드로 넣지 않았다.",
-    "[공유] SolutionResultScreen 한 컴포넌트가 4개 스택(timeline·search·chat·diary)의 해답 라우트로 재사용된다. 블록은 라우트마다 따로 그렸다.",
+    "[공유] 폰 해답 시트·개념 조회 시트 — useAnswerSheet·ConceptLookup(src/phone/PhoneStudySheets.tsx)을 결과 화면마다 따로 렌더한다(해답: 문제 목록·주제 문제·그날 풀이 기록, 개념: 문제 목록·주제 문제). 블록은 하나로 그렸다. 예전 해답 화면(SolutionResultScreen, /…/solution 라우트 4개)은 없어졌다.",
+    "[분류] 폰 시트 2개(해답·개념 조회)도 backdropComponent를 주지 않아 blocking: false로 판정했다. 실제 기기에서 뒤 목록 터치가 통과하는지는 확인하지 않았다.",
+    "[미확인] 폰 결과 화면 나감 → 학습장 시트 — 캔버스와 달리 solve_finished를 보내지 않고 앱이 showLocalSheet로 바로 연다(src/phone/studyNoteOnLeave.ts:33). 화면 언마운트 때 한 번 부르며, task가 없으면 ensureTaskId로 만든다. 실기기 동작은 미확인.",
     "[참고] 탭 바 전환(History·검색·Diary·내 정보·Study Log)은 Tabs Navigator의 기본 동작이라 navigate 엣지로 그리지 않았다. Phone 탭 바는 결과 child 화면에서 숨는다(src/layout/fullScreenRoutes.ts).",
     "[익명] default export가 익명인 라우트·컴포넌트는 없다."
   ]
