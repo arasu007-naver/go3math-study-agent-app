@@ -6,7 +6,7 @@
 
 import { useContext, FC, forwardRef, useEffect, useState, useRef, useImperativeHandle } from "react";
 import {
-    View, Dimensions,
+    View, useWindowDimensions,
 } from "react-native";
 import { WebView } from 'react-native-webview';
 import { useIsFocused } from '@react-navigation/native';
@@ -30,9 +30,10 @@ import {
     uploadSnapshotToStorage,
 } from './canvas-utils';
 
-const { width, height } = Dimensions.get('window');
 
 const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
+    // 창 크기는 렌더할 때의 값을 쓴다 — 캔버스 화면은 들어온 뒤 세로로 돌므로(app/_layout.tsx) import 시점 크기(가로)로 고정하면 안 된다
+    const { width, height } = useWindowDimensions();
     const { loaded, saveWorkout, saveMentorRequestShot, screenActions } = props;
     const webViewRef = useRef(null);
     const { state } = useContext(AppCtx);

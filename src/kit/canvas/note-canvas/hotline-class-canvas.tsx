@@ -8,7 +8,7 @@ import { useContext, FC, forwardRef, useEffect, useState, useRef, useMemo, useIm
 import {
     StatusBar,
     StyleSheet,
-    View, Image, Dimensions,
+    View, Image, useWindowDimensions,
     TouchableOpacity,
     FlatList,
     Text,
@@ -51,11 +51,12 @@ import type {
     LiveClassMessageContext,
 } from './script-maker';
 import MathJaxWrapper from '../../math/MathJaxWrapper'
-const { width, height } = Dimensions.get('window');
 const strokeWidths = [3, 4, 6, 9, 15, 24];
 const strokeColors = ['orange', 'blue', 'black', 'red', 'green']
 
 const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, topicUnits, onQuizReceived, screenActions }: any, ref) => {
+    // 창 크기는 렌더할 때의 값을 쓴다 — 캔버스 화면은 들어온 뒤 세로로 돌므로(app/_layout.tsx) import 시점 크기(가로)로 고정하면 안 된다
+    const { width, height } = useWindowDimensions();
     const webViewRef = useRef<any>(null);
     const webCanvasRef = useRef<any>(null);
     const { state, dispatch } = useContext(AppCtx);
