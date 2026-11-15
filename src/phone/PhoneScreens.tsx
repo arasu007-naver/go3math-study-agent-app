@@ -1,9 +1,10 @@
 /**
  * 폰 모드 화면 — 태블릿 ChatRail 항목이 하단 탭이 되고, 각 dock 내용이 그 탭의 첫 화면이 된다.
- * 검색·타임라인·채팅에서 연 결과(문제 목록·주제 문제·해답)는 그 탭 Stack의 child 화면으로 쌓인다(탭 바는 그대로).
+ * 검색·타임라인·채팅에서 연 결과(문제 목록·주제 문제)는 그 탭 Stack의 child 화면으로 쌓인다(탭 바는 그대로).
  * 학생 행동은 태블릿과 같은 이벤트로 에이전트에 알리지만(타임라인 기록), 폰은 결과 화면을 앱이 바로 연다.
- * 결과 화면의 문제 카드 아래 한 줄: 눈(해답 보기) · 카메라(풀이 스캔 업로드).
+ * 결과 화면의 문제 카드 아래 한 줄: 눈(해답 bottom modal) · 카메라(풀이 스캔 업로드).
  * 폰에는 풀이 캔버스가 없다 — 공책·연습장에 푼 풀이를 카메라로 찍어 올리는 것으로 대신하므로 연필 FAB(onSolve)를 넘기지 않는다.
+ * 그 자리에 개념 조회 FAB를 두고, 개념을 조회했거나 사진을 올린 뒤 나가면 학습장 시트를 띄운다(studyNoteOnLeave).
  */
 import { HeaderBackButton } from '@react-navigation/elements';
 import { useIsFocused } from '@react-navigation/native';
@@ -25,7 +26,6 @@ import { useStudyDataVersion } from '../state/studyData';
 import { logout } from '../auth/logout';
 import { useMyInfo } from '../auth/useMyInfo';
 import { MATH_TOPIC_SUBJECTS } from '../config/exam.constants';
-import { UNITANSWER } from '../config/api.constants';
 import { ensureTaskId, type TaskSpec } from '../adapters/ensureTask';
 import { notebookArgs, topicFetchers, topicSpec } from '../host/widgets';
 import { DailyRecordsList } from '../kit/diary/DailyRecordsList';
@@ -39,10 +39,11 @@ import { ProfileActions } from '../kit/profile/ProfileActions';
 import { ResearchPanel } from '../kit/research/ResearchPanel';
 import { TimelinePanel, describeTask, noteSheetProps } from '../kit/timeline/TimelinePanel';
 import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
-import QoollaWebView from '../kit/ui/web-view';
 import { apolloClient } from '../state/bootstrap';
 import { storage } from '../storage';
 import { colors } from '../ui/theme';
+import { ConceptLookup, useAnswerSheet } from './PhoneStudySheets';
+import { useStudyNoteOnLeave } from './studyNoteOnLeave';
 
 /** 결과 화면을 child로 쌓는 탭(각 탭 폴더의 Stack) */
 export type ResultTab = 'timeline' | 'search' | 'chat';
@@ -210,7 +211,7 @@ export function ChatTabScreen() {
 
 /**
  * 문제 목록·주제 문제의 '뒤로'는 늘 그 탭 첫 화면으로 돌아간다. 아래에 탭 첫 화면이 없을 때(재시작·리로드로 결과 화면에서 바로 열림)도
- * dismissTo가 탭 첫 화면으로 바꿔 준다. (해답 화면의 '뒤로'는 기본대로 문제 목록으로)
+ * dismissTo가 탭 첫 화면으로 바꿔 준다.
  */
 function backToTab(tab: ResultTab) {
   return function BackToTab({ tintColor }: { tintColor?: string }) {
@@ -220,24 +221,31 @@ function backToTab(tab: ResultTab) {
 
 /** 문제 카드 아래 해답·카메라 줄. 올리는 동안 카메라 자리에 스피너 */
 function SolutionRow({
-  tab,
   index,
   problem,
   taskId,
   spec,
+  onAnswer,
+  onUploaded,
 }: {
-  tab: ResultTab;
   index: number;
   problem: { sourceType: string; sourceId: number };
   taskId?: number;
   /** taskId가 없으면 풀이 사진을 올릴 때 이 spec으로 task를 만든다 */
   spec?: TaskSpec;
+  /** 눈 버튼: 해답 bottom modal을 연다 */
+  onAnswer(): void;
+  /** 풀이 사진을 올렸다(나갈 때 학습장을 띄운다) */
+  onUploaded(): void;
 }) {
   const [uploading, setUploading] = useState(false);
   const capture = async (target: SolutionTarget) => {
     setUploading(true);
     try {
-      if (await uploadSolution(target)) Alert.alert('풀이를 올렸어요', `${index + 1}번 문제 풀이 사진을 저장했어요.`);
+      if (await uploadSolution(target)) {
+        onUploaded();
+        Alert.alert('풀이를 올렸어요', `${index + 1}번 문제 풀이 사진을 저장했어요.`);
+      }
     } catch (e) {
       console.warn('[solution-photo]', e);
       Alert.alert('올리지 못했어요', '잠시 후 다시 시도해 주세요.');
@@ -249,7 +257,7 @@ function SolutionRow({
     <ProblemActionRow
       label={`${index + 1}번 문제`}
       uploading={uploading}
-      onAnswer={() => router.push(href(`/${tab}/solution`, { sourceType: problem.sourceType, sourceId: problem.sourceId }))}
+      onAnswer={onAnswer}
       onCamera={() =>
         void capture({
           sourceType: problem.sourceType,
@@ -267,6 +275,8 @@ export function ProblemsResultScreen({ tab }: { tab: ResultTab }) {
   const params = useLocalSearchParams<{ source: string; title?: string }>();
   const source = JSON.parse(params.source) as ProblemSource;
   const taskId = source.kind === 'task' ? source.taskId : undefined;
+  const answer = useAnswerSheet();
+  const leave = useStudyNoteOnLeave();
   return (
     <View style={styles.page}>
       <Stack.Screen options={{ title: params.title ?? '문제', headerLeft: backToTab(tab) }} />
@@ -278,9 +288,20 @@ export function ProblemsResultScreen({ tab }: { tab: ResultTab }) {
         }
         renderFooter={({ index, problem, set }) => {
           const [rowTaskId, , spec] = notebookArgs(source, set.problems);
-          return <SolutionRow tab={tab} index={index} problem={problem} taskId={rowTaskId} spec={spec} />;
+          // 나갈 때 띄울 학습장의 task(없으면 spec으로 만든다) — 문제 묶음을 받아야 spec이 정해진다
+          leave.setNote({
+            taskId: rowTaskId,
+            spec,
+            mode: source.kind === 'hotline' || source.kind === 'topic_live' ? 'live' : 'self',
+            title: params.title ?? set.title,
+          });
+          return (
+            <SolutionRow index={index} problem={problem} taskId={rowTaskId} spec={spec} onAnswer={() => answer.show(problem)} onUploaded={leave.markUploaded} />
+          );
         }}
       />
+      <ConceptLookup onAdded={leave.addConcepts} />
+      {answer.sheet}
     </View>
   );
 }
@@ -289,40 +310,38 @@ export function TopicResultScreen({ tab }: { tab: ResultTab }) {
   const { session } = useAgentSession();
   const params = useLocalSearchParams<{ topicId: string; title?: string }>();
   const topicId = Number(params.topicId);
+  const answer = useAnswerSheet();
+  const leave = useStudyNoteOnLeave();
+  const title = params.title;
+  useEffect(() => {
+    leave.setNote({ spec: topicSpec(topicId), mode: 'self', title: title ?? '주제', ...(title ? { topicHints: [title] } : {}) });
+  }, [leave, topicId, title]);
   return (
     <View style={styles.page}>
-      <Stack.Screen options={{ title: params.title ?? '주제', headerLeft: backToTab(tab) }} />
+      <Stack.Screen options={{ title: title ?? '주제', headerLeft: backToTab(tab) }} />
       <TopicUnitList
         fetchers={topicFetchers}
         topicId={topicId}
         onSelectUnit={({ unitIdx }) => session.emit('unit_selected', { topicId, unitIdx })}
-        renderFooter={({ unitIdx, unit }) => <SolutionRow tab={tab} index={unitIdx} problem={unit} spec={topicSpec(topicId)} />}
+        renderFooter={({ unitIdx, unit }) => (
+          <SolutionRow index={unitIdx} problem={unit} spec={topicSpec(topicId)} onAnswer={() => answer.show(unit)} onUploaded={leave.markUploaded} />
+        )}
       />
+      <ConceptLookup onAdded={leave.addConcepts} />
+      {answer.sheet}
     </View>
   );
 }
 
-export function SolutionResultScreen() {
-  const { sourceType, sourceId } = useLocalSearchParams<{ sourceType: string; sourceId: string }>();
-  return (
-    <View style={styles.page}>
-      <Stack.Screen options={{ title: '해답' }} />
-      <QoollaWebView originWhitelist={['*']} source={{ uri: UNITANSWER(sourceType, sourceId)! }} />
-    </View>
-  );
-}
-
-/** Diary 탭 child: 달력에서 누른 날의 풀이 기록(기존 DailyRecordsViewPage). '답안 예시'는 이 탭의 해답 화면으로 */
+/** Diary 탭 child: 달력에서 누른 날의 풀이 기록(기존 DailyRecordsViewPage). '답안 예시'는 해답 bottom modal로 */
 export function DiaryDayScreen() {
   const { day } = useLocalSearchParams<{ day: string }>();
+  const answer = useAnswerSheet();
   return (
     <View style={styles.page}>
       <Stack.Screen options={{ title: `${day} 일자` }} />
-      <DailyRecordsList
-        fetchers={recordFetchers}
-        day={day}
-        onShowAnswer={(r) => router.push(href('/diary/solution', { sourceType: r.sourceType, sourceId: r.sourceId }))}
-      />
+      <DailyRecordsList fetchers={recordFetchers} day={day} onShowAnswer={(r) => answer.show(r)} />
+      {answer.sheet}
     </View>
   );
 }
