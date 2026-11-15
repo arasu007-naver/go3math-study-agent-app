@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 // 개념 설명 렌더러 대역: 넘겨받은 제목|설명을 글자로 보인다
 jest.mock('../src/kit/math/MathJaxWrapper', () => {
@@ -12,6 +12,7 @@ import { createProblemListFetchers } from '../src/adapters/problemListFetchers';
 import { getMemberMathPreExams, getUnitsOfMathCollection } from '../src/api/rest';
 import { BookmarksPanel, ProblemListPanel, type ProblemListFetchers } from '../src/kit/problem-list/ProblemListPanel';
 import { authStore } from '../src/state/auth';
+import { notifyOverlayOpened } from '../src/state/overlays';
 import { colors } from '../src/ui/theme';
 
 jest.mock('react-native-mmkv', () => ({ createMMKV: () => ({ getString: () => undefined, set: () => {}, remove: () => {} }) }));
@@ -278,6 +279,18 @@ describe('ProblemListPanel selection border and buttons', () => {
     // 2번 '책갈피' -> 2번이 현재 문제가 되므로 1번 해답 말풍선은 닫힌다
     fireEvent.press(screen.getAllByText('책갈피')[1]);
     await waitFor(() => expect(screen.getByLabelText('2번 문제').props.accessibilityState.selected).toBe(true));
+    expect(screen.queryByTestId('answer-bubble')).toBeNull();
+  });
+
+  it('closes the answer bubble when a dock or toast opens over the stage', async () => {
+    const fetchers: ProblemListFetchers = { fetchProblems: jest.fn(async () => ({ title: '📝 문제 목록', problems })) };
+    await render(<ProblemListPanel fetchers={fetchers} source={{ kind: 'task', taskId: 1 }} onSelectProblem={jest.fn()} />);
+    await waitFor(() => expect(screen.getByText('📝 문제 목록')).toBeTruthy());
+
+    fireEvent.press(screen.getAllByText('해답')[0]);
+    await waitFor(() => expect(screen.getByTestId('answer-bubble')).toBeTruthy());
+
+    await act(async () => notifyOverlayOpened());
     expect(screen.queryByTestId('answer-bubble')).toBeNull();
   });
 

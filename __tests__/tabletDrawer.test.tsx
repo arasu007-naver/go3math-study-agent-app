@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { initialRouterState } from '../src/agent/commandRouter';
 import type { SessionSnapshot } from '../src/agent/session';
 import { TabletAgentLayer } from '../src/agent/TabletAgentLayer';
+import { overlayStore } from '../src/state/overlays';
 
 jest.mock('react-native-mmkv', () => ({ createMMKV: () => ({ getString: () => undefined, set: () => {}, remove: () => {} }) }));
 jest.mock('../src/state/bootstrap', () => ({ apolloClient: { query: jest.fn(() => new Promise(() => {})) } }));
@@ -102,5 +103,20 @@ describe('TabletAgentLayer Study Log pinned instruction', () => {
     await act(async () => r.rerender(<TabletAgentLayer state={{ ...base, instruction: say('m1') as any }} session={session} />));
     expect(screen.getByLabelText('에이전트 열기')).toBeTruthy();
     expect(screen.queryByText('안내')).not.toBeNull(); // toast 본문
+  });
+});
+
+describe('TabletAgentLayer overlay notice (closes the stage answer bubble)', () => {
+  it('counts each newly opened dock and each new toast', async () => {
+    const r = await render(<TabletAgentLayer state={base} session={session} />);
+    await fireEvent.press(screen.getByLabelText('Study dock 닫기'));
+    const closed = overlayStore.getState();
+
+    await fireEvent.press(screen.getByLabelText('내 정보'));
+    expect(overlayStore.getState()).toBe(closed + 1);
+
+    await act(async () => r.rerender(<TabletAgentLayer state={{ ...base, instruction: say('m1') as any }} session={session} />));
+    expect(screen.getByLabelText('에이전트 열기')).toBeTruthy();
+    expect(overlayStore.getState()).toBe(closed + 2);
   });
 });

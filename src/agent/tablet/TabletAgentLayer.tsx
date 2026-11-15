@@ -18,6 +18,7 @@ import { ProfileActions } from '../../kit/profile/ProfileActions';
 import { ResearchPanel } from '../../kit/research/ResearchPanel';
 import { TimelinePanel, noteSheetProps } from '../../kit/timeline/TimelinePanel';
 import { apolloClient } from '../../state/bootstrap';
+import { notifyOverlayOpened } from '../../state/overlays';
 import { useStudyDataVersion } from '../../state/studyData';
 import { storage } from '../../storage';
 import { layout, motion } from '../../ui/theme';
@@ -98,6 +99,16 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
     const fromDiary = (stage?.props.source as { kind?: string } | undefined)?.kind === 'list';
     if (stage && !fromDiary && (stage.componentId === 'problem_list' || stage.componentId === 'problem_preview')) setDock(null);
   }, [stage]);
+
+  // dock이 새로 열리거나(다른 dock으로 바뀌는 것 포함) toast가 새로 뜨면 알린다 — Stage 문제 목록이 해답 말풍선을 닫는다
+  const toastShown = !!toastFor && ins?.messageId === toastFor && !(chatShown && awaitsAnswer(ins));
+  const toastId = toastShown ? toastFor : null;
+  useEffect(() => {
+    if (dock) notifyOverlayOpened();
+  }, [dock]);
+  useEffect(() => {
+    if (toastId) notifyOverlayOpened();
+  }, [toastId]);
 
   const openChat = () => {
     autoOpened.current = false;
@@ -189,7 +200,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
         </DockWrapper>
       )}
 
-      {toastFor && ins?.messageId === toastFor && !(chatShown && awaitsAnswer(ins)) && (
+      {toastShown && ins && (
         <Toast
           title={ins.source === 'tutor' ? '튜터 메시지' : '에이전트'}
           text={toastPreview(ins.text)}

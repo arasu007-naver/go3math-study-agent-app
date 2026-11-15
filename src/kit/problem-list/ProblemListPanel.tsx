@@ -11,6 +11,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, useWi
 import { ADD_BOOKMARK, REMOVE_BOOKMARK } from '../../api/graphql/mutations';
 import { UNITANSWER } from '../../config/api.constants';
 import { apolloClient } from '../../state/bootstrap';
+import { useOverlayOpenCount } from '../../state/overlays';
 import { Button } from '../../ui/Button';
 import { colors } from '../../ui/theme';
 import { ConceptStatement, isConceptType, type ConceptBody } from '../concepts/ConceptStatement';
@@ -123,6 +124,12 @@ export function ProblemListPanel({
   useEffect(() => {
     setAnswer((prev) => (prev && prev.itemKey !== selectedKey ? null : prev));
   }, [selectedKey]);
+
+  // 태블릿에서 dock이 새로 열리거나 toast가 새로 뜨면 해답 말풍선을 닫는다(말풍선이 그 위에 겹쳐 보이지 않게)
+  const overlayOpenCount = useOverlayOpenCount();
+  useEffect(() => {
+    setAnswer(null);
+  }, [overlayOpenCount]);
 
   const isBookmarkList =
     source.kind === 'bookmarks' ||
