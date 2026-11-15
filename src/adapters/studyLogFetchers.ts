@@ -1,6 +1,6 @@
 // kit/study-log 포트의 구현 — Java API(api-v3) 학습장 목록·돌아보기. GraphQL에는 같은 조회가 없어 대체 경로가 없다.
 import { apiV3 } from '../api/rest/apiV3';
-import type { ReviewActivity, StudyLogFetchers, StudyNoteListItem } from '../kit/study-log/model';
+import { REVIEW_TYPES, type ReviewActivity, type StudyLogFetchers, type StudyNoteListItem } from '../kit/study-log/model';
 import { authStore } from '../state/auth';
 
 function token(): string {
@@ -21,7 +21,11 @@ export function createStudyLogFetchers(): StudyLogFetchers {
         `/api/study-notes/${taskId}/activities`,
         token(),
       );
-      return (res?.activities ?? []).map((a) => ({ ...a, type: a.type === 'QUIZ_ANSWER' ? 'QUIZ_ANSWER' : 'SOLUTION_UPLOAD' }));
+      // type이 없으면(옛 응답) 풀이 업로드, 모르는 type은 뺀다
+      return (res?.activities ?? []).flatMap((a): ReviewActivity[] => {
+        const t = a.type ?? 'SOLUTION_UPLOAD';
+        return (REVIEW_TYPES as readonly string[]).includes(t) ? [{ ...a, type: t as ReviewActivity['type'] }] : [];
+      });
     },
   };
 }

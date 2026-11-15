@@ -11,11 +11,17 @@ export type StudyNoteListItem = {
   title?: string | null;
 };
 
-/** GET /api/study-notes/{taskId}/activities 한 줄. 옛 응답엔 type이 없다 → 풀이 업로드 */
+export const REVIEW_TYPES = ['SOLUTION_UPLOAD', 'QUIZ_ANSWER', 'QUIZ_SENT'] as const;
+
+/**
+ * GET /api/study-notes/{taskId}/activities 한 줄 — 서버가 user_action_log(풀이 저장·퀴즈 답)와 quiz_log(선생님이 보낸 퀴즈)를 합쳐 시각순으로 준다.
+ * 옛 응답엔 type이 없다 → 풀이 업로드. 선생님 퀴즈(QUIZ_SENT)는 사진 없이 content(퀴즈 내용)를 준다.
+ */
 export type ReviewActivity = {
   id: number;
-  type: 'SOLUTION_UPLOAD' | 'QUIZ_ANSWER';
-  imageUrl: string;
+  type: (typeof REVIEW_TYPES)[number];
+  imageUrl?: string | null;
+  content?: string | null;
   /** 오프셋 없는 KST 문자열 yyyy-MM-ddTHH:mm:ss */
   createdAt: string;
   quizId?: number;

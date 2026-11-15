@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import type { StudyLogFetchers, StudyNoteListItem } from '../src/kit/study-log/model';
 
+jest.mock('react-native-webview', () => ({ WebView: () => null }));
 jest.mock('@openspacelabs/react-native-zoomable-view', () => ({ ReactNativeZoomableView: ({ children }: any) => children }));
 
 import { StudyNoteReviewList } from '../src/kit/study-log/StudyNoteReviewList';
@@ -20,6 +21,7 @@ function makeFetchers(over: Partial<StudyLogFetchers> = {}): jest.Mocked<StudyLo
   return {
     listNotes: jest.fn().mockResolvedValue([item()]),
     listActivities: jest.fn().mockResolvedValue([
+      { id: 3, type: 'QUIZ_SENT', content: '\\(x^2\\) 의 값은?', createdAt: '2026-11-14T14:00:00', quizId: 9 },
       { id: 1, type: 'SOLUTION_UPLOAD', imageUrl: 'a.png', createdAt: '2026-11-14T14:02:00' },
       { id: 2, type: 'QUIZ_ANSWER', imageUrl: 'b.png', createdAt: '2026-11-14T14:20:00', quizId: 9 },
     ]),
@@ -82,6 +84,10 @@ describe('StudyNoteReviewList', () => {
     expect(f.listActivities).toHaveBeenCalledWith(4);
     expect(screen.getByText('풀이 업로드')).toBeTruthy();
     expect(screen.getByText('퀴즈 답')).toBeTruthy();
+    expect(screen.getByText('선생님 퀴즈')).toBeTruthy();
+    expect(screen.getByText(/의 값은\?/)).toBeTruthy();
+    // 사진은 풀이 업로드·퀴즈 답 두 개만(선생님 퀴즈는 사진 없음)
+    expect(screen.getAllByRole('imagebutton')).toHaveLength(2);
     expect(screen.getByRole('button', { name: '주제 실황 수업 돌아보기' }).props.accessibilityState.expanded).toBe(true);
     expect(f.listActivities).toHaveBeenCalledTimes(1);
   });
@@ -105,6 +111,6 @@ describe('StudyNoteReviewList', () => {
     await fireEvent.press(await screen.findByRole('button', { name: '주제 실황 수업 돌아보기' }));
     await waitFor(() => expect(screen.getByText('불러오지 못했어요')).toBeTruthy());
     await fireEvent.press(screen.getByRole('button', { name: '다시 시도' }));
-    await waitFor(() => expect(screen.getByText('이 학습에서 올린 풀이가 없어요')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('이 학습의 기록이 없어요')).toBeTruthy());
   });
 });

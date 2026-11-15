@@ -19,7 +19,7 @@ import { createProfileEditors } from '../adapters/profileEditors';
 import { createRecordFetchers } from '../adapters/recordFetchers';
 import { createSolutionPhotoUploader, type SolutionTarget } from '../adapters/solutionPhoto';
 import { createTimelineFetchers } from '../adapters/timelineFetchers';
-import { StudyLogPanel, initialTab, type StudyLogTab } from '../agent/StudyLogPanel';
+import { StudyLogPanel } from '../agent/StudyLogPanel';
 import { useAgentSession } from '../agent/useAgentSession';
 import { useStudyDataVersion } from '../state/studyData';
 import { logout } from '../auth/logout';
@@ -193,35 +193,11 @@ export function ChatTabScreen() {
     else if (stage.componentId === 'problem_preview') openTopic('chat', Number(stage.props.topicId));
   }, [stage, focused]);
 
-  // 탭이 보일 때마다 답할 안내가 있으면 메시지, 아니면 이번 주 학습장으로 연다
-  const [tab, setTab] = useState<StudyLogTab>(() => initialTab(state.instruction, false));
-  const [unread, setUnread] = useState(false);
-  const ins = state.instruction;
-  useEffect(() => {
-    if (!focused) return;
-    setTab(initialTab(ins, false));
-    setUnread(false);
-    // 포커스가 바뀔 때만 고른다(보는 중에 온 안내는 아래에서 점으로 알린다)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focused]);
-  // 학습장 탭을 보는 중에 온 새 안내는 탭을 바꾸지 않고 메시지 탭에 점을 켠다
-  const seen = useRef(ins?.messageId);
-  useEffect(() => {
-    if (!ins || seen.current === ins.messageId) return;
-    seen.current = ins.messageId;
-    if (tab === 'notes') setUnread(true);
-  }, [ins, tab]);
   const refreshKey = useTabRefreshKey();
 
   return (
     <TabPage>
       <StudyLogPanel
-        tab={tab}
-        onTab={(t) => {
-          if (t === 'messages') setUnread(false);
-          setTab(t);
-        }}
-        messagesUnread={unread}
         state={state}
         session={session}
         refreshKey={refreshKey}

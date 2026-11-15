@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Image, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Zoomable } from '../diary/DailyRecordsList';
+import { cleanMathText } from '../math/MathJaxWrapper';
 import { SkeletonCards } from '../ui/SkeletonCards';
 import { describeNote, describeTask } from '../timeline/TimelinePanel';
 import { Button, buttonLook } from '../../ui/Button';
@@ -21,7 +22,7 @@ const CARD_TYPES = ['selection', 'collection', 'topic', 'topic-live', 'hotline',
 
 type Uploads = { status: 'loading' } | { status: 'failed' } | { status: 'done'; items: ReviewActivity[] };
 
-const KIND_LABEL: Record<ReviewActivity['type'], string> = { SOLUTION_UPLOAD: '풀이 업로드', QUIZ_ANSWER: '퀴즈 답' };
+const KIND_LABEL: Record<ReviewActivity['type'], string> = { SOLUTION_UPLOAD: '풀이 업로드', QUIZ_ANSWER: '퀴즈 답', QUIZ_SENT: '선생님 퀴즈' };
 
 export function cardTitle(item: StudyNoteListItem, topicTitle?: string | null): string {
   if (item.title) return item.title;
@@ -193,7 +194,7 @@ function UploadList({ state, onRetry, onView }: { state: Uploads | undefined; on
       </View>
     );
   }
-  if (state.items.length === 0) return <Text style={styles.muted}>이 학습에서 올린 풀이가 없어요</Text>;
+  if (state.items.length === 0) return <Text style={styles.muted}>이 학습의 기록이 없어요</Text>;
   return (
     <View style={styles.uploads}>
       {state.items.map((a) => (
@@ -201,10 +202,17 @@ function UploadList({ state, onRetry, onView }: { state: Uploads | undefined; on
           <View style={styles.uploadText}>
             <Text style={styles.uploadKind}>{KIND_LABEL[a.type]}</Text>
             <Text style={styles.muted}>{kstLabel(a.createdAt)}</Text>
+            {a.content ? (
+              <Text style={styles.quiz} numberOfLines={3}>
+                {cleanMathText(a.content)}
+              </Text>
+            ) : null}
           </View>
-          <Pressable accessibilityRole="imagebutton" accessibilityLabel={`${KIND_LABEL[a.type]} 크게 보기`} onPress={() => onView(a.imageUrl)}>
-            <Image source={{ uri: a.imageUrl }} style={styles.thumb} resizeMode="cover" />
-          </Pressable>
+          {a.imageUrl ? (
+            <Pressable accessibilityRole="imagebutton" accessibilityLabel={`${KIND_LABEL[a.type]} 크게 보기`} onPress={() => onView(a.imageUrl!)}>
+              <Image source={{ uri: a.imageUrl }} style={styles.thumb} resizeMode="cover" />
+            </Pressable>
+          ) : null}
         </View>
       ))}
     </View>
@@ -240,6 +248,7 @@ const styles = StyleSheet.create({
   upload: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.cardMuted, borderRadius: radius.md, padding: space.sm },
   uploadText: { flex: 1, gap: space.xxs },
   uploadKind: { ...type.bodyStrong, color: colors.text },
+  quiz: { ...type.body, color: colors.subtle },
   thumb: { width: THUMB, height: THUMB, borderRadius: radius.sm, backgroundColor: colors.card },
   muted: { ...type.body, color: colors.muted },
   failedRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },

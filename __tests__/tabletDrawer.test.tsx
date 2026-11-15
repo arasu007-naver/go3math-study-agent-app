@@ -55,7 +55,7 @@ describe('TabletAgentLayer chat and problem lists', () => {
     await fireEvent.press(screen.getByLabelText('Study dock 닫기'));
 
     // 1) 안내 → 문제 목록 (mock 에이전트 순서)
-    let s: SessionSnapshot = { ...base, instruction: say('m1') as any };
+    let s: SessionSnapshot = { ...base, instruction: { ...say('m1'), requiresResponse: true } as any };
     await act(async () => r.rerender(<TabletAgentLayer state={s} session={session} />));
     expect(chatOpen()).toBe(true);
     s = { ...s, stage: { componentId: 'problem_list', props: { source: { kind: 'task', taskId: 1 } } } };
@@ -65,7 +65,7 @@ describe('TabletAgentLayer chat and problem lists', () => {
     // 2) 문제 목록이 떠 있는 채로 채팅을 다시 열고 다른 기록의 '가자' → 같은 problem_list가 새 props로
     await fireEvent.press(screen.getByLabelText('채팅'));
     expect(chatOpen()).toBe(true);
-    s = { ...s, instruction: say('m2') as any };
+    s = { ...s, instruction: { ...say('m2'), requiresResponse: true } as any };
     await act(async () => r.rerender(<TabletAgentLayer state={s} session={session} />));
     s = { ...s, stage: { componentId: 'problem_list', props: { source: { kind: 'task', taskId: 2 } } } };
     await act(async () => r.rerender(<TabletAgentLayer state={s} session={session} />));
@@ -73,33 +73,34 @@ describe('TabletAgentLayer chat and problem lists', () => {
   });
 });
 
-describe('TabletAgentLayer Study Log tabs', () => {
-  const ask = (messageId: string) => ({ ...say(messageId), requiresResponse: true });
-  const selectedTab = () => screen.getAllByRole('tab').find((t) => t.props.accessibilityState?.selected)?.props.accessibilityLabel;
+describe('TabletAgentLayer Study Log pinned instruction', () => {
+  const ask = (messageId: string) => ({ ...say(messageId), text: '다음 문제로 갈까요?', requiresResponse: true });
 
-  it('opens on 이번 주 학습장 when nothing needs an answer', async () => {
-    await render(<TabletAgentLayer state={base} session={session} />);
-    await fireEvent.press(screen.getByLabelText('채팅'));
-    expect(selectedTab()).toBe('이번 주 학습장');
-  });
-
-  it('opens on 메시지 when an instruction awaits an answer', async () => {
+  it('opens the dock with the instruction pinned when one needs an answer, and closes it when the instruction clears', async () => {
     const r = await render(<TabletAgentLayer state={base} session={session} />);
+    await fireEvent.press(screen.getByLabelText('Study dock 닫기'));
     await act(async () => r.rerender(<TabletAgentLayer state={{ ...base, instruction: ask('m1') as any }} session={session} />));
-    await fireEvent.press(screen.getByLabelText('에이전트 열기'));
-    expect(selectedTab()).toBe('메시지');
+    expect(chatOpen()).toBe(true);
+    expect(screen.getByText('다음 문제로 갈까요?')).toBeTruthy();
+    await act(async () => r.rerender(<TabletAgentLayer state={base} session={session} />));
+    expect(chatOpen()).toBe(false);
   });
 
-  it('keeps the notes tab when a new instruction arrives, marking 메시지 unread, and stays open when it clears', async () => {
+  it('pins a new instruction in an open dock without a toast, and keeps a dock the student opened', async () => {
     const r = await render(<TabletAgentLayer state={base} session={session} />);
     await fireEvent.press(screen.getByLabelText('채팅'));
     await act(async () => r.rerender(<TabletAgentLayer state={{ ...base, instruction: ask('m1') as any }} session={session} />));
-    expect(selectedTab()).toBe('이번 주 학습장');
-    expect(screen.getByLabelText('메시지 (읽지 않은 메시지 있음)')).toBeTruthy();
-    expect(screen.getByLabelText('에이전트 열기')).toBeTruthy(); // toast
+    expect(screen.getByText('다음 문제로 갈까요?')).toBeTruthy();
+    expect(screen.queryByLabelText('에이전트 열기')).toBeNull();
     await act(async () => r.rerender(<TabletAgentLayer state={base} session={session} />));
     expect(chatOpen()).toBe(true);
-    await fireEvent.press(screen.getByLabelText('메시지 (읽지 않은 메시지 있음)'));
-    expect(selectedTab()).toBe('메시지'); // 메시지 탭을 보면 점이 꺼진다
+  });
+
+  it('a message that needs no answer is a toast, not pinned', async () => {
+    const r = await render(<TabletAgentLayer state={base} session={session} />);
+    await fireEvent.press(screen.getByLabelText('채팅'));
+    await act(async () => r.rerender(<TabletAgentLayer state={{ ...base, instruction: say('m1') as any }} session={session} />));
+    expect(screen.getByLabelText('에이전트 열기')).toBeTruthy();
+    expect(screen.queryByText('안내')).not.toBeNull(); // toast 본문
   });
 });

@@ -23,7 +23,7 @@ import { storage } from '../../storage';
 import { layout, motion } from '../../ui/theme';
 import { Toast } from '../../ui/toast/Toast';
 import { DockWrapper } from '../DockWrapper';
-import { StudyLogPanel, initialTab, type StudyLogTab } from '../StudyLogPanel';
+import { StudyLogPanel, awaitsAnswer } from '../StudyLogPanel';
 import type { AgentSession, SessionSnapshot } from '../session';
 import { ChatRail, RAIL_W } from './ChatRail';
 import type { DockKind } from './DrawerFooter';
@@ -57,40 +57,37 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   const studyVersion = useStudyDataVersion();
   const [toastFor, setToastFor] = useState<string | null>(null);
   const [unread, setUnread] = useState(false);
-  const [chatTab, setChatTab] = useState<StudyLogTab>('notes');
+  // 안내 때문에 Study Log 독이 저절로 열렸는지 — 그 안내가 사라지면 닫는다(학생이 직접 연 독은 그대로)
+  const autoOpened = useRef(false);
   const seen = useRef<string | null>(null);
 
   const stageId = state.stage?.componentId;
   const problemStage = stageId === 'problem_list' || stageId === 'problem_preview';
   const chatShown = dock === 'chat';
 
-  // 새 instruction 도착 시: 채팅 dock이 열려 있으면 그대로 보인다. 다른 dock이 열려 있거나 응답이 필요 없는 튜터 메시지 → toast,
-  // 그 밖(응답 필요·기본 흐름)은 채팅 dock을 바로 연다. Stage에 문제 목록이 떠 있는 동안은 응답이 필요 없는 안내도 toast로(문제를 가리지 않게).
+  // 새 instruction 도착 시: 답해야 할 안내는 Study Log 독 맨 위에 고정된다 — 독이 열려 있으면 그대로 보이고, 닫혀 있으면 독을 연다.
+  // 다른 dock이 열려 있거나, 답이 필요 없는 메시지거나, Stage에 문제 목록이 떠 있으면(문제를 가리지 않게) toast.
   useEffect(() => {
     if (!ins || seen.current === ins.messageId) return;
     seen.current = ins.messageId;
-    // 메시지 탭이 보이면 그대로 보인다. 학습장 탭을 보는 중이면 탭을 바꾸지 않고(보던 카드를 잃지 않게) toast + 메시지 탭 점
-    if (dock === 'chat' && chatTab === 'messages') return;
-    if (dock === 'chat') {
-      setToastFor(ins.messageId);
-      setUnread(true);
-      return;
-    }
-    if (dock !== null || (!ins.requiresResponse && (ins.source === 'tutor' || problemStage))) {
+    const answer = awaitsAnswer(ins);
+    if (dock === 'chat' && answer) return;
+    if (dock !== null || !answer || (!ins.requiresResponse && (ins.source === 'tutor' || problemStage))) {
       setToastFor(ins.messageId);
       setUnread(true);
     } else {
-      setChatTab('messages');
+      autoOpened.current = true;
       setDock('chat');
     }
-  }, [ins, problemStage, dock, chatTab]);
+  }, [ins, problemStage, dock]);
 
-  // instruction이 사라지면 채팅 dock을 닫는다 — 학습장 탭을 보고 있으면 닫지 않는다
+  // instruction이 사라지면, 그 안내 때문에 저절로 열린 Study Log 독을 닫는다
   const prevIns = useRef(ins);
-  const chatTabRef = useRef(chatTab);
-  chatTabRef.current = chatTab;
   useEffect(() => {
-    if (prevIns.current && !ins && chatTabRef.current === 'messages') setDock((d) => (d === 'chat' ? null : d));
+    if (prevIns.current && !ins && autoOpened.current) {
+      autoOpened.current = false;
+      setDock((d) => (d === 'chat' ? null : d));
+    }
     prevIns.current = ins;
   }, [ins]);
 
@@ -103,20 +100,15 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
   }, [stage]);
 
   const openChat = () => {
-    const tab = initialTab(ins, unread);
+    autoOpened.current = false;
     setToastFor(null);
-    if (tab === 'messages') setUnread(false);
-    setChatTab(tab);
+    setUnread(false);
     setDock('chat');
-  };
-
-  const changeChatTab = (tab: StudyLogTab) => {
-    if (tab === 'messages') setUnread(false);
-    setChatTab(tab);
   };
 
   const toggleDock = (kind: Panel) => {
     if (dock === kind) return setDock(null);
+    autoOpened.current = false;
     if (kind === 'chat') return openChat();
     // 타임라인·검색·공지는 학습 흐름에 속하므로 에이전트에 알린다(프로토콜 menu_selected). 내 정보·실황 수업은 앱 안에서만.
     if (kind !== 'profile' && kind !== 'liveClass') session.emit('menu_selected', { menu: kind });
@@ -131,9 +123,6 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
         <DockWrapper title={DOCK_TITLES[dock]} left={layout.gutter + RAIL_W + layout.gutter} onClose={() => setDock(null)}>
           {dock === 'chat' && (
             <StudyLogPanel
-              tab={chatTab}
-              onTab={changeChatTab}
-              messagesUnread={unread}
               state={state}
               session={session}
               refreshKey={studyVersion}
@@ -200,7 +189,7 @@ export function TabletAgentLayer({ state, session }: { state: SessionSnapshot; s
         </DockWrapper>
       )}
 
-      {toastFor && ins?.messageId === toastFor && !(chatShown && chatTab === 'messages') && (
+      {toastFor && ins?.messageId === toastFor && !(chatShown && awaitsAnswer(ins)) && (
         <Toast
           title={ins.source === 'tutor' ? '튜터 메시지' : '에이전트'}
           text={toastPreview(ins.text)}

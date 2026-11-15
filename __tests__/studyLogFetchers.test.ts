@@ -50,11 +50,13 @@ describe('createStudyLogFetchers', () => {
       activities: [
         { id: 1, imageUrl: 'a.png', createdAt: '2026-11-14T14:02:00' },
         { id: 2, type: 'QUIZ_ANSWER', imageUrl: 'b.png', createdAt: '2026-11-14T14:20:00', quizId: 9 },
+        { id: 3, type: 'QUIZ_SENT', content: 'x^2', createdAt: '2026-11-14T14:10:00', quizId: 9 },
+        { id: 4, type: 'SUBSCRIPTION_RENEW', createdAt: '2026-11-14T15:00:00' },
       ],
     });
     const acts = await createStudyLogFetchers().listActivities(5);
     expect(api).toHaveBeenCalledWith('/api/study-notes/5/activities', 'tok');
-    expect(acts.map((a) => a.type)).toEqual(['SOLUTION_UPLOAD', 'QUIZ_ANSWER']);
+    expect(acts.map((a) => a.type)).toEqual(['SOLUTION_UPLOAD', 'QUIZ_ANSWER', 'QUIZ_SENT']); // 모르는 type은 뺀다
     expect(acts[1].quizId).toBe(9);
   });
 
