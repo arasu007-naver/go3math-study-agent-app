@@ -11,7 +11,7 @@ import {
 import { WebView } from 'react-native-webview';
 import { useMutation } from '@apollo/client/react';
 import MathJaxWrapper from '../math/MathJaxWrapper';
-import { ADD_LIVE_CLASS_QUIZ_RESPONSE } from '../../api/graphql/mutations';
+import { ADD_LIVE_CLASS_QUIZ_RESPONSE, ADD_LIVE_CLASS_QUIZ_RESPONSE_WITH_TASK } from '../../api/graphql/mutations';
 import { uploadQuizAnswerToStorage } from '../canvas/note-canvas/canvas-utils';
 import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
@@ -31,6 +31,14 @@ interface QuizResponseModalProps {
     onClose: () => void;
     onSubmitted?: () => void;
     onError?: (message: string) => void;
+    /** 답을 보내기 직전에 부른다 — 풀이 올리기와 같은 task id(없으면 만든다). 실패·undefined면 task id 없이 보낸다 */
+    resolveTaskId?: () => Promise<number | undefined>;
+}
+
+/** 서버가 아직 taskId 인자를 모를 때의 GraphQL 검증 오류 */
+export function isUnknownTaskIdArg(err: unknown): boolean {
+    const msg = String((err as { message?: string })?.message ?? err);
+    return /taskId/.test(msg) && /unknown argument|cannot query|not defined|GRAPHQL_VALIDATION_FAILED/i.test(msg);
 }
 
 const DRAWING_CANVAS_HTML = `
@@ -156,10 +164,12 @@ export default function QuizResponseModal({
     onClose,
     onSubmitted,
     onError,
+    resolveTaskId,
 }: QuizResponseModalProps) {
     const webViewRef = useRef<WebView>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [addQuizResponse] = useMutation(ADD_LIVE_CLASS_QUIZ_RESPONSE);
+    const [addQuizResponseWithTask] = useMutation(ADD_LIVE_CLASS_QUIZ_RESPONSE_WITH_TASK);
 
     useEffect(() => {
         setIsSubmitting(false);
@@ -199,12 +209,18 @@ export default function QuizResponseModal({
                         throw new Error('답안 이미지 업로드에 실패했습니다.');
                     }
 
-                    await addQuizResponse({
-                        variables: {
-                            quizId: Number(quiz.quizId),
-                            answerUrl,
-                        },
-                    });
+                    const base = { quizId: Number(quiz.quizId), answerUrl };
+                    const taskId = await resolveTaskId?.().catch(() => undefined);
+                    if (taskId) {
+                        try {
+                            await addQuizResponseWithTask({ variables: { ...base, taskId } });
+                        } catch (err) {
+                            if (!isUnknownTaskIdArg(err)) throw err;
+                            await addQuizResponse({ variables: base });
+                        }
+                    } else {
+                        await addQuizResponse({ variables: base });
+                    }
 
                     onSubmitted?.();
                     onClose();

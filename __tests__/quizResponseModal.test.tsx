@@ -17,7 +17,10 @@ jest.mock('../src/kit/math/MathJaxWrapper', () => () => null);
 const mockUpload = jest.fn();
 jest.mock('../src/kit/canvas/note-canvas/canvas-utils', () => ({ uploadQuizAnswerToStorage: (...a: unknown[]) => mockUpload(...a) }));
 const mockAddResponse = jest.fn();
-jest.mock('@apollo/client/react', () => ({ useMutation: () => [mockAddResponse] }));
+const mockAddWithTask = jest.fn();
+jest.mock('@apollo/client/react', () => ({
+  useMutation: (doc: any) => [doc.definitions[0].name.value === 'addLiveClassQuizResponseWithTaskMutation' ? mockAddWithTask : mockAddResponse],
+}));
 
 import QuizResponseModal from '../src/kit/live-class/QuizResponseModal';
 
@@ -70,5 +73,46 @@ describe('QuizResponseModal', () => {
     expect(state('답 보내기')).toMatchObject({ busy: false, disabled: false });
     expect(state('퀴즈 닫기')).toMatchObject({ disabled: false });
     expect(state('지우기')).toMatchObject({ disabled: false });
+  });
+
+  describe('task id', () => {
+    beforeEach(() => mockUpload.mockResolvedValue('https://answer'));
+
+    it('풀이 올리기와 같은 task id를 함께 보낸다', async () => {
+      const onSubmitted = jest.fn();
+      await render(<QuizResponseModal {...props} onSubmitted={onSubmitted} resolveTaskId={async () => 77} />);
+      await sendDrawing();
+      await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+      expect(mockAddWithTask).toHaveBeenCalledWith({ variables: { quizId: 3, answerUrl: 'https://answer', taskId: 77 } });
+      expect(mockAddResponse).not.toHaveBeenCalled();
+    });
+
+    it('서버가 taskId 인자를 모르면 task id 없이 한 번 더 보낸다', async () => {
+      mockAddWithTask.mockRejectedValueOnce(new Error('Unknown argument "taskId" on field "Mutation.addLiveClassQuizResponse".'));
+      const onSubmitted = jest.fn();
+      await render(<QuizResponseModal {...props} onSubmitted={onSubmitted} resolveTaskId={async () => 77} />);
+      await sendDrawing();
+      await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+      expect(mockAddResponse).toHaveBeenCalledWith({ variables: { quizId: 3, answerUrl: 'https://answer' } });
+    });
+
+    it('다른 오류는 다시 보내지 않고 알린다', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      mockAddWithTask.mockRejectedValueOnce(new Error('서버 오류'));
+      const onError = jest.fn();
+      await render(<QuizResponseModal {...props} onError={onError} resolveTaskId={async () => 77} />);
+      await sendDrawing();
+      await waitFor(() => expect(onError).toHaveBeenCalledWith('서버 오류'));
+      expect(mockAddResponse).not.toHaveBeenCalled();
+    });
+
+    it('task를 확보하지 못하면 task id 없이 보낸다', async () => {
+      const onSubmitted = jest.fn();
+      await render(<QuizResponseModal {...props} onSubmitted={onSubmitted} resolveTaskId={async () => { throw new Error('x'); }} />);
+      await sendDrawing();
+      await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+      expect(mockAddResponse).toHaveBeenCalledWith({ variables: { quizId: 3, answerUrl: 'https://answer' } });
+      expect(mockAddWithTask).not.toHaveBeenCalled();
+    });
   });
 });
