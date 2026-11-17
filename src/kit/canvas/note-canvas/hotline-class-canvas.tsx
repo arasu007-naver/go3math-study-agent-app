@@ -14,6 +14,7 @@ import {
     Text,
     ActivityIndicator,
 } from "react-native";
+import { CLASS_ON_AIR } from '../../live-class/constants';
 import { WebView } from 'react-native-webview';
 import QoollaWebView from '../../ui/web-view';
 import uuid from 'react-native-uuid';
@@ -107,6 +108,36 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
             hideModal();
             if (guide.action === 'snapshot') {
                 sendBoardAction({ actionType: 'SAVE' })
+                return;
+            }
+
+            if (guide.action === CLASS_ON_AIR) {
+                cacheLiveReleaseScriptUrl(guide);
+                const onAirScriptId = Number(guide.scriptId);
+                const differs = onAirScriptId > 0
+                    ? currentScriptId != onAirScriptId
+                    : currentScript?.sourceType != guide.sourceType || currentScript?.sourceId != guide.sourceId;
+                if (differs) {
+                    storage.set('syncPoint', JSON.stringify(guide));
+                    setLastGuide({ studyIdx: 0, step: 'refresh' });
+                    setTargetGuide(guide);
+                    if (onAirScriptId > 0) {
+                        setCurrentScriptId(onAirScriptId);
+                    } else {
+                        setCurrentScript({ sourceType: guide.sourceType, sourceId: guide.sourceId });
+                        setCurrentScriptId(0);
+                    }
+                    setReleaseScriptUrl(undefined);
+                    return;
+                }
+                // 같은 스크립트가 열려 있으면 이전 진행 지점과 상관없이 cuts[0]부터 다시 시작한다
+                if (!studySequences || studySequences.length === 0) {
+                    storage.set('syncPoint', JSON.stringify(guide));
+                    return;
+                }
+                setCurrentIdx(0);
+                setLastGuide({ ...guide, studyIdx: 0, step: 'main' });
+                await playToPointInternal({ studyIdx: 0, step: 'main' }, null);
                 return;
             }
 

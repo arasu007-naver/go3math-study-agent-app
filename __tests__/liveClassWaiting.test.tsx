@@ -204,3 +204,39 @@ describe('HotlineClassScreen', () => {
     expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g);
   });
 });
+
+describe('CLASS_ON_AIR', () => {
+  const g = { action: 'CLASS_ON_AIR', scriptId: 12, studyIdx: 0, step: 'main', sourceType: 'UNIT', sourceId: 1 };
+
+  it('topic: 대기 → live, 퀴즈 모달 없이 패널로 전달', async () => {
+    mockQueries = { STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [] } } }), LAST_LIVE_TOPIC_MESSAGE: jest.fn(async () => ({ data: {} })) };
+    render(<TopicLiveClassScreen />);
+    await waitFor(() => expect(screen.getByTestId('live-class-waiting')).toBeTruthy());
+    await act(async () => mockSubs.TOPIC_LIVE_MESSAGE_ADDED.onData(guideMsg(g)));
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
+    expect(screen.queryByText('QUIZ')).toBeNull();
+    expect(mockPanel.onReceiveGuide).toHaveBeenCalledTimes(1);
+    expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g);
+  });
+
+  it('hotline: 대기 → live, 패널로 한 번 전달', async () => {
+    mockQueries = { ONLINE_CLASS_OF_TUTOR: async () => ({ data: { onlineClassOfTutor: { units: [] } } }), LAST_ONLINE_CLASS_MESSAGE: jest.fn(async () => ({ data: {} })) };
+    render(<HotlineClassScreen />);
+    await waitFor(() => expect(screen.getByTestId('live-class-waiting')).toBeTruthy());
+    await act(async () => mockSubs.ONLINE_TUTOR_CLASS_MESSAGE_ADDED.onData(guideMsg(g)));
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
+    expect(screen.queryByText('QUIZ')).toBeNull();
+    expect(mockPanel.onReceiveGuide).toHaveBeenCalledTimes(1);
+    expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g);
+  });
+
+  it('hotline: 마지막 메시지가 CLASS_ON_AIR → live + 패널 전달', async () => {
+    mockQueries = {
+      ONLINE_CLASS_OF_TUTOR: async () => ({ data: { onlineClassOfTutor: { units: [unit] } } }),
+      LAST_ONLINE_CLASS_MESSAGE: async () => ({ data: { lastOnlineClassMessage: { content: JSON.stringify(g) } } }),
+    };
+    render(<HotlineClassScreen />);
+    await waitFor(() => expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g));
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
+  });
+});
