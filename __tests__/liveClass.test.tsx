@@ -37,7 +37,7 @@ describe('LiveClassListPanel', () => {
     await render(<LiveClassListPanel fetchers={fetchers} onOpen={onOpen} />);
 
     await waitFor(() => expect(screen.getByText('김선생 (2 문제)')).toBeTruthy());
-    expect(screen.getByText('📝 이차함수')).toBeTruthy();
+    expect(screen.getByText('📝 이차함수 (# 12)')).toBeTruthy();
     expect(screen.getByText('🕑 19:00 예정')).toBeTruthy();
 
     await fireEvent.press(screen.getByLabelText('김선생 선생님 수업 2문제'));
