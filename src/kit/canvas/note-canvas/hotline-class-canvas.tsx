@@ -99,6 +99,10 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
 
     useImperativeHandle(ref, () => ({
         async onReceiveGuide(guide: any) {
+            if (guide.action === 'imageQuiz') {
+                onQuizReceived?.({ quizId: guide.quizId, content: guide.quiz, imageUrl: guide.imageUrl });
+                return;
+            }
             hideModal();
             if (guide.action === 'snapshot') {
                 sendBoardAction({ actionType: 'SAVE' })
@@ -201,11 +205,6 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                 if (onQuizReceived) {
                     onQuizReceived({ quizId: guide.quizId, content: guide.quiz });
                 }
-                return;
-            }
-
-            if (guide.action === 'imageQuiz') {
-                onQuizReceived?.({ quizId: guide.quizId, content: guide.quiz, imageUrl: guide.imageUrl });
                 return;
             }
 

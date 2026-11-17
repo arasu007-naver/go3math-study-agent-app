@@ -2,13 +2,14 @@ import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { colors } from '../src/ui/theme';
 
-const mockWebView: { onMessage?: (e: any) => void; onLoadEnd?: () => void; postMessage: jest.Mock } = { postMessage: jest.fn() };
+const mockWebView: { onMessage?: (e: any) => void; onLoadEnd?: () => void; html?: string; postMessage: jest.Mock } = { postMessage: jest.fn() };
 jest.mock('react-native-webview', () => {
   const React = require('react');
   return {
     WebView: React.forwardRef((props: any, ref: any) => {
       mockWebView.onMessage = props.onMessage;
       mockWebView.onLoadEnd = props.onLoadEnd;
+      mockWebView.html = props.source?.html;
       React.useImperativeHandle(ref, () => ({ postMessage: mockWebView.postMessage }));
       return null;
     }),
@@ -153,5 +154,44 @@ describe('QuizResponseModal imageUrl', () => {
     });
     expect(onError).toHaveBeenCalledWith('이미지를 불러오지 못했습니다.');
     expect(mockUpload).not.toHaveBeenCalled();
+  });
+});
+
+describe('QuizResponseModal imageUrl: 배경 유지와 제출', () => {
+  const imgProps = { quiz: { quizId: 5, content: '중요한 부분에 표시하시오', imageUrl: 'https://x/a.jpeg' }, appToken: 't', onClose: jest.fn() };
+  const send = (m: object) => act(async () => { mockWebView.onMessage?.({ nativeEvent: { data: JSON.stringify(m) } }); });
+
+  it('배경만 있고 필기가 없으면 답안을 작성해 주세요가 뜨고 업로드하지 않는다', async () => {
+    const onError = jest.fn();
+    await render(<QuizResponseModal {...imgProps} onError={onError} />);
+    await send({ type: 'IMAGE_DATA', hasDrawn: false, dataUrl: 'data:bg' });
+    expect(onError).toHaveBeenCalledWith('답안을 작성해 주세요.');
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  it('필기 후 제출하면 합쳐진 PNG를 올리고 quizId로 제출한 뒤 닫는다', async () => {
+    mockUpload.mockResolvedValue('https://answer');
+    mockApiV3.mockResolvedValue({ id: 1 });
+    const onClose = jest.fn();
+    const onSubmitted = jest.fn();
+    await render(<QuizResponseModal {...imgProps} onClose={onClose} onSubmitted={onSubmitted} />);
+    await send({ type: 'IMAGE_DATA', hasDrawn: true, dataUrl: 'data:merged' });
+    await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+    expect(mockUpload).toHaveBeenCalledWith('data:merged', 't', 5, undefined);
+    expect(mockApiV3).toHaveBeenCalledWith('/api/live-class-quizzes/5/responses', 't', { method: 'POST', body: { answerUrl: 'https://answer' } });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('지우기는 CLEAR를 보내고 HTML은 CLEAR/resize에서 배경을 다시 그리며 hasDrawn만 초기화한다', async () => {
+    await render(<QuizResponseModal {...imgProps} />);
+    await fireEvent.press(screen.getByRole('button', { name: '지우기' }));
+    expect(mockWebView.postMessage).toHaveBeenCalledWith(JSON.stringify({ type: 'CLEAR' }));
+    const html = mockWebView.html!;
+    expect(html).toMatch(/data\.type === 'CLEAR'\) \{\s*drawBackground\(\);\s*hasDrawn = false;/);
+    expect(html).toMatch(/ctx\.scale\(dpr, dpr\);\s*drawBackground\(\);/);
+    expect(html).toContain("img.crossOrigin = 'anonymous'");
+    expect(html).toContain('Math.min(rect.width / bgImage.naturalWidth');
+    expect(html).toMatch(/function setBackground[\s\S]*?img\.onload[^\n]*hasDrawn|function setBackground/);
+    expect(html).not.toMatch(/img\.onload[^\n]*hasDrawn = true/);
   });
 });
