@@ -1,12 +1,14 @@
 // 캔버스 화면이 사라질 때 그동안의 활동 기록을 task 키로 남기고 solve_finished를 한 번 보낸다. 나가기 버튼·뒤로가기·제스처 등 모든 종료 경로를 언마운트 한곳에서 처리한다.
 import { useCallback, useEffect, useRef } from 'react';
 import { getAgentSession } from '../agent/useAgentSession';
+import type { TaskSpec } from '../adapters/ensureTask';
+import { openLiveStudyNoteOnLeave } from './liveStudyNoteOnLeave';
 import { appendActivity } from '../kit/study-note/activity';
 import { canvasActivityStore } from '../state/canvasActivity';
 import { bumpStudyData } from '../state/studyData';
 import { storage } from '../storage';
 
-type Args = { taskId?: number; kind: 'self' | 'topic_live' | 'hotline' };
+type Args = { taskId?: number; kind: 'self' | 'topic_live' | 'hotline'; liveSpec?: TaskSpec; title?: string };
 
 // 지금 활동 기록(canvasActivityStore)을 모으고 있는 캔버스. 캔버스는 한 번에 하나만 떠 있다(widgets.openCanvas가 열린 캔버스를 스택에서 뺀다).
 let owner: { current: Args } | null = null;
@@ -20,8 +22,9 @@ function flushActivity(a: Args) {
   canvasActivityStore.dispatch({ type: 'reset' });
 }
 
-export function useSolveFinished(a: Args): { countSolved(): void } {
+export function useSolveFinished(a: Args): { countSolved(): void; markActed(): void } {
   const count = useRef(0);
+  const acted = useRef(false);
   const latest = useRef(a);
   latest.current = a;
   useEffect(() => {
@@ -31,18 +34,29 @@ export function useSolveFinished(a: Args): { countSolved(): void } {
     else canvasActivityStore.dispatch({ type: 'reset' });
     owner = latest;
     return () => {
-      const { taskId, kind } = latest.current;
+      const { taskId, kind, liveSpec, title } = latest.current;
+      const live = kind !== 'self' && !!liveSpec;
       // 새 캔버스가 이미 기록을 넘겨받았으면(owner가 바뀜) 여기서는 쓰지 않는다
       if (owner === latest) {
-        flushActivity(latest.current);
+        if (live) {
+          // 실황 수업: 학습 행동이 있었으면 앱이 학습장 시트를 직접 연다(개념 조회만 해도 행동)
+          const activity = canvasActivityStore.getState();
+          const didAct = acted.current || count.current > 0 || activity.concepts.length > 0;
+          canvasActivityStore.dispatch({ type: 'reset' });
+          void openLiveStudyNoteOnLeave({ taskId, spec: liveSpec, acted: didAct, activity, title: title ?? '' });
+        } else flushActivity(latest.current);
         owner = null;
       }
-      getAgentSession().emit('solve_finished', { ...(taskId ? { taskId } : {}), kind, solvedCount: count.current });
+      // 실황 수업은 앱이 시트를 직접 띄우므로 에이전트가 같은 시트를 또 띄우지 않게 solve_finished를 보내지 않는다
+      if (!live) getAgentSession().emit('solve_finished', { ...(taskId ? { taskId } : {}), kind, solvedCount: count.current });
       bumpStudyData();
     };
   }, []);
   const countSolved = useCallback(() => {
     count.current += 1;
   }, []);
-  return { countSolved };
+  const markActed = useCallback(() => {
+    acted.current = true;
+  }, []);
+  return { countSolved, markActed };
 }

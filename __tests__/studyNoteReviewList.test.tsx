@@ -113,4 +113,13 @@ describe('StudyNoteReviewList', () => {
     await fireEvent.press(screen.getByRole('button', { name: '다시 시도' }));
     await waitFor(() => expect(screen.getByText('이 학습의 기록이 없어요')).toBeTruthy());
   });
+
+  it('hotline·topic-live 학습장이 각각 실황 수업 제목의 카드로 보인다', async () => {
+    const f = makeFetchers({
+      listNotes: jest.fn().mockResolvedValue([item({ taskId: 1, taskType: 'hotline' }), item({ taskId: 2, taskType: 'topic-live' })]),
+    });
+    await render(<StudyNoteReviewList fetchers={f} refreshKey={0} now={NOW} />);
+    await waitFor(() => expect(screen.getByText('선생님 실황 수업')).toBeTruthy());
+    expect(screen.getByText('주제 실황 수업')).toBeTruthy();
+  });
 });
