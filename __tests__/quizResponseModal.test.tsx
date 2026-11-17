@@ -26,6 +26,14 @@ jest.mock('../src/api/rest/apiV3', () => {
   return { ...actual, apiV3: (...a: unknown[]) => mockApiV3(...a) };
 });
 const { ApiV3Error } = jest.requireActual('../src/api/rest/apiV3');
+// 캔버스 화면의 펜 설정(기존 MMKV 키 canvasStrokeColor·canvasStrokeWidth)
+const mockPen: { color?: string; width?: number } = {};
+jest.mock('../src/kit/canvas/note-canvas/legacy', () => ({
+  storage: {
+    getString: (k: string) => (k === 'canvasStrokeColor' ? mockPen.color : undefined),
+    getNumber: (k: string) => (k === 'canvasStrokeWidth' ? mockPen.width : undefined),
+  },
+}));
 
 import QuizResponseModal from '../src/kit/live-class/QuizResponseModal';
 
@@ -40,6 +48,27 @@ beforeEach(() => jest.clearAllMocks());
 
 describe('QuizResponseModal', () => {
   const props = { quiz: { quizId: 3, content: 'x^2' }, appToken: 't', onClose: jest.fn(), onError: jest.fn() };
+
+  describe('pen', () => {
+    afterEach(() => {
+      delete mockPen.color;
+      delete mockPen.width;
+    });
+
+    it('draws with the canvas screen pen color and width', async () => {
+      mockPen.color = 'blue';
+      mockPen.width = 10;
+      await render(<QuizResponseModal {...props} />);
+      expect(mockWebView.html).toContain('ctx.strokeStyle = "blue";');
+      expect(mockWebView.html).toContain('ctx.lineWidth = 10;');
+    });
+
+    it('falls back to the canvas defaults (orange, 6) when nothing is stored', async () => {
+      await render(<QuizResponseModal {...props} />);
+      expect(mockWebView.html).toContain('ctx.strokeStyle = "orange";');
+      expect(mockWebView.html).toContain('ctx.lineWidth = 6;');
+    });
+  });
 
   it('close is an IconButton labelled 퀴즈 닫기', async () => {
     const onClose = jest.fn();

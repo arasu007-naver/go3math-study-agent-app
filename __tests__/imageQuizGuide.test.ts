@@ -32,6 +32,12 @@ describe.each(['topic-live-canvas.tsx', 'hotline-class-canvas.tsx'])('%s onRecei
       expect(body.indexOf(later)).toBeGreaterThan(branch);
     }
   });
+  // 화면에 막 들어왔는데 마지막 수업 메시지가 imageQuiz면 캔버스에 띄울 문제가 없어 끝없이 로딩한다 —
+  // 문제가 아직 없을 때만 퀴즈를 연 뒤 아래 스크립트 전환으로 이어 간다(수업 중에는 지금처럼 문제를 바꾸지 않는다)
+  it('imageQuiz는 캔버스에 문제가 있을 때만 바로 끝나고, 없으면 스크립트 전환으로 이어 간다', () => {
+    const block = body.slice(branch, body.indexOf('return;', branch) + 7);
+    expect(block).toMatch(/if \(currentScriptId \|\| currentScript\) return;/);
+  });
   it('imageQuiz 분기는 한 번만 있다', () => {
     expect(src.split("guide.action === 'imageQuiz'").length).toBe(2);
   });
