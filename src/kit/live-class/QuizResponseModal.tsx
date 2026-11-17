@@ -1,5 +1,5 @@
 // 기존 qoolla-student-app `src/components/modal/QuizResponseModal.tsx`를 옮김(import 경로만 이 프로젝트에 맞춤). 실황 수업 퀴즈 답안 모달.
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
     Modal,
     View,
@@ -14,6 +14,7 @@ import MathJaxWrapper from '../math/MathJaxWrapper';
 import { ADD_LIVE_CLASS_QUIZ_RESPONSE } from '../../api/graphql/mutations';
 import { apiV3, isUnavailable } from '../../api/rest/apiV3';
 import { uploadQuizAnswerToStorage } from '../canvas/note-canvas/canvas-utils';import { Button } from '../../ui/Button';
+import { storage } from '../canvas/note-canvas/legacy';
 import { IconButton } from '../../ui/IconButton';
 import { colors, shadow, type } from '../../ui/theme';
 
@@ -37,7 +38,8 @@ interface QuizResponseModalProps {
 }
 
 
-const DRAWING_CANVAS_HTML = `
+/** 펜은 캔버스 화면의 설정(MMKV canvasStrokeColor·canvasStrokeWidth, 기본 orange·6)을 그대로 쓴다 */
+const drawingCanvasHtml = (penColor: string, penWidth: number) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -85,8 +87,8 @@ const DRAWING_CANVAS_HTML = `
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
       drawBackground();
-      ctx.strokeStyle = '#111827';
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = ${JSON.stringify(penColor)};
+      ctx.lineWidth = ${Number(penWidth)};
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
     }
@@ -192,6 +194,11 @@ export default function QuizResponseModal({
     const webViewRef = useRef<WebView>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [addQuizResponse] = useMutation(ADD_LIVE_CLASS_QUIZ_RESPONSE);
+    // 퀴즈가 올 때마다 캔버스 화면의 지금 펜 설정을 읽는다
+    const html = useMemo(
+        () => drawingCanvasHtml(storage.getString('canvasStrokeColor') || 'orange', storage.getNumber('canvasStrokeWidth') || 6),
+        [quiz?.quizId],
+    );
 
     useEffect(() => {
         setIsSubmitting(false);
@@ -314,7 +321,7 @@ export default function QuizResponseModal({
                         <WebView
                             ref={webViewRef}
                             originWhitelist={['*']}
-                            source={{ html: DRAWING_CANVAS_HTML }}
+                            source={{ html }}
                             style={styles.webView}
                             scrollEnabled={false}
                             bounces={false}

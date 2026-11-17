@@ -101,7 +101,8 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         async onReceiveGuide(guide: any) {
             if (guide.action === 'imageQuiz') {
                 onQuizReceived?.({ quizId: guide.quizId, content: guide.quiz, imageUrl: guide.imageUrl });
-                return;
+                // 수업 중에는 문제를 바꾸지 않는다. 화면에 막 들어와 마지막 메시지가 퀴즈라 아직 문제가 없으면, 아래 전환으로 그 퀴즈의 문제를 띄운다(없으면 끝없이 로딩)
+                if (currentScriptId || currentScript) return;
             }
             hideModal();
             if (guide.action === 'snapshot') {
