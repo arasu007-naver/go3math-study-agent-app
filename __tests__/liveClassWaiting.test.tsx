@@ -106,7 +106,7 @@ describe('TopicLiveClassScreen', () => {
 
   it('이미 live에서 필기 따라가기 응답이 null이어도 대기 화면 없음', async () => {
     const g = { scriptId: 12, studyIdx: 3, step: 'main' };
-    const lastFn = jest.fn(async () => ({ data: { lastLiveTopicMessage: { content: JSON.stringify(g) } } }));
+    const lastFn = jest.fn<Promise<any>, []>(async () => ({ data: { lastLiveTopicMessage: { content: JSON.stringify(g) } } }));
     mockQueries = { STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [unit] } } }), LAST_LIVE_TOPIC_MESSAGE: lastFn };
     render(<TopicLiveClassScreen />);
     await waitFor(() => expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g));
