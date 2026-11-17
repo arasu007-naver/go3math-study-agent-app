@@ -19,6 +19,7 @@ import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import LegacyHotlineClassCanvasPanel from '@/src/kit/canvas/note-canvas/hotline-class-canvas';
 import { storage } from '@/src/kit/canvas/note-canvas/legacy';
 import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
+import LiveClassWaiting from '@/src/kit/live-class/LiveClassWaiting';
 import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizResponseModal';
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
@@ -79,6 +80,8 @@ export default function HotlineClassScreen() {
   const [savedMessage, setSavedMessage] = useState('🟡 ' + moment().format('MM/DD HH:mm'));
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [liveQuiz, setLiveQuiz] = useState<LiveQuiz | null>(null);
+  // 진행 확인 중 / 진행 중 / 수업 전 대기
+  const [liveState, setLiveState] = useState<'checking' | 'live' | 'waiting'>('checking');
   // 받은 퀴즈는 학습장 활동 기록에도 남긴다
   const receiveQuiz = useCallback((q: LiveQuiz) => {
     canvasActivityStore.dispatch({ type: 'quiz', quizId: Number(q.quizId) });
@@ -105,7 +108,10 @@ export default function HotlineClassScreen() {
   const loadAgenda = useCallback(async () => {
     try {
       const { data } = await getAgenda({ variables: { tutorId } });
-      setTopicUnits(data?.onlineClassOfTutor?.units ?? []);
+      const units = data?.onlineClassOfTutor?.units ?? [];
+      setTopicUnits(units);
+      // 수업 문제가 없으면 last message 호출이 없으니 여기서 대기로 정한다
+      if (units.length === 0) setLiveState((cur) => (cur === 'live' ? cur : 'waiting'));
     } catch (e) {
       console.warn('[hotline-class] onlineClassOfTutor failed:', e);
     }
@@ -115,11 +121,16 @@ export default function HotlineClassScreen() {
     try {
       const { data } = await getLastMessage({ variables: { tutorId } });
       const guide = safeJsonParse(data?.lastOnlineClassMessage?.content, null) as Guide | null;
-      if (!guide) return;
+      if (!guide) {
+        setLiveState((cur) => (cur === 'live' ? cur : 'waiting'));
+        return;
+      }
+      setLiveState('live');
       if (panelRef.current) panelRef.current.onReceiveGuide(guide);
       else storage.set('syncPoint', JSON.stringify(guide));
     } catch (e) {
       console.warn('[hotline-class] lastOnlineClassMessage failed:', e);
+      setLiveState((cur) => (cur === 'live' ? cur : 'waiting'));
     }
   }, [getLastMessage, tutorId]);
 
@@ -138,6 +149,7 @@ export default function HotlineClassScreen() {
           return;
         }
         if (guide.action === 'units') void loadAgenda();
+        else if (guide.action !== 'snapshot') setLiveState((cur) => (cur === 'waiting' ? 'live' : cur));
         panelRef.current?.onReceiveGuide(guide);
       }
       setSavedMessage('🟡 ' + moment().format('MM/DD HH:mm'));
@@ -152,6 +164,7 @@ export default function HotlineClassScreen() {
       return;
     }
     storage.remove('syncPoint');
+    setLiveState('checking');
     void loadAgenda();
   }, [isFocused, tutorId, loadAgenda]);
 
@@ -246,6 +259,7 @@ export default function HotlineClassScreen() {
       ) : (
         <Go3MathLoader style={styles.fullSize} />
       )}
+      {liveState === 'waiting' && <LiveClassWaiting onExit={goBack} />}
       <QuizResponseModal
         quiz={liveQuiz}
         appToken={authStore.getState().appToken ?? ''}

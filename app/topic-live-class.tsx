@@ -19,6 +19,7 @@ import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import LegacyTopicLiveClassCanvasPanel from '@/src/kit/canvas/note-canvas/topic-live-canvas';
 import { storage } from '@/src/kit/canvas/note-canvas/legacy';
 import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
+import LiveClassWaiting from '@/src/kit/live-class/LiveClassWaiting';
 import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizResponseModal';
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
@@ -80,6 +81,8 @@ export default function TopicLiveClassScreen() {
   const [lastPoint, setLastPoint] = useState<Guide>({ scriptId: 0 });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [liveQuiz, setLiveQuiz] = useState<LiveQuiz | null>(null);
+  // 진행 확인 중 / 진행 중 / 수업 전 대기
+  const [liveState, setLiveState] = useState<'checking' | 'live' | 'waiting'>('checking');
   // 받은 퀴즈는 학습장 활동 기록에도 남긴다
   const receiveQuiz = useCallback((q: LiveQuiz) => {
     canvasActivityStore.dispatch({ type: 'quiz', quizId: Number(q.quizId) });
@@ -109,6 +112,7 @@ export default function TopicLiveClassScreen() {
           receiveQuiz({ quizId: guide.quizId as number, content: guide.quiz as string, imageUrl: guide.imageUrl as string });
           return;
         }
+        if (guide.action !== 'snapshot') setLiveState((cur) => (cur === 'waiting' ? 'live' : cur));
         if (guide.action !== 'snapshot' && guide.action !== 'canvas-synch') setLastPoint(guide);
         panelRef.current?.onReceiveGuide(guide);
       }
@@ -132,7 +136,11 @@ export default function TopicLiveClassScreen() {
     try {
       const { data } = await getLastTopicMessage({ variables: { topicId } });
       const guide = safeJsonParse(data?.lastLiveTopicMessage?.content, null) as Guide | null;
-      if (!guide) return;
+      if (!guide) {
+        setLiveState((cur) => (cur === 'live' ? cur : 'waiting'));
+        return;
+      }
+      setLiveState('live');
       if (panelRef.current) panelRef.current.onReceiveGuide(guide);
       else storage.set('syncPoint', JSON.stringify(guide));
     } catch (e) {
@@ -148,6 +156,7 @@ export default function TopicLiveClassScreen() {
       return;
     }
     storage.remove('syncPoint');
+    setLiveState('checking');
     let alive = true;
     getTopic({ variables: { topicId } })
       .then(({ data }) => {
@@ -254,6 +263,7 @@ export default function TopicLiveClassScreen() {
       ) : (
         <Go3MathLoader style={styles.fullSize} />
       )}
+      {liveState === 'waiting' && <LiveClassWaiting onExit={goBack} />}
       <QuizResponseModal
         quiz={liveQuiz}
         appToken={authStore.getState().appToken ?? ''}
