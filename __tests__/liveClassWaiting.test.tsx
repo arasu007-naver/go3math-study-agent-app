@@ -14,14 +14,15 @@ jest.mock('../src/adapters/problemListFetchers', () => ({ fetchConcept: jest.fn(
 jest.mock('../src/host/useSolveFinished', () => ({ useSolveFinished: () => ({ countSolved: jest.fn(), markActed: jest.fn() }) }));
 jest.mock('../src/host/widgets', () => ({ topicLiveSpec: () => ({}), hotlineSpec: () => ({}) }));
 jest.mock('../src/kit/live-class/QuizResponseModal', () => ({ __esModule: true, default: ({ quiz }: any) => (quiz ? require('react').createElement(require('react-native').Text, null, 'QUIZ') : null) }));
+let mockPanelProps: any = {};
 const mockPanel = { onReceiveGuide: jest.fn(), getCurrentScript: jest.fn() };
 jest.mock('../src/kit/canvas/note-canvas/topic-live-canvas', () => {
   const React = require('react');
-  return { __esModule: true, default: (props: any) => (React.useImperativeHandle(props.ref, () => mockPanel), null) };
+  return { __esModule: true, default: (props: any) => ((mockPanelProps = props), React.useImperativeHandle(props.ref, () => mockPanel), null) };
 });
 jest.mock('../src/kit/canvas/note-canvas/hotline-class-canvas', () => {
   const React = require('react');
-  return { __esModule: true, default: (props: any) => (React.useImperativeHandle(props.ref, () => mockPanel), null) };
+  return { __esModule: true, default: (props: any) => ((mockPanelProps = props), React.useImperativeHandle(props.ref, () => mockPanel), null) };
 });
 jest.mock('../src/kit/canvas/note-canvas/legacy', () => ({ storage: { set: jest.fn(), remove: jest.fn() } }));
 
@@ -101,6 +102,31 @@ describe('TopicLiveClassScreen', () => {
     await act(async () => mockSubs.TOPIC_LIVE_MESSAGE_ADDED.onData(guideMsg(g)));
     expect(screen.queryByTestId('live-class-waiting')).toBeNull();
     expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g);
+  });
+
+  it('이미 live에서 필기 따라가기 응답이 null이어도 대기 화면 없음', async () => {
+    const g = { scriptId: 12, studyIdx: 3, step: 'main' };
+    const lastFn = jest.fn(async () => ({ data: { lastLiveTopicMessage: { content: JSON.stringify(g) } } }));
+    mockQueries = { STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [unit] } } }), LAST_LIVE_TOPIC_MESSAGE: lastFn };
+    render(<TopicLiveClassScreen />);
+    await waitFor(() => expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g));
+    lastFn.mockImplementation(async () => ({ data: { lastLiveTopicMessage: null } }));
+    const calls = lastFn.mock.calls.length;
+    await act(async () => mockPanelProps.screenActions.find((a: any) => a.id === 'sync').onPress());
+    expect(lastFn.mock.calls.length).toBe(calls + 1);
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
+  });
+
+  it('쿼리 실패 → 준비되지 않음 토스트, 대기 화면 없음', async () => {
+    mockQueries = {
+      STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [unit] } } }),
+      LAST_LIVE_TOPIC_MESSAGE: async () => {
+        throw new Error('x');
+      },
+    };
+    render(<TopicLiveClassScreen />);
+    await waitFor(() => expect(screen.getByText('주제 실황 강의가 준비되지 않았습니다')).toBeTruthy());
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
   });
 
   it('나가기', async () => {
