@@ -15,14 +15,15 @@ jest.mock('../src/host/useSolveFinished', () => ({ useSolveFinished: () => ({ co
 jest.mock('../src/host/widgets', () => ({ topicLiveSpec: () => ({}), hotlineSpec: () => ({}) }));
 jest.mock('../src/kit/live-class/QuizResponseModal', () => ({ __esModule: true, default: ({ quiz }: any) => (quiz ? require('react').createElement(require('react-native').Text, null, 'QUIZ') : null) }));
 let mockPanelProps: any = {};
+let mockNoPanel = false;
 const mockPanel = { onReceiveGuide: jest.fn(), getCurrentScript: jest.fn() };
 jest.mock('../src/kit/canvas/note-canvas/topic-live-canvas', () => {
   const React = require('react');
-  return { __esModule: true, default: (props: any) => ((mockPanelProps = props), React.useImperativeHandle(props.ref, () => mockPanel), null) };
+  return { __esModule: true, default: (props: any) => ((mockPanelProps = props), React.useImperativeHandle(props.ref, () => (mockNoPanel ? null : mockPanel)), null) };
 });
 jest.mock('../src/kit/canvas/note-canvas/hotline-class-canvas', () => {
   const React = require('react');
-  return { __esModule: true, default: (props: any) => ((mockPanelProps = props), React.useImperativeHandle(props.ref, () => mockPanel), null) };
+  return { __esModule: true, default: (props: any) => ((mockPanelProps = props), React.useImperativeHandle(props.ref, () => (mockNoPanel ? null : mockPanel)), null) };
 });
 jest.mock('../src/kit/canvas/note-canvas/legacy', () => ({ storage: { set: jest.fn(), remove: jest.fn() } }));
 
@@ -50,12 +51,14 @@ jest.mock('../src/api/graphql/subscriptions', () => ({
 
 import TopicLiveClassScreen from '../app/topic-live-class';
 import HotlineClassScreen from '../app/hotline-class';
+import { storage } from '../src/kit/canvas/note-canvas/legacy';
 
 const unit = { sourceType: 'UNIT', sourceId: 1, scripts: [{ id: 12 }] };
 const guideMsg = (g: object) => ({ data: { data: { liveTopicClassMessage: { content: JSON.stringify(g) }, newOnlineClassMessage: { content: JSON.stringify(g) } } } });
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockNoPanel = false;
   mockParams = { topicId: '5', tutorId: 'kim' };
 });
 
@@ -217,6 +220,46 @@ describe('CLASS_ON_AIR', () => {
     expect(screen.queryByText('QUIZ')).toBeNull();
     expect(mockPanel.onReceiveGuide).toHaveBeenCalledTimes(1);
     expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g);
+    // setLastPoint(guide): 캔버스가 로드를 마치면 loaded()가 마지막 지점으로 CLASS_ON_AIR guide를 다시 넘긴다
+    mockPanel.onReceiveGuide.mockClear();
+    await act(async () => mockPanelProps.loaded());
+    expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g);
+    expect(mockPanelProps.initScript).toBe(12);
+  });
+
+  it('topic: 마지막 메시지가 CLASS_ON_AIR → live + 패널 전달', async () => {
+    mockQueries = {
+      STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [unit] } } }),
+      LAST_LIVE_TOPIC_MESSAGE: async () => ({ data: { lastLiveTopicMessage: { content: JSON.stringify(g) } } }),
+    };
+    render(<TopicLiveClassScreen />);
+    await waitFor(() => expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g));
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
+    expect(screen.queryByText('QUIZ')).toBeNull();
+  });
+
+  it('topic: 패널이 아직 없으면 마지막 CLASS_ON_AIR를 syncPoint에 저장', async () => {
+    mockNoPanel = true;
+    mockQueries = {
+      STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [unit] } } }),
+      LAST_LIVE_TOPIC_MESSAGE: async () => ({ data: { lastLiveTopicMessage: { content: JSON.stringify(g) } } }),
+    };
+    render(<TopicLiveClassScreen />);
+    await waitFor(() => expect(storage.set).toHaveBeenCalledWith('syncPoint', JSON.stringify(g)));
+    expect(mockPanel.onReceiveGuide).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
+  });
+
+  it('hotline: 패널이 아직 없으면 마지막 CLASS_ON_AIR를 syncPoint에 저장', async () => {
+    mockNoPanel = true;
+    mockQueries = {
+      ONLINE_CLASS_OF_TUTOR: async () => ({ data: { onlineClassOfTutor: { units: [unit] } } }),
+      LAST_ONLINE_CLASS_MESSAGE: async () => ({ data: { lastOnlineClassMessage: { content: JSON.stringify(g) } } }),
+    };
+    render(<HotlineClassScreen />);
+    await waitFor(() => expect(storage.set).toHaveBeenCalledWith('syncPoint', JSON.stringify(g)));
+    expect(mockPanel.onReceiveGuide).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
   });
 
   it('hotline: 대기 → live, 패널로 한 번 전달', async () => {
