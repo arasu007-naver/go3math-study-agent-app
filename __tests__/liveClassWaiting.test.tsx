@@ -73,7 +73,7 @@ describe('TopicLiveClassScreen', () => {
     async (last) => {
       await setup(last);
       await waitFor(() => expect(screen.getByTestId('live-class-waiting')).toBeTruthy());
-      expect(screen.getByText('수업 전입니다.')).toBeTruthy();
+      expect(screen.getByText('수업 준비 중입니다')).toBeTruthy();
       expect(screen.getByLabelText('불러오는 중')).toBeTruthy();
       expect(mockSubs.TOPIC_LIVE_MESSAGE_ADDED.skip).toBe(false);
       expect(mockSubs.TOPIC_LIVE_MESSAGE_ADDED.variables).toEqual({ topicId: 5 });
@@ -85,6 +85,19 @@ describe('TopicLiveClassScreen', () => {
     await setup({ data: { lastLiveTopicMessage: { content: JSON.stringify(g) } } });
     await waitFor(() => expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g));
     expect(screen.queryByTestId('live-class-waiting')).toBeNull();
+  });
+
+  it('문제 0개 → 대기 화면, 토스트 없음, 구독 유지, 이후 progress guide → live', async () => {
+    mockQueries = { STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [] } } }), LAST_LIVE_TOPIC_MESSAGE: jest.fn(async () => ({ data: {} })) };
+    render(<TopicLiveClassScreen />);
+    await waitFor(() => expect(screen.getByTestId('live-class-waiting')).toBeTruthy());
+    expect(screen.getByText('수업 준비 중입니다')).toBeTruthy();
+    expect(screen.queryByText('주제 실황 강의가 준비되지 않았습니다')).toBeNull();
+    expect(mockSubs.TOPIC_LIVE_MESSAGE_ADDED.skip).toBe(false);
+    const g = { scriptId: 12, studyIdx: 0, step: 'main' };
+    await act(async () => mockSubs.TOPIC_LIVE_MESSAGE_ADDED.onData(guideMsg(g)));
+    expect(screen.queryByTestId('live-class-waiting')).toBeNull();
+    expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(g);
   });
 
   it('응답 전(checking)에는 대기 화면이 없다', async () => {

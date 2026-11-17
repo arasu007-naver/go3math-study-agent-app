@@ -78,7 +78,7 @@ export function LiveClassListPanel({ fetchers, onOpen }: { fetchers: LiveClassFe
             onPress={() => onOpen({ kind: 'topic_live', topicId: Number(t.id), title: `📝 ${t.title}` })}
             style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
             <View style={styles.rowText}>
-              <Text style={styles.title}>{`📝 ${t.title}`}</Text>
+              <Text style={styles.title}>{`📝 ${t.title} (# ${t.id})`}</Text>
               {!!t.description && (
                 <Text style={styles.accent} numberOfLines={2}>
                   {t.description}

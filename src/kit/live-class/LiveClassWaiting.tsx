@@ -7,7 +7,7 @@ export default function LiveClassWaiting({ onExit }: { onExit(): void }) {
   return (
     <View testID="live-class-waiting" style={styles.root}>
       <Go3MathLoader style={styles.loader} />
-      <Text style={styles.text}>수업 전입니다.</Text>
+      <Text style={styles.text}>수업 준비 중입니다</Text>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="나가기" onPress={onExit} style={styles.exit}>
         <Text style={styles.exitText}>나가기</Text>
       </TouchableOpacity>

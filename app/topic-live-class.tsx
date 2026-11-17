@@ -162,7 +162,9 @@ export default function TopicLiveClassScreen() {
       .then(({ data }) => {
         if (!alive) return;
         if (!data?.topicForStudy) throw new Error('topicForStudy is null');
-        setTopicUnits(data.topicForStudy.units ?? []);
+        const units = data.topicForStudy.units ?? [];
+        setTopicUnits(units);
+        if (units.length === 0) setLiveState((cur) => (cur === 'live' ? cur : 'waiting'));
       })
       .catch((e) => {
         console.warn('[topic-live-class] topicForStudy failed:', e);
