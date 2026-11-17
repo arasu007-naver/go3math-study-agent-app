@@ -2,12 +2,13 @@ import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { colors } from '../src/ui/theme';
 
-const mockWebView: { onMessage?: (e: any) => void; postMessage: jest.Mock } = { postMessage: jest.fn() };
+const mockWebView: { onMessage?: (e: any) => void; onLoadEnd?: () => void; postMessage: jest.Mock } = { postMessage: jest.fn() };
 jest.mock('react-native-webview', () => {
   const React = require('react');
   return {
     WebView: React.forwardRef((props: any, ref: any) => {
       mockWebView.onMessage = props.onMessage;
+      mockWebView.onLoadEnd = props.onLoadEnd;
       React.useImperativeHandle(ref, () => ({ postMessage: mockWebView.postMessage }));
       return null;
     }),
@@ -129,5 +130,28 @@ describe('QuizResponseModal', () => {
       expect(mockApiV3).not.toHaveBeenCalled();
       expect(mockAddResponse).toHaveBeenCalledWith({ variables: { quizId: 3, answerUrl: 'https://answer' } });
     });
+  });
+});
+
+describe('QuizResponseModal imageUrl', () => {
+  it('sends SET_BACKGROUND after the WebView loads when imageUrl is set', async () => {
+    await render(<QuizResponseModal quiz={{ quizId: 4, content: 'c', imageUrl: 'https://x/a.jpeg' }} appToken="t" onClose={jest.fn()} />);
+    expect(mockWebView.postMessage).not.toHaveBeenCalled();
+    await act(async () => mockWebView.onLoadEnd?.());
+    expect(mockWebView.postMessage).toHaveBeenCalledWith(JSON.stringify({ type: 'SET_BACKGROUND', url: 'https://x/a.jpeg' }));
+  });
+  it('does not send SET_BACKGROUND without imageUrl', async () => {
+    await render(<QuizResponseModal quiz={{ quizId: 4, content: 'c' }} appToken="t" onClose={jest.fn()} />);
+    await act(async () => mockWebView.onLoadEnd?.());
+    expect(mockWebView.postMessage).not.toHaveBeenCalled();
+  });
+  it('IMAGE_ERROR reports 이미지를 불러오지 못했습니다.', async () => {
+    const onError = jest.fn();
+    await render(<QuizResponseModal quiz={{ quizId: 4, content: 'c', imageUrl: 'u' }} appToken="t" onClose={jest.fn()} onError={onError} />);
+    await act(async () => {
+      mockWebView.onMessage?.({ nativeEvent: { data: JSON.stringify({ type: 'IMAGE_ERROR' }) } });
+    });
+    expect(onError).toHaveBeenCalledWith('이미지를 불러오지 못했습니다.');
+    expect(mockUpload).not.toHaveBeenCalled();
   });
 });

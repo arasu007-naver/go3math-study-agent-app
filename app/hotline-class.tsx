@@ -133,6 +133,10 @@ export default function HotlineClassScreen() {
           receiveQuiz({ quizId: guide.quizId as number, content: guide.quiz as string });
           return;
         }
+        if (guide.action === 'imageQuiz') {
+          receiveQuiz({ quizId: guide.quizId as number, content: guide.quiz as string, imageUrl: guide.imageUrl as string });
+          return;
+        }
         if (guide.action === 'units') void loadAgenda();
         panelRef.current?.onReceiveGuide(guide);
       }

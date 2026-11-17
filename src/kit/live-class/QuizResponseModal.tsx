@@ -22,6 +22,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 export interface LiveQuiz {
     quizId: number | string;
     content: string;
+    imageUrl?: string;
 }
 
 interface QuizResponseModalProps {
@@ -56,6 +57,26 @@ const DRAWING_CANVAS_HTML = `
     let isDrawing = false;
     let hasDrawn = false;
     let lastX = 0, lastY = 0;
+    let bgImage = null;
+
+    function drawBackground() {
+      const rect = canvas.getBoundingClientRect();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, rect.width, rect.height);
+      if (!bgImage || !bgImage.naturalWidth) return;
+      const scale = Math.min(rect.width / bgImage.naturalWidth, rect.height / bgImage.naturalHeight);
+      const w = bgImage.naturalWidth * scale;
+      const h = bgImage.naturalHeight * scale;
+      ctx.drawImage(bgImage, (rect.width - w) / 2, (rect.height - h) / 2, w, h);
+    }
+
+    function setBackground(url) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () { bgImage = img; drawBackground(); };
+      img.onerror = function () { bgImage = null; };
+      img.src = url;
+    }
 
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
@@ -63,8 +84,7 @@ const DRAWING_CANVAS_HTML = `
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, rect.width, rect.height);
+      drawBackground();
       ctx.strokeStyle = '#111827';
       ctx.lineWidth = 3;
       ctx.lineCap = 'round';
@@ -125,12 +145,20 @@ const DRAWING_CANVAS_HTML = `
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         if (data.type === 'CLEAR') {
-          const rect = canvas.getBoundingClientRect();
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, rect.width, rect.height);
+          drawBackground();
           hasDrawn = false;
+        } else if (data.type === 'SET_BACKGROUND') {
+          setBackground(data.url);
         } else if (data.type === 'GET_IMAGE') {
-          const dataUrl = canvas.toDataURL('image/png');
+          let dataUrl;
+          try {
+            dataUrl = canvas.toDataURL('image/png');
+          } catch (e) {
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'IMAGE_ERROR' }));
+            }
+            return;
+          }
           const payload = JSON.stringify({
             type: 'IMAGE_DATA',
             dataUrl: dataUrl,
@@ -197,6 +225,12 @@ export default function QuizResponseModal({
         }
     };
 
+    const handleWebViewLoaded = () => {
+        if (quiz.imageUrl) {
+            webViewRef.current?.postMessage(JSON.stringify({ type: 'SET_BACKGROUND', url: quiz.imageUrl }));
+        }
+    };
+
     const handleRequestSubmit = () => {
         if (isSubmitting) return;
         if (webViewRef.current) {
@@ -208,6 +242,12 @@ export default function QuizResponseModal({
         try {
             const rawData = event.nativeEvent.data;
             const msg = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+
+            if (msg.type === 'IMAGE_ERROR') {
+                const errMsg = '이미지를 불러오지 못했습니다.';
+                onError ? onError(errMsg) : Alert.alert('오류', errMsg);
+                return;
+            }
 
             if (msg.type === 'IMAGE_DATA') {
                 if (!msg.hasDrawn || !msg.dataUrl) {
@@ -280,6 +320,7 @@ export default function QuizResponseModal({
                             bounces={false}
                             javaScriptEnabled={true}
                             domStorageEnabled={true}
+                            onLoadEnd={handleWebViewLoaded}
                             onMessage={handleWebViewMessage}
                         />
                     </View>

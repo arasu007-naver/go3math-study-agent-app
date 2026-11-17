@@ -204,6 +204,11 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                 return;
             }
 
+            if (guide.action === 'imageQuiz') {
+                onQuizReceived?.({ quizId: guide.quizId, content: guide.quiz, imageUrl: guide.imageUrl });
+                return;
+            }
+
             if (guide.action === 'follow') {
                 synchToCurrent();
                 return;

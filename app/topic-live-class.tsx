@@ -105,6 +105,10 @@ export default function TopicLiveClassScreen() {
           receiveQuiz({ quizId: guide.quizId as number, content: guide.quiz as string });
           return;
         }
+        if (guide.action === 'imageQuiz') {
+          receiveQuiz({ quizId: guide.quizId as number, content: guide.quiz as string, imageUrl: guide.imageUrl as string });
+          return;
+        }
         if (guide.action !== 'snapshot' && guide.action !== 'canvas-synch') setLastPoint(guide);
         panelRef.current?.onReceiveGuide(guide);
       }
