@@ -31,6 +31,7 @@ import { hotlineSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
 import { canvasActivityStore } from '@/src/state/canvasActivity';
 import { colors, type } from '@/src/ui/theme';
+import { toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 
 // 선생님 수업(hotline class) 화면: 기존 qoolla-student-app `pages/notebook/hotline-class.tsx`를 옮김. 패널은 note-canvas/hotline-class-canvas.tsx 그대로.
 // 실황 수업 dock에서 선생님 수업을 누르면 Stage에 그 선생님 수업 문제 목록(ProblemListPanel)을 띄우고 이 화면으로 온다. 나가면 문제 목록이 그대로 남는다.
@@ -38,7 +39,6 @@ import { colors, type } from '@/src/ui/theme';
 // 바뀐 점: 선생님이 수업 문제를 바꿨다는 안내({ action: 'units' })가 오면 문제(스크립트)를 다시 받는다 — 문제 목록과 같은 기준.
 
 type Unit = { sourceType: string; sourceId: number; scripts?: { id: number }[] | null };
-import { toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 type Guide = { action?: string; scriptId?: number | string } & Record<string, unknown>;
 type PanelHandle = { onReceiveGuide(guide: Guide): void; getCurrentScript(): { scriptId?: number } };
 // 옮겨 온 패널은 forwardRef(any)라 ref 타입이 없다 → 쓰는 쪽에서만 타입을 붙인다

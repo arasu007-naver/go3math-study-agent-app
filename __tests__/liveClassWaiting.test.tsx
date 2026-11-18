@@ -283,3 +283,48 @@ describe('CLASS_ON_AIR', () => {
     expect(screen.queryByTestId('live-class-waiting')).toBeNull();
   });
 });
+
+describe('마지막 메시지가 quiz/imageQuiz → 위치 guide', () => {
+  const quizMsg = (action: string) => ({ action, scriptId: 12, studyIdx: 3, step: 'main', quiz: 'Q', quizId: 9, imageUrl: 'u', conceptId: 1 });
+  const pos = { action: 'refresh', scriptId: 12, studyIdx: 3, step: 'main' };
+
+  it('hotline: imageQuiz → refresh 위치 guide, 퀴즈 모달 없음', async () => {
+    mockQueries = {
+      ONLINE_CLASS_OF_TUTOR: async () => ({ data: { onlineClassOfTutor: { units: [unit] } } }),
+      LAST_ONLINE_CLASS_MESSAGE: async () => ({ data: { lastOnlineClassMessage: { content: JSON.stringify(quizMsg('imageQuiz')) } } }),
+    };
+    render(<HotlineClassScreen />);
+    await waitFor(() => expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(pos));
+    expect(screen.queryByText('QUIZ')).toBeNull();
+  });
+
+  it('hotline: 패널 없으면 syncPoint에 위치 guide 저장', async () => {
+    mockNoPanel = true;
+    mockQueries = {
+      ONLINE_CLASS_OF_TUTOR: async () => ({ data: { onlineClassOfTutor: { units: [unit] } } }),
+      LAST_ONLINE_CLASS_MESSAGE: async () => ({ data: { lastOnlineClassMessage: { content: JSON.stringify(quizMsg('imageQuiz')) } } }),
+    };
+    render(<HotlineClassScreen />);
+    await waitFor(() => expect(storage.set).toHaveBeenCalledWith('syncPoint', JSON.stringify(pos)));
+    expect(screen.queryByText('QUIZ')).toBeNull();
+  });
+
+  it('topic: quiz → refresh 위치 guide, 퀴즈 모달 없음', async () => {
+    mockQueries = {
+      STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [unit] } } }),
+      LAST_LIVE_TOPIC_MESSAGE: async () => ({ data: { lastLiveTopicMessage: { content: JSON.stringify(quizMsg('quiz')) } } }),
+    };
+    render(<TopicLiveClassScreen />);
+    await waitFor(() => expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(pos));
+    expect(screen.queryByText('QUIZ')).toBeNull();
+  });
+
+  it('구독 quiz/imageQuiz → 퀴즈 모달만, 패널 onReceiveGuide 없음', async () => {
+    mockQueries = { ONLINE_CLASS_OF_TUTOR: async () => ({ data: { onlineClassOfTutor: { units: [] } } }), LAST_ONLINE_CLASS_MESSAGE: async () => ({ data: {} }) };
+    render(<HotlineClassScreen />);
+    await waitFor(() => expect(screen.getByTestId('live-class-waiting')).toBeTruthy());
+    await act(async () => mockSubs.ONLINE_TUTOR_CLASS_MESSAGE_ADDED.onData(guideMsg(quizMsg('quiz'))));
+    expect(screen.getByText('QUIZ')).toBeTruthy();
+    expect(mockPanel.onReceiveGuide).not.toHaveBeenCalled();
+  });
+});

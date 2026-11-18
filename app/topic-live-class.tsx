@@ -31,13 +31,13 @@ import { topicLiveSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
 import { canvasActivityStore } from '@/src/state/canvasActivity';
 import { colors, type } from '@/src/ui/theme';
+import { toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 
 // 주제 실황 수업 화면: 기존 qoolla-student-app `pages/notebook/topic-live-class.tsx`를 옮김. 패널은 note-canvas/topic-live-canvas.tsx 그대로.
 // 실황 수업 dock에서 주제를 누르면 Stage에 그 주제 문제 목록(ProblemListPanel)을 띄우고 이 화면으로 온다. 나가면 문제 목록이 그대로 남는다.
 // 기존 route.params(topicId, taskId) 대신 경로 파라미터(?topicId=&taskId=). 하단 버튼 줄은 notebook처럼 캔버스 하단 툴바에 합쳤다.
 
 type Unit = { sourceType: string; sourceId: number; scripts?: { id: number }[] | null };
-import { toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 type Guide = { action?: string; scriptId?: number | string } & Record<string, unknown>;
 type PanelHandle = { onReceiveGuide(guide: Guide): void; getCurrentScript(): { scriptId?: number } };
 // 옮겨 온 패널은 FC로 선언된 forwardRef라 ref 타입이 없다 → 쓰는 쪽에서만 타입을 붙인다
