@@ -166,7 +166,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                 case 'CLEAN_MY_MEMO':
                     clearFreedrawings();
                     break;
-                case 'CLEAR_CANVAS':case 'CLEAN':
+                case 'CLEAR_CANVAS':case 'CLEAN':case 'CLEAR':case 'CLEAN_SCENE':
                     clearCanvas();
                     break;
                 case 'ADD_LINE':

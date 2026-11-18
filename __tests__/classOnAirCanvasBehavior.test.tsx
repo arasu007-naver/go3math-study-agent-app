@@ -37,7 +37,8 @@ jest.mock('../src/kit/canvas/note-canvas/legacy', () => {
   };
 });
 const mockPlayToPoint = jest.fn(async () => {});
-const mockHandleLive = jest.fn(async () => {});
+const mockFastforward = jest.fn(async () => {});
+const mockHandleLive = jest.fn(async (..._a: any[]) => {});
 const mockCuts = () => ({ contents: [{ id: 'cut0' }, { id: 'cut1' }], backgroundCut: { actionType: 'BG' } });
 jest.mock('../src/kit/canvas/note-canvas/script-maker', () => ({
   scriptMaker: jest.fn(async () => mockCuts()),
@@ -45,6 +46,8 @@ jest.mock('../src/kit/canvas/note-canvas/script-maker', () => ({
   safeJsonParse: (s: any, d: any) => d,
   handleLiveClassMessage: (...a: any[]) => (mockHandleLive as any)(...a),
   playToPoint: (...a: any[]) => (mockPlayToPoint as any)(...a),
+  fastforward: (...a: any[]) => (mockFastforward as any)(...a),
+  isResetCut: (c: any) => ['CLEAN', 'CLEAN_SCENE', 'CLEAR'].includes(String(c?.actionType).toUpperCase()),
   runAt: jest.fn(),
   getLeaderIdForCut: jest.fn(),
 }));
@@ -81,8 +84,8 @@ describe.each([
     const g = onAir(12);
     await act(async () => ref.current.onReceiveGuide(g));
     expect((storage as any).set).toHaveBeenCalledWith('syncPoint', JSON.stringify(g));
-    await waitFor(() => expect(mockPlayToPoint).toHaveBeenCalled());
-    const [seq, target] = mockPlayToPoint.mock.calls[0] as any[];
+    await waitFor(() => expect(mockFastforward).toHaveBeenCalled());
+    const [seq, target] = mockFastforward.mock.calls[0] as any[];
     expect(seq).toHaveLength(2);
     expect(target).toMatchObject({ studyIdx: 0, step: 'main' });
     expect(mockPosted.some((m) => m.actionType === 'BG')).toBe(true);
@@ -92,18 +95,18 @@ describe.each([
   it('같은 스크립트 → 이전 지점과 무관하게 ({0,main}, null)로 처음부터, handleLiveClassMessage 없음', async () => {
     const ref = await mount();
     await act(async () => ref.current.onReceiveGuide(onAir(12)));
-    await waitFor(() => expect(mockPlayToPoint).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockFastforward).toHaveBeenCalledTimes(1));
     await act(async () => ref.current.onReceiveGuide({ scriptId: 12, studyIdx: 5, step: 'main' }));
     mockPlayToPoint.mockClear();
+    mockFastforward.mockClear();
     mockHandleLive.mockClear();
     mockPosted.length = 0;
     (storage as any).set.mockClear();
     await act(async () => ref.current.onReceiveGuide(onAir(12)));
-    await waitFor(() => expect(mockPlayToPoint).toHaveBeenCalledTimes(1));
-    const [seq, target, from] = mockPlayToPoint.mock.calls[0] as any[];
+    await waitFor(() => expect(mockFastforward).toHaveBeenCalledTimes(1));
+    const [seq, target] = mockFastforward.mock.calls[0] as any[];
     expect(seq).toHaveLength(2);
     expect(target).toEqual({ studyIdx: 0, step: 'main' });
-    expect(from).toBeNull();
     expect(mockPosted[0]).toEqual({ actionType: 'BG' });
     expect((storage as any).set).not.toHaveBeenCalledWith('syncPoint', expect.anything());
     expect(mockHandleLive).not.toHaveBeenCalled();
@@ -114,5 +117,16 @@ describe.each([
     const g = { action: 'CLASS_ON_AIR', scriptId: 0, studyIdx: 0, step: 'main', sourceType: 'UNIT', sourceId: 9 };
     await act(async () => ref.current.onReceiveGuide(g));
     expect((storage as any).set).toHaveBeenCalledWith('syncPoint', JSON.stringify(g));
+  });
+
+  it('진입 재생 뒤에는 playToPoint(이전 지점 → 새 지점), 진입 전에는 fastforward', async () => {
+    const ref = await mount();
+    await act(async () => ref.current.onReceiveGuide({ scriptId: 12, sourceType: 'UNIT', sourceId: 1, studyIdx: 1, step: 'main' }));
+    await waitFor(() => expect(mockFastforward).toHaveBeenCalledTimes(1));
+    expect(mockPlayToPoint).not.toHaveBeenCalled();
+    mockHandleLive.mockImplementationOnce(async (g: any, ctx: any) => ctx.playToPoint(g));
+    await act(async () => ref.current.onReceiveGuide({ scriptId: 12, sourceType: 'UNIT', sourceId: 1, studyIdx: 6, step: 'main' }));
+    expect(mockPlayToPoint).toHaveBeenCalledTimes(1);
+    expect(mockFastforward).toHaveBeenCalledTimes(1);
   });
 });

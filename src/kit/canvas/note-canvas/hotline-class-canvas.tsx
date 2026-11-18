@@ -42,6 +42,8 @@ import {
     safeJsonParse,
     handleLiveClassMessage,
     playToPoint,
+    fastforward,
+    isResetCut,
     runAt,
     getLeaderIdForCut,
 } from './script-maker';
@@ -83,6 +85,8 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
     const [canvasStrokeColor, setCanvasStrokeColor] = useState('orange');
 
     const [studySequences, setStudySequences] = useState<any[]>([]);
+    // 스크립트를 새로 로드한 뒤 한 번이라도 재생했는지(false이면 첫 재생은 가까운 리셋 컷부터 fastforward)
+    const hasPlayedSinceLoadRef = useRef(false);
     const [prologues, setPrologues] = useState<any>()
     const [epilogues, setEpilogues] = useState<any>()
     const [synchs, setSynchs] = useState<any[]>([])
@@ -344,6 +348,8 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                 }, 36);
             } else {
                 sendBoardAction(cut);
+                // 템플릿의 clearCanvas가 60ms 뒤 객체를 지우므로, 다음 ADD가 지워지지 않게 기다린다
+                if (isResetCut(cut)) await sleep(120);
             }
 
             const leaderId = getLeaderIdForCut(cut);
@@ -388,17 +394,34 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         syncCanvasObjects: async (objects) => {
             sendBoardAction({ actionType: 'SYNCH', objects });
         },
+        runCurtains: async (startIdx) => {
+            // 시작 리셋 컷 이전에 추가된 배경 유지 객체(연습장 등)를 복원한다
+            const curtains = (menuScript?.curtains ?? []).filter((c: any) => c.seq === startIdx);
+            for (const curtain of curtains) {
+                for (const obj of curtain.objs ?? []) {
+                    if (menuScript?.canvasBackStuffs?.[obj?.id]) {
+                        sendBoardAction({ actionType: 'ADD', obj });
+                    }
+                }
+            }
+        },
         sleepFn: sleep,
     });
 
     const playToPointInternal = async (targetPt: GuideTarget, fromPt?: GuideTarget | null) => {
         hideModal();
         if (!studySequences || studySequences.length === 0) return;
-        if (fromPt == null && menuScript?.backgroundCut) {
-            sendBoardAction(menuScript.backgroundCut);
-        }
         const callbacks = getPlayerCallbacks();
-        await playToPoint(studySequences, targetPt, fromPt, callbacks);
+        if (fromPt == null || !hasPlayedSinceLoadRef.current) {
+            // 진입 재생: last cut idx 직전의 가장 가까운 리셋 컷부터
+            if (menuScript?.backgroundCut) {
+                sendBoardAction(menuScript.backgroundCut);
+            }
+            await fastforward(studySequences, targetPt, callbacks);
+        } else {
+            await playToPoint(studySequences, targetPt, fromPt, callbacks);
+        }
+        hasPlayedSinceLoadRef.current = true;
         if (targetPt.objects && Array.isArray(targetPt.objects)) {
             sendBoardAction({ actionType: 'SYNCH', objects: targetPt.objects });
         }
@@ -419,6 +442,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         if (lastGuide && studySequences.length > 0) {
             const callbacks = getPlayerCallbacks();
             await runAt(studySequences, lastGuide.studyIdx, (lastGuide.step as any) ?? 'main', callbacks);
+            hasPlayedSinceLoadRef.current = true;
         }
     };
 
@@ -546,6 +570,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         const cuts = await scriptMaker(releaseScriptUrl);
         initClassroomStuffs(cuts);
         setMenuScript(cuts)
+        hasPlayedSinceLoadRef.current = false;
         setStudySequences(cuts.contents)
 
     }
@@ -555,6 +580,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         const cuts = makeTemporaryScript(sourceType, sourceId);
         initClassroomStuffs(cuts);
         setMenuScript(cuts)
+        hasPlayedSinceLoadRef.current = false;
         setStudySequences(cuts.contents)
         // sendBoardAction(cuts.backgroundCut)
 
@@ -565,6 +591,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         const cuts = await scriptMaker(`${currentScript.releaseScriptUrl}?ts=${uuid.v4()}`);
         initClassroomStuffs(cuts);
         setMenuScript(cuts)
+        hasPlayedSinceLoadRef.current = false;
         setStudySequences(cuts.contents)
 
     }
