@@ -398,10 +398,10 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
             // 시작 리셋 컷 이전에 추가된 배경 유지 객체(연습장 등)를 복원한다
             const curtains = (menuScript?.curtains ?? []).filter((c: any) => c.seq === startIdx);
             for (const curtain of curtains) {
-                for (const obj of curtain.objs ?? []) {
-                    if (menuScript?.canvasBackStuffs?.[obj?.id]) {
-                        sendBoardAction({ actionType: 'ADD', obj });
-                    }
+                // curtain.objs 는 객체 id 문자열 목록이고, 객체 본체는 canvasBackStuffs 에 id 로 들어 있다
+                for (const objId of curtain.objs ?? []) {
+                    const obj = menuScript?.canvasBackStuffs?.[objId];
+                    if (obj) sendBoardAction({ actionType: 'ADD', obj });
                 }
             }
         },

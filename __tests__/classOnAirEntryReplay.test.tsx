@@ -109,8 +109,9 @@ describe.each([
 
   it('runCurtains: backgroundSubs인 연습지만 ADD', async () => {
     const menu = build('CLEAN', {
-      curtains: [{ seq: 3, objs: [{ id: 'paper' }, { id: 'other' }] }, { seq: 1, objs: [{ id: 'x' }] }],
-      canvasBackStuffs: { paper: true },
+      // 파서(parseDocument)가 내는 형태 그대로: objs 는 객체 id 문자열, canvasBackStuffs 는 id -> 객체
+      curtains: [{ seq: 3, objs: ['paper', 'other'] }, { seq: 1, objs: ['x'] }],
+      canvasBackStuffs: { paper: { id: 'paper' } },
     });
     await enter(menu, 5);
     await waitFor(() => expect(adds()).toContain('d'));
