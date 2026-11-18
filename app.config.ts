@@ -53,6 +53,7 @@ const config: ExpoConfig = {
     'expo-dev-client',
     'expo-apple-authentication',
     './plugins/withIosSceneLifecycle', // iOS 27 런타임 필수: UIScene 수명주기 채택(SDK 58 이상으로 올리면 제거)
+    './plugins/withPodDeploymentTarget', // Xcode 27 필수: 배포 버전 15.0 미만인 Pod 타깃을 15.1로 올린다
     // 소셜 로그인 SDK — 기존 앱(qoolla-student-app)과 같은 앱 키·URL 스킴(공개 식별자)
     ['@react-native-seoul/kakao-login', { kakaoAppKey: 'c1097c6dc3f50d32de009614c4d7071a' }],
     './plugins/withKakaoMavenRepo', // Kakao SDK 저장소를 jitpack보다 앞에(jitpack 401로 빌드 실패 방지)
