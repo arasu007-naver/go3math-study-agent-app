@@ -37,6 +37,7 @@ import { colors, type } from '@/src/ui/theme';
 // 기존 route.params(topicId, taskId) 대신 경로 파라미터(?topicId=&taskId=). 하단 버튼 줄은 notebook처럼 캔버스 하단 툴바에 합쳤다.
 
 type Unit = { sourceType: string; sourceId: number; scripts?: { id: number }[] | null };
+import { toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 type Guide = { action?: string; scriptId?: number | string } & Record<string, unknown>;
 type PanelHandle = { onReceiveGuide(guide: Guide): void; getCurrentScript(): { scriptId?: number } };
 // 옮겨 온 패널은 FC로 선언된 forwardRef라 ref 타입이 없다 → 쓰는 쪽에서만 타입을 붙인다
@@ -135,11 +136,12 @@ export default function TopicLiveClassScreen() {
   const callGetLastTopicMessage = useCallback(async () => {
     try {
       const { data } = await getLastTopicMessage({ variables: { topicId } });
-      const guide = safeJsonParse(data?.lastLiveTopicMessage?.content, null) as Guide | null;
-      if (!guide) {
+      const parsed = safeJsonParse(data?.lastLiveTopicMessage?.content, null) as Guide | null;
+      if (!parsed) {
         setLiveState((cur) => (cur === 'live' ? cur : 'waiting'));
         return;
       }
+      const guide = toPositionGuide(parsed);
       setLiveState('live');
       if (panelRef.current) panelRef.current.onReceiveGuide(guide);
       else storage.set('syncPoint', JSON.stringify(guide));

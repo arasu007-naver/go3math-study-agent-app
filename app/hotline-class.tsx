@@ -38,6 +38,7 @@ import { colors, type } from '@/src/ui/theme';
 // 바뀐 점: 선생님이 수업 문제를 바꿨다는 안내({ action: 'units' })가 오면 문제(스크립트)를 다시 받는다 — 문제 목록과 같은 기준.
 
 type Unit = { sourceType: string; sourceId: number; scripts?: { id: number }[] | null };
+import { toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 type Guide = { action?: string; scriptId?: number | string } & Record<string, unknown>;
 type PanelHandle = { onReceiveGuide(guide: Guide): void; getCurrentScript(): { scriptId?: number } };
 // 옮겨 온 패널은 forwardRef(any)라 ref 타입이 없다 → 쓰는 쪽에서만 타입을 붙인다
@@ -120,11 +121,12 @@ export default function HotlineClassScreen() {
   const callGetLastMessage = useCallback(async () => {
     try {
       const { data } = await getLastMessage({ variables: { tutorId } });
-      const guide = safeJsonParse(data?.lastOnlineClassMessage?.content, null) as Guide | null;
-      if (!guide) {
+      const parsed = safeJsonParse(data?.lastOnlineClassMessage?.content, null) as Guide | null;
+      if (!parsed) {
         setLiveState((cur) => (cur === 'live' ? cur : 'waiting'));
         return;
       }
+      const guide = toPositionGuide(parsed);
       setLiveState('live');
       if (panelRef.current) panelRef.current.onReceiveGuide(guide);
       else storage.set('syncPoint', JSON.stringify(guide));
