@@ -193,7 +193,7 @@ export default function topicCanvasTemplate(width: number, height: number) {
                 case 'CLEAN_BOARD':
                     resetCanvas();
                     break;
-                case 'CLEAR_CANVAS':case 'CLEAN':
+                case 'CLEAR_CANVAS':case 'CLEAN':case 'CLEAR':
                     clearCanvas();
                     break;
                 case 'ADD_LINE':

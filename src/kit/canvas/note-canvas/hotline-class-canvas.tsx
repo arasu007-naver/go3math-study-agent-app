@@ -42,6 +42,8 @@ import {
     safeJsonParse,
     handleLiveClassMessage,
     playToPoint,
+    fastforward,
+    isResetCut,
     runAt,
     getLeaderIdForCut,
 } from './script-maker';
@@ -83,6 +85,8 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
     const [canvasStrokeColor, setCanvasStrokeColor] = useState('orange');
 
     const [studySequences, setStudySequences] = useState<any[]>([]);
+    // 스크립트 로드 뒤 재생한 적이 있는지(없으면 진입 재생: 리셋 컷부터 fastforward)
+    const hasPlayedSinceLoadRef = useRef(false);
     const [prologues, setPrologues] = useState<any>()
     const [epilogues, setEpilogues] = useState<any>()
     const [synchs, setSynchs] = useState<any[]>([])
@@ -330,6 +334,18 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
     }
 
     const getPlayerCallbacks = (): ScriptPlayerCallbacks<RawCut> => ({
+        runCurtains: async (startIdx) => {
+            const curtains = (menuScript?.curtains ?? []).filter((c: any) => c.seq === startIdx);
+            const backStuffs = menuScript?.canvasBackStuffs;
+            if (!backStuffs) return;
+            for (const curtain of curtains) {
+                for (const id of curtain.objs ?? []) {
+                    if (backStuffs[id]) {
+                        sendBoardAction({ actionType: 'ADD', obj: backStuffs[id] });
+                    }
+                }
+            }
+        },
         runCut: async (cut) => {
             hideModal();
             const obj = cut.obj ?? safeJsonParse(cut.content, {});
@@ -344,6 +360,10 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                 }, 36);
             } else {
                 sendBoardAction(cut);
+                if (isResetCut(cut)) {
+                    // 템플릿의 60ms 지연 정리가 끝난 뒤에 다음 ADD가 그려지게 한다
+                    await sleep(120);
+                }
             }
 
             const leaderId = getLeaderIdForCut(cut);
@@ -391,14 +411,27 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         sleepFn: sleep,
     });
 
-    const playToPointInternal = async (targetPt: GuideTarget, fromPt?: GuideTarget | null) => {
+    const playToPointInternal = async (
+        targetPt: GuideTarget,
+        fromPt?: GuideTarget | null,
+        options?: { sequential?: boolean },
+    ) => {
         hideModal();
         if (!studySequences || studySequences.length === 0) return;
-        if (fromPt == null && menuScript?.backgroundCut) {
-            sendBoardAction(menuScript.backgroundCut);
-        }
         const callbacks = getPlayerCallbacks();
-        await playToPoint(studySequences, targetPt, fromPt, callbacks);
+        const isEntry = !options?.sequential && (fromPt == null || !hasPlayedSinceLoadRef.current);
+        if (isEntry) {
+            if (menuScript?.backgroundCut) {
+                sendBoardAction(menuScript.backgroundCut);
+            }
+            await fastforward(studySequences, targetPt, callbacks);
+        } else {
+            if (fromPt == null && menuScript?.backgroundCut) {
+                sendBoardAction(menuScript.backgroundCut);
+            }
+            await playToPoint(studySequences, targetPt, fromPt, callbacks);
+        }
+        hasPlayedSinceLoadRef.current = true;
         if (targetPt.objects && Array.isArray(targetPt.objects)) {
             sendBoardAction({ actionType: 'SYNCH', objects: targetPt.objects });
         }
@@ -411,7 +444,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         }
         const startPoint: GuideTarget = { studyIdx: startIdx, step: 'refresh' };
         setTimeout(() => {
-            playToPointInternal(lastGuide, startPoint);
+            playToPointInternal(lastGuide, startPoint, { sequential: true });
         }, 120);
     };
 
@@ -419,6 +452,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         if (lastGuide && studySequences.length > 0) {
             const callbacks = getPlayerCallbacks();
             await runAt(studySequences, lastGuide.studyIdx, (lastGuide.step as any) ?? 'main', callbacks);
+            hasPlayedSinceLoadRef.current = true;
         }
     };
 
@@ -546,6 +580,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         const cuts = await scriptMaker(releaseScriptUrl);
         initClassroomStuffs(cuts);
         setMenuScript(cuts)
+        hasPlayedSinceLoadRef.current = false;
         setStudySequences(cuts.contents)
 
     }
@@ -555,6 +590,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         const cuts = makeTemporaryScript(sourceType, sourceId);
         initClassroomStuffs(cuts);
         setMenuScript(cuts)
+        hasPlayedSinceLoadRef.current = false;
         setStudySequences(cuts.contents)
         // sendBoardAction(cuts.backgroundCut)
 
@@ -565,6 +601,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
         const cuts = await scriptMaker(`${currentScript.releaseScriptUrl}?ts=${uuid.v4()}`);
         initClassroomStuffs(cuts);
         setMenuScript(cuts)
+        hasPlayedSinceLoadRef.current = false;
         setStudySequences(cuts.contents)
 
     }

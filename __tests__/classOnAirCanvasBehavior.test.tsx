@@ -45,6 +45,9 @@ jest.mock('../src/kit/canvas/note-canvas/script-maker', () => ({
   safeJsonParse: (s: any, d: any) => d,
   handleLiveClassMessage: (...a: any[]) => (mockHandleLive as any)(...a),
   playToPoint: (...a: any[]) => (mockPlayToPoint as any)(...a),
+  // 진입 재생(fastforward)도 같은 mock으로 관찰한다(시작점 0이라 결과 동일)
+  fastforward: (cuts: any, tgt: any, cb: any) => (mockPlayToPoint as any)(cuts, tgt, null, cb),
+  isResetCut: (c: any) => ['CLEAN', 'CLEAN_SCENE', 'CLEAR'].includes(String(c?.actionType).toUpperCase()),
   runAt: jest.fn(),
   getLeaderIdForCut: jest.fn(),
 }));
