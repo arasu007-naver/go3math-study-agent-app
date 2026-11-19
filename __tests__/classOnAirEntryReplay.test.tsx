@@ -3,21 +3,25 @@ import { createRef } from 'react';
 
 const mockLog: any[] = [];
 const mockPosted: any[] = [];
+let mockWebViewProps: any = null;
+let mockEdges: any = null;
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({ __esModule: true, default: () => ({ width: 800, height: 1280, scale: 1, fontScale: 1 }) }));
 jest.mock('react-native-webview', () => {
   const React = require('react');
   return {
     WebView: React.forwardRef((_p: any, ref: any) => {
+      mockWebViewProps = _p;
       React.useImperativeHandle(ref, () => ({ postMessage: (m: string) => { const j = JSON.parse(m); mockPosted.push(j); mockLog.push(j.actionType + (j.obj?.id ? ':' + j.obj.id : '')); } }));
       return null;
     }),
   };
-jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 24, bottom: 0, left: 0, right: 0 }) }));
 });
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 24, bottom: 0, left: 0, right: 0 }) }));
 jest.mock('@react-navigation/native', () => ({ useNavigation: () => ({}), useIsFocused: () => true }));
 jest.mock('../src/kit/ui/web-view', () => () => null);
 jest.mock('../src/kit/math/MathJaxWrapper', () => () => null);
 jest.mock('../src/kit/canvas/CanvasChrome', () => ({ CanvasChrome: () => null, canvasTool: (id: string) => ({ id }) }));
-jest.mock('../src/kit/canvas/note-canvas/screen-wrapper', () => ({ __esModule: true, default: ({ children }: any) => children }));
+jest.mock('../src/kit/canvas/note-canvas/screen-wrapper', () => ({ __esModule: true, default: ({ children, edges }: any) => { mockEdges = edges; return children; } }));
 jest.mock('../src/api/rest', () => ({ requestStorageUrl: jest.fn() }));
 jest.mock('react-native-blob-util', () => ({ __esModule: true, default: {} }));
 jest.mock('../src/kit/canvas/note-canvas/legacy', () => {
@@ -60,6 +64,7 @@ import { fastforward, playToPoint } from '../src/kit/canvas/note-canvas/script-m
 import { storage } from '../src/kit/canvas/note-canvas/legacy';
 import HotlineClassCanvasPanel from '../src/kit/canvas/note-canvas/hotline-class-canvas';
 import TopicLiveClassCanvasPanel from '../src/kit/canvas/note-canvas/topic-live-canvas';
+import { layout } from '../src/ui/theme';
 
 const add = (id: string) => ({ actionType: 'ADD', obj: { id } });
 const build = (resetType: string | null, extra: any = {}) => {
@@ -90,6 +95,16 @@ describe.each([
     return ref;
   };
   const adds = () => mockLog.filter((l) => l.startsWith('ADD')).map((l) => l.split(':')[1]);
+
+  it('WebView 크기·세로 여백·edges·context 폭 1280', async () => {
+    await enter(build('CLEAN'), 5);
+    const st = mockWebViewProps.style;
+    expect(st.width).toBe(800 - 12);
+    expect(st.height).toBe(1280 - 24 - layout.toolbarH);
+    for (const k of ['padding', 'paddingVertical', 'paddingTop', 'paddingBottom', 'margin', 'marginVertical', 'marginTop', 'marginBottom']) expect(st[k] ?? 0).toBe(0);
+    expect(mockWebViewProps.source.html).toContain("width='1280'");
+    expect(mockEdges).not.toContain('top');
+  });
 
   it.each(['CLEAN', 'CLEAR', 'CLEAN_SCENE'])('%s 이전 컷은 보내지 않는다', async (type) => {
     await enter(build(type), 5);
