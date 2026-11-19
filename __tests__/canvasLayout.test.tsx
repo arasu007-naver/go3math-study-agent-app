@@ -30,7 +30,7 @@ import { layout } from '../src/ui/theme';
 
 describe('Notebook 레이아웃', () => {
   it('WebView 크기·세로 여백 0·context 폭 1280', async () => {
-    await render(<Notebook loaded={jest.fn()} />);
+    await render(<Notebook {...({ loaded: jest.fn() } as any)} />);
     const st = mockWebViewProps.style;
     expect(st.width).toBe(800 - 12);
     expect(st.height).toBe(1280 - 24 - layout.toolbarH);
