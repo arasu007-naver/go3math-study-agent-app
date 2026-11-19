@@ -33,11 +33,13 @@ jest.mock('../src/kit/canvas/note-canvas/legacy', () => {
     },
     cacheLiveReleaseScriptUrl: jest.fn(() => false),
     getBase64StringFromDataURL: jest.fn(),
-    sleep: jest.fn(async (ms: number) => { mockLog.push('sleep' + ms); }),
+    sleep: jest.fn(async (ms: number) => { mockLog.push('sleep' + ms); if (mockSleepDelay) await new Promise((r) => setTimeout(r, mockSleepDelay)); }),
     findLargestSmallerThan: jest.fn(() => 0),
   };
 });
 let mockMenu: any = {};
+let mockCtx: any = null;
+let mockSleepDelay = 0;
 jest.mock('../src/kit/canvas/note-canvas/script-maker', () => {
   const actual = jest.requireActual('@qoolla/script-parser');
   return {
@@ -45,12 +47,15 @@ jest.mock('../src/kit/canvas/note-canvas/script-maker', () => {
     scriptMaker: jest.fn(async () => ({ ...mockMenu })),
     makeTemporaryScript: jest.fn(() => mockMenu),
     safeJsonParse: (s: any, d: any) => d,
-    handleLiveClassMessage: jest.fn(async () => {}),
+    handleLiveClassMessage: jest.fn(async (_g: any, ctx: any) => { mockCtx = ctx; }),
+    fastforward: jest.fn((...a: any[]) => actual.fastforward(...a)),
+    playToPoint: jest.fn((...a: any[]) => actual.playToPoint(...a)),
     runAt: jest.fn(),
   };
 });
 
 import fs from 'fs';
+import { fastforward, playToPoint } from '../src/kit/canvas/note-canvas/script-maker';
 import { storage } from '../src/kit/canvas/note-canvas/legacy';
 import HotlineClassCanvasPanel from '../src/kit/canvas/note-canvas/hotline-class-canvas';
 import TopicLiveClassCanvasPanel from '../src/kit/canvas/note-canvas/topic-live-canvas';
@@ -181,5 +186,134 @@ describe.each([
     });
     await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
     expect(mockLog.filter((l) => l === 'ADD:d').length).toBe(1);
+  });
+});
+
+describe.each([
+  ['hotline', HotlineClassCanvasPanel],
+  ['topic', TopicLiveClassCanvasPanel],
+])('%s canvas 진입 재생 순서/재진입', (_n, Panel: any) => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPosted.length = 0;
+    mockLog.length = 0;
+    mockCtx = null;
+    mockSleepDelay = 0;
+    (storage as any).store['live-scripts'] = JSON.stringify([{ id: 12, sourceType: 'UNIT', sourceId: 1, releaseScriptUrl: 'u12' }]);
+    delete (storage as any).store.syncPoint;
+  });
+  const menu = () => ({
+    contents: [{ actionType: 'BACKGROUND' }, add('a'), { actionType: 'CLEAN' }, add('c'), add('d'), add('e')],
+    backgroundCut: { actionType: 'BG' },
+  });
+  const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 60)); });
+  const load = async (idx: number) => {
+    mockMenu = menu();
+    const ref = createRef<any>();
+    await render(<Panel ref={ref} topicUnits={[]} changeUnit={jest.fn()} />);
+    await act(async () => { await ref.current.onReceiveGuide(guide(idx)); });
+    return ref;
+  };
+  const board = () => mockLog.filter((l) => !l.startsWith('sleep'));
+
+  it('3: 진입 재생 순서 전체', async () => {
+    await load(4);
+    await waitFor(() => expect(mockLog.filter((l) => l === 'sleep180').length).toBeGreaterThanOrEqual(4));
+    await settle();
+    const seq = mockLog.slice(mockLog.lastIndexOf('BG'));
+    expect(seq).toEqual(expect.arrayContaining(['BG', 'sleep180', 'CLEAN']));
+    const iClean = seq.indexOf('CLEAN');
+    const tail = seq.slice(seq.indexOf('ADD:c') - 1);
+    expect(tail).toEqual(['sleep180', 'ADD:c', 'sleep420', 'sleep180', 'ADD:d', 'sleep420', 'sleep180']);
+    expect(seq.slice(0, 2)).toEqual(['BG', 'sleep180']);
+    expect(iClean).toBeGreaterThan(1);
+    expect(seq).not.toContain('ADD:a');
+  });
+
+  it('5: 겹친 호출이 와도 fastforward 1회, ADD d 1회', async () => {
+    const ref = await load(4);
+    await settle();
+    expect((fastforward as jest.Mock).mock.calls.length).toBe(1);
+    await act(async () => { await ref.current.onReceiveGuide(guide(4)); });
+    await act(async () => { await Promise.all([mockCtx.playToPoint({ studyIdx: 4, step: 'main' }), mockCtx.playToPoint({ studyIdx: 4, step: 'main' })]); });
+    await settle();
+    expect((fastforward as jest.Mock).mock.calls.length).toBe(1);
+    expect(mockLog.filter((l) => l === 'ADD:d').length).toBe(1);
+  });
+
+  it('6: 진입 재생 중 도착한 {studyIdx:5} 재생은 진입 재생 뒤에 시작', async () => {
+    mockSleepDelay = 15;
+    const ref = await load(4);
+    await waitFor(() => expect(mockLog).toContain('ADD:c'));
+    await act(async () => { await ref.current.onReceiveGuide(guide(5)); });
+    await act(async () => { mockCtx.setLastGuide({ studyIdx: 4, step: 'main' }); });
+    await act(async () => { await ref.current.onReceiveGuide(guide(5)); });
+    await act(async () => { await mockCtx.playToPoint({ studyIdx: 5, step: 'main' }); });
+    await settle();
+    const b = board().filter((l) => l.startsWith('ADD'));
+    expect(b).toEqual(['ADD:c', 'ADD:d', 'ADD:e']);
+    expect(mockLog.indexOf('ADD:e')).toBeGreaterThan(mockLog.lastIndexOf('sleep180', mockLog.indexOf('ADD:d') + 3));
+  });
+
+  it('7: 진입 재생 뒤 {studyIdx:5}는 playToPoint로 재생되고 sleep180이 없다', async () => {
+    const ref = await load(4);
+    await settle();
+    await act(async () => { await ref.current.onReceiveGuide(guide(4)); });
+    await act(async () => { mockCtx.setLastGuide({ studyIdx: 4, step: 'main' }); });
+    (playToPoint as jest.Mock).mockClear();
+    (fastforward as jest.Mock).mockClear();
+    const n = mockLog.length;
+    await act(async () => { await mockCtx.playToPoint({ studyIdx: 5, step: 'main' }); });
+    await settle();
+    expect((fastforward as jest.Mock).mock.calls.length).toBe(0);
+    expect((playToPoint as jest.Mock).mock.calls.length).toBe(1);
+    expect(mockLog.slice(n)).toContain('ADD:e');
+    expect(mockLog.slice(n)).not.toContain('sleep180');
+  });
+
+  it('8: CLASS_ON_AIR(같은 스크립트)는 목표가 같아도 다시 재생', async () => {
+    const ref = await load(4);
+    await settle();
+    (fastforward as jest.Mock).mockClear();
+    mockLog.length = 0;
+    await act(async () => { await ref.current.onReceiveGuide({ ...guide(4), action: 'CLASS_ON_AIR' }); });
+    await settle();
+    expect(mockLog).toContain('BACKGROUND');
+  });
+
+  it('8: follow는 목표가 같아도 다시 재생', async () => {
+    const ref = await load(4);
+    await settle();
+    await act(async () => { await ref.current.onReceiveGuide(guide(4)); });
+    mockLog.length = 0;
+    await act(async () => { await ref.current.onReceiveGuide({ ...guide(4), action: 'follow' }); });
+    await act(async () => { await new Promise((r) => setTimeout(r, 400)); });
+    expect(mockLog.filter((l) => l.startsWith('ADD')).length).toBeGreaterThan(0);
+  });
+
+  it('9: 재로드 뒤 같은 목표는 다시 진입 재생', async () => {
+    const ref = await load(4);
+    await settle();
+    expect(mockLog.filter((l) => l === 'ADD:d').length).toBe(1);
+    mockLog.length = 0;
+    (storage as any).store.syncPoint = JSON.stringify({ studyIdx: 4, step: 'main' });
+    await act(async () => { await ref.current.onReceiveGuide(guide(4)); });
+    expect(mockLog.filter((l) => l === 'ADD:d').length).toBe(0);
+    await act(async () => { await mockCtx.downloadScript(); });
+    await settle();
+    expect(mockLog.filter((l) => l === 'ADD:d').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it.each([
+    ['canvas-synch', { action: 'canvas-synch', objects: [1] }],
+    ['synch', { action: 'synch', objects: [1], studyIdx: 2 }],
+    ['snapshot', { action: 'snapshot' }],
+  ])('10: %s guide 처리 불변', async (_k, g: any) => {
+    const ref = await load(4);
+    await settle();
+    mockLog.length = 0;
+    await act(async () => { await ref.current.onReceiveGuide({ ...guide(4), ...g }); });
+    const expected = g.action === 'snapshot' ? ['SAVE'] : ['SYNCH'];
+    expect(mockLog).toEqual(expected);
   });
 });
