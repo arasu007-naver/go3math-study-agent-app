@@ -27,6 +27,21 @@ describe('live class canvas template snapshot scale', () => {
     expect(h).not.toMatch(/classScale = \d+\/1920/);
   });
 
+  it('script play paths keep * classScale, boardScale stays width-based', () => {
+    const h = liveClassCanvasTemplate(1280, 1900, 'orange', 6, 788, 1170);
+    const fnBody = (marker: string) => {
+      const i = h.indexOf(marker);
+      expect(i).toBeGreaterThan(-1);
+      return h.slice(i, i + 4000);
+    };
+    for (const m of ['function addObjToCanvas(', 'showSyncMembers = (', 'function syncCanvasObjects(', 'async function importObjectFromClipboard(', 'function showEpilogues(']) {
+      expect(fnBody(m)).toContain('* classScale');
+    }
+    expect(h).toMatch(/var boardScale = 1280\/1280/);
+    expect(h).not.toMatch(/classScale = [\d.]+\/1280/);
+    expect(h).not.toContain('classScale = 1280/1280');
+  });
+
   it('has no setDimensions without css size', () => {
     const h = liveClassCanvasTemplate(1280, 1900, 'orange', 6);
     expect(h).toContain('enableRetinaScaling: true');

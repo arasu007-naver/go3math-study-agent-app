@@ -65,6 +65,7 @@ import { storage } from '../src/kit/canvas/note-canvas/legacy';
 import HotlineClassCanvasPanel from '../src/kit/canvas/note-canvas/hotline-class-canvas';
 import TopicLiveClassCanvasPanel from '../src/kit/canvas/note-canvas/topic-live-canvas';
 import { layout } from '../src/ui/theme';
+import { canvasContextSize, canvasScreenSize, scriptPlayScale } from '../src/kit/canvas/canvasSize';
 
 const add = (id: string) => ({ actionType: 'ADD', obj: { id } });
 const build = (resetType: string | null, extra: any = {}) => {
@@ -104,6 +105,12 @@ describe.each([
     for (const k of ['padding', 'paddingVertical', 'paddingTop', 'paddingBottom', 'margin', 'marginVertical', 'marginTop', 'marginBottom']) expect(st[k] ?? 0).toBe(0);
     expect(mockWebViewProps.source.html).toContain("width='1280'");
     expect(mockEdges).not.toContain('top');
+  });
+
+  it('html의 classScale은 scriptPlayScale(context 크기)와 같다', async () => {
+    await enter(build('CLEAN'), 5);
+    const expected = scriptPlayScale(canvasContextSize(canvasScreenSize({ width: 800, height: 1280 }, { top: 24, bottom: 0 })));
+    expect(mockWebViewProps.source.html).toContain(`var classScale = ${expected};`);
   });
 
   it.each(['CLEAN', 'CLEAR', 'CLEAN_SCENE'])('%s 이전 컷은 보내지 않는다', async (type) => {

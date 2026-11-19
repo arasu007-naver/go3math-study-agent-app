@@ -1,4 +1,4 @@
-import { BOARD_HEIGHT, BOARD_WIDTH, canvasContextSize, canvasScreenSize } from '../src/kit/canvas/canvasSize';
+import { BOARD_HEIGHT, BOARD_WIDTH, canvasContextSize, canvasScreenSize, scriptPlayScale } from '../src/kit/canvas/canvasSize';
 import classCanvasTemplate from '../src/kit/canvas/templates/whiteboard-canvas-template';
 import { layout } from '../src/ui/theme';
 
@@ -22,7 +22,6 @@ describe('solve canvas size', () => {
   });
 });
 
-import { scriptPlayScale } from '../src/kit/canvas/canvasSize';
 describe('scriptPlayScale', () => {
   it.each([
     [1280, 1920, 1],
@@ -31,4 +30,10 @@ describe('scriptPlayScale', () => {
     [788, 1170, 1170 / 1920],
     [600, 1200, 600 / 1280],
   ])('%i x %i', (w, h, e) => expect(scriptPlayScale({ width: w, height: h })).toBeCloseTo(e, 10));
+  it.each([[1, 1], [788, 1170], [5000, 100], [100, 5000], [1280, 1920], [333.3, 777.7]])('property %f x %f', (w, h) => {
+    const r = scriptPlayScale({ width: w, height: h });
+    expect(r).toBeCloseTo(Math.min(h / 1920, w / 1280), 12);
+    expect(1280 * r).toBeLessThanOrEqual(w + 1e-9);
+    expect(1920 * r).toBeLessThanOrEqual(h + 1e-9);
+  });
 });
