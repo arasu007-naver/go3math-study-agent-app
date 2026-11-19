@@ -16,7 +16,7 @@ describe.each(['topic-live-canvas.tsx', 'hotline-class-canvas.tsx'])('%s CLASS_O
 
   it('기존 scriptId 전환 분기·handleLiveClassMessage보다 먼저 처리한다', () => {
     expect(start).toBeGreaterThan(-1);
-    expect(body.indexOf('if (guide.scriptId == null)')).toBeGreaterThan(start);
+    expect(body.search(/if \((guide\.scriptId == null|!hasScriptId\(guide\.scriptId\) && guide\.sourceType)\)/)).toBeGreaterThan(start);
   });
   it('다른 스크립트면 syncPoint 저장 후 전환', () => {
     expect(block).toContain('currentScriptId != onAirScriptId');

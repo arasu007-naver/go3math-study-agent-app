@@ -56,6 +56,7 @@ import type {
     ScriptPlayerCallbacks,
     LiveClassMessageContext,
 } from './script-maker';
+import { hasScriptId, normalizeGuideScriptId } from './live-script-id';
 import MathJaxWrapper from '../../math/MathJaxWrapper'
 const strokeWidths = [3, 4, 6, 9, 15, 24];
 const strokeColors = ['orange', 'blue', 'black', 'red', 'green']
@@ -117,17 +118,18 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 sendBoardAction({ actionType: 'SAVE' })
                 return;
             }
+            guide = normalizeGuideScriptId(guide, JSON.parse(storage.getString('live-scripts') || '[]'));
 
             if (guide.action === CLASS_ON_AIR) {
                 const onAirScriptId = Number(guide.scriptId);
-                const differs = onAirScriptId > 0
+                const differs = hasScriptId(onAirScriptId)
                     ? currentScriptId != onAirScriptId
                     : currentScript?.sourceType != guide.sourceType || currentScript?.sourceId != guide.sourceId;
                 if (differs) {
                     storage.set('syncPoint', JSON.stringify(guide));
                     setLastGuide({ studyIdx: 0, step: 'refresh' });
                     setTargetGuide(guide);
-                    if (onAirScriptId > 0) {
+                    if (hasScriptId(onAirScriptId)) {
                         setCurrentScriptId(onAirScriptId);
                     } else {
                         setCurrentScript({ sourceType: guide.sourceType, sourceId: guide.sourceId });
@@ -146,7 +148,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 return;
             }
 
-            if (guide.scriptId == null) {
+            if (!hasScriptId(guide.scriptId) && guide.sourceType) {
                 if (currentScript?.sourceType != guide.sourceType || currentScript?.sourceId != guide.sourceId) {
                     storage.set('syncPoint', JSON.stringify(guide));
                     setLastGuide({ studyIdx: 0, step: 'refresh' });
@@ -155,7 +157,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                     setCurrentScriptId(0);
                     return;
                 }
-            } else if (Number(guide.scriptId) > 0) {
+            } else if (hasScriptId(guide.scriptId)) {
                 if (currentScriptId != Number(guide.scriptId)) {
                     setLastGuide({ studyIdx: 0, step: 'refresh' });
                     setTargetGuide(guide);
@@ -290,7 +292,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
             if (scriptsArray && scriptsArray.length > 0) {
                 let targetScript = currentScript;
                 let targetScriptId = currentScriptId;
-                if (Number(targetScriptId) > 0) {
+                if (hasScriptId(targetScriptId)) {
                     let tScript = _.filter(scriptsArray, (src: any) => Number(src.id) == Number(targetScriptId));
                     if (tScript.length > 0) {
                         setCurrentScript(tScript[0]);

@@ -64,6 +64,7 @@
 - **NoteCanvasPencilPropsModal**: `src/kit/canvas/note-canvas/pencil-props-modal.tsx`
 - **ScreenWrapper**: `src/kit/canvas/note-canvas/screen-wrapper.tsx`
 - **TopicLiveCanvas**: `src/kit/canvas/note-canvas/topic-live-canvas.tsx`
+- **LiveScriptId**: `src/kit/canvas/note-canvas/live-script-id.ts`
 - **TopicNotebook**: `src/kit/canvas/note-canvas/topic-notebook.tsx`
 - **ConceptLookupPanel**: `src/kit/concepts/ConceptLookupPanel.tsx`
 - **ConceptStatement**: `src/kit/concepts/ConceptStatement.tsx`

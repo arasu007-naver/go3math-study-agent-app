@@ -63,6 +63,7 @@ export const STUDY_TOPIC = gql`
           id
           releaseScriptUrl
           filenames
+          isDefaultScript
         }
       }
     }
