@@ -27,7 +27,7 @@ describe.each(['topic-live-canvas.tsx', 'hotline-class-canvas.tsx'])('%s CLASS_O
   it('같은 스크립트면 cuts[0]부터 backgroundCut 포함 재생, handleLiveClassMessage 없음', () => {
     expect(block).toContain('setCurrentIdx(0)');
     expect(block).toContain("setLastGuide({ ...guide, studyIdx: 0, step: 'main' })");
-    expect(block).toContain("playToPointInternal({ studyIdx: 0, step: 'main' }, null)");
+    expect(block).toContain("playToPointInternal({ studyIdx: 0, step: 'main' }, null, { force: true })");
     expect(block).not.toContain('handleLiveClassMessage');
   });
 });

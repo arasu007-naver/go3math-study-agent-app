@@ -136,3 +136,50 @@ describe('템플릿의 리셋 컷 처리', () => {
     expect(s).toContain("case 'CLEAN_SCENE'");
   });
 });
+
+describe.each([
+  ['hotline', HotlineClassCanvasPanel],
+  ['topic', TopicLiveClassCanvasPanel],
+])('%s canvas 진입 재생 간격/직렬화', (_n, Panel: any) => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPosted.length = 0;
+    mockLog.length = 0;
+    (storage as any).store['live-scripts'] = JSON.stringify([{ id: 12, sourceType: 'UNIT', sourceId: 1, releaseScriptUrl: 'u12' }]);
+    delete (storage as any).store.syncPoint;
+  });
+  const menu = () => ({
+    contents: [{ actionType: 'BACKGROUND' }, add('a'), { actionType: 'CLEAN' }, add('c'), add('d')],
+    backgroundCut: { actionType: 'BG' },
+  });
+  const enter = async (idx: number) => {
+    mockMenu = menu();
+    const ref = createRef<any>();
+    await render(<Panel ref={ref} topicUnits={[]} changeUnit={jest.fn()} />);
+    await act(async () => ref.current.onReceiveGuide(guide(idx)));
+    await waitFor(() => expect(mockLog).toContain('ADD:d'));
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    return ref;
+  };
+
+  it('배경 뒤와 컷 사이에 180ms 간격을 둔다', async () => {
+    await enter(4);
+    const bg = mockLog.lastIndexOf("BG");
+    expect(mockLog[bg + 1]).toBe('sleep180');
+    expect(mockLog).not.toContain('ADD:a');
+    const c = mockLog.indexOf('ADD:c');
+    const d = mockLog.indexOf('ADD:d');
+    expect(mockLog.slice(c, d)).toContain('sleep180');
+  });
+
+  it('같은 목표 진입 재생이 겹쳐 와도 한 번만 그린다', async () => {
+    mockMenu = menu();
+    const ref = createRef<any>();
+    await render(<Panel ref={ref} topicUnits={[]} changeUnit={jest.fn()} />);
+    await act(async () => {
+      await Promise.all([ref.current.onReceiveGuide(guide(4)), ref.current.onReceiveGuide(guide(4))]);
+    });
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    expect(mockLog.filter((l) => l === 'ADD:d').length).toBe(1);
+  });
+});

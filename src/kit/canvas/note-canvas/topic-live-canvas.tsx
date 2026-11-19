@@ -42,6 +42,7 @@ import {
     handleLiveClassMessage,
     playToPoint,
     fastforward,
+    CATCH_UP_GAP_MS,
     isResetCut,
     runAt,
     getLeaderIdForCut,
@@ -85,6 +86,9 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
     const [studySequences, setStudySequences] = useState<any[]>([]);
     // 스크립트를 새로 로드한 뒤 한 번이라도 재생했는지(false이면 첫 재생은 가까운 리셋 컷부터 fastforward)
     const hasPlayedSinceLoadRef = useRef(false);
+    // 재생 직렬화(이전 재생이 끝나야 다음 재생 시작)와 직전 재생 목표(중복 재생 건너뛰기용)
+    const playChainRef = useRef<Promise<void>>(Promise.resolve());
+    const lastPlayedRef = useRef<{ studyIdx: number; step: string } | null>(null);
     const [prologues, setPrologues] = useState<any>()
     const [epilogues, setEpilogues] = useState<any>()
     const [synchs, setSynchs] = useState<any[]>([])
@@ -133,7 +137,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 }
                 setCurrentIdx(0);
                 setLastGuide({ ...guide, studyIdx: 0, step: 'main' });
-                await playToPointInternal({ studyIdx: 0, step: 'main' }, null);
+                await playToPointInternal({ studyIdx: 0, step: 'main' }, null, { force: true });
                 return;
             }
 
@@ -385,23 +389,48 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
         sleepFn: sleep,
     });
 
-    const playToPointInternal = async (targetPt: GuideTarget, fromPt?: GuideTarget | null) => {
-        hideModal();
+    const runPlay = async (targetPt: GuideTarget, fromPt?: GuideTarget | null, opts?: { force?: boolean }) => {
         if (!studySequences || studySequences.length === 0) return;
+        const targetStep = targetPt.step || (targetPt as any).mode || 'main';
+        const last = lastPlayedRef.current;
+        if (
+            !opts?.force &&
+            hasPlayedSinceLoadRef.current === true &&
+            targetPt.action !== 'refresh' &&
+            targetPt.action !== 'synch' &&
+            (targetPt as any).sync !== true &&
+            last &&
+            last.studyIdx === (targetPt.studyIdx ?? 0) &&
+            last.step === targetStep
+        ) {
+            if (targetPt.objects && Array.isArray(targetPt.objects)) {
+                sendBoardAction({ actionType: 'SYNCH', objects: targetPt.objects });
+            }
+            return;
+        }
         const callbacks = getPlayerCallbacks();
         if (fromPt == null || !hasPlayedSinceLoadRef.current) {
             // 진입 재생: last cut idx 직전의 가장 가까운 리셋 컷부터
             if (menuScript?.backgroundCut) {
                 sendBoardAction(menuScript.backgroundCut);
+                await sleep(CATCH_UP_GAP_MS);
             }
             await fastforward(studySequences, targetPt, callbacks);
         } else {
             await playToPoint(studySequences, targetPt, fromPt, callbacks);
         }
         hasPlayedSinceLoadRef.current = true;
+        lastPlayedRef.current = { studyIdx: targetPt.studyIdx ?? 0, step: targetStep };
         if (targetPt.objects && Array.isArray(targetPt.objects)) {
             sendBoardAction({ actionType: 'SYNCH', objects: targetPt.objects });
         }
+    };
+
+    const playToPointInternal = (targetPt: GuideTarget, fromPt?: GuideTarget | null, opts?: { force?: boolean }) => {
+        hideModal();
+        const p = playChainRef.current.then(() => runPlay(targetPt, fromPt, opts)).catch(() => {});
+        playChainRef.current = p;
+        return p;
     };
 
     const synchToCurrent = () => {
@@ -411,7 +440,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
         }
         const startPoint: GuideTarget = { studyIdx: startIdx, step: 'refresh' };
         setTimeout(() => {
-            playToPointInternal(lastGuide, startPoint);
+            playToPointInternal(lastGuide, startPoint, { force: true });
         }, 120);
     };
 
@@ -544,6 +573,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
         initClassroomStuffs(cuts);
         setMenuScript(cuts)
         hasPlayedSinceLoadRef.current = false;
+        lastPlayedRef.current = null;
         setStudySequences(cuts.contents)
 
     }
@@ -554,6 +584,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
         initClassroomStuffs(cuts);
         setMenuScript(cuts)
         hasPlayedSinceLoadRef.current = false;
+        lastPlayedRef.current = null;
         setStudySequences(cuts.contents)
 
     }
