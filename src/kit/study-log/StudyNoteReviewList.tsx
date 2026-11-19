@@ -197,10 +197,12 @@ function UploadList({ state, onRetry, onView }: { state: Uploads | undefined; on
   if (state.items.length === 0) return <Text style={styles.muted}>이 학습의 기록이 없어요</Text>;
   return (
     <View style={styles.uploads}>
-      {state.items.map((a) => (
+      {state.items.map((a) => {
+        const label = a.type === 'QUIZ_SENT' && a.quizType === 'IMAGE' ? '선생님 이미지 퀴즈' : KIND_LABEL[a.type];
+        return (
         <View key={`${a.type}-${a.id}`} style={styles.upload}>
           <View style={styles.uploadText}>
-            <Text style={styles.uploadKind}>{KIND_LABEL[a.type]}</Text>
+            <Text style={styles.uploadKind}>{label}</Text>
             <Text style={styles.muted}>{kstLabel(a.createdAt)}</Text>
             {a.content ? (
               <Text style={styles.quiz} numberOfLines={3}>
@@ -209,12 +211,13 @@ function UploadList({ state, onRetry, onView }: { state: Uploads | undefined; on
             ) : null}
           </View>
           {a.imageUrl ? (
-            <Pressable accessibilityRole="imagebutton" accessibilityLabel={`${KIND_LABEL[a.type]} 크게 보기`} onPress={() => onView(a.imageUrl!)}>
+            <Pressable accessibilityRole="imagebutton" accessibilityLabel={`${label} 크게 보기`} onPress={() => onView(a.imageUrl!)}>
               <Image source={{ uri: a.imageUrl }} style={styles.thumb} resizeMode="cover" />
             </Pressable>
           ) : null}
         </View>
-      ))}
+        );
+      })}
     </View>
   );
 }

@@ -2,7 +2,9 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 import type { StudyLogFetchers, StudyNoteListItem } from '../src/kit/study-log/model';
 
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
-jest.mock('@openspacelabs/react-native-zoomable-view', () => ({ ReactNativeZoomableView: ({ children }: any) => children }));
+// Image.getSize는 jest-expo 목에서 동작하지 않아 이미지 크기 계산 컴포넌트를 비운다
+jest.mock('../src/kit/ui/image-dynamic-dims', () => () => null);
+jest.mock('@openspacelabs/react-native-zoomable-view',() => ({ ReactNativeZoomableView: ({ children }: any) => children }));
 
 import { StudyNoteReviewList } from '../src/kit/study-log/StudyNoteReviewList';
 import { clearTopicTitles } from '../src/kit/study-log/topicTitles';
@@ -90,6 +92,21 @@ describe('StudyNoteReviewList', () => {
     expect(screen.getAllByRole('imagebutton')).toHaveLength(2);
     expect(screen.getByRole('button', { name: '주제 실황 수업 돌아보기' }).props.accessibilityState.expanded).toBe(true);
     expect(f.listActivities).toHaveBeenCalledTimes(1);
+  });
+
+  it('선생님 이미지 퀴즈: 라벨·본문·이미지 버튼을 보이고 누르면 크게 본다', async () => {
+    const f = makeFetchers({
+      listActivities: jest.fn().mockResolvedValue([
+        { id: 31, type: 'QUIZ_SENT', createdAt: '2026-11-19T10:02:00', quizId: 1011, content: '중요한 부분에 표시하시오', imageUrl: 'https://x/c.jpeg', quizType: 'IMAGE', imageSourceType: 'MATH_CONCEPT', imageSourceId: 12 },
+      ]),
+    });
+    await render(<StudyNoteReviewList fetchers={f} refreshKey={0} now={NOW} />);
+    await fireEvent.press(await screen.findByRole('button', { name: '주제 실황 수업 돌아보기' }));
+    await waitFor(() => expect(screen.getByText('선생님 이미지 퀴즈')).toBeTruthy());
+    expect(screen.getByText('중요한 부분에 표시하시오')).toBeTruthy();
+    const btn = screen.getByRole('imagebutton', { name: '선생님 이미지 퀴즈 크게 보기' });
+    await fireEvent.press(btn);
+    await waitFor(() => expect(screen.getByRole('button', { name: '닫기' })).toBeTruthy());
   });
 
   it('목록이 다시 조회돼도 펼친 카드는 펼친 채 기록을 다시 받는다', async () => {

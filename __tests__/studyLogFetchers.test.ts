@@ -60,6 +60,14 @@ describe('createStudyLogFetchers', () => {
     expect(acts[1].quizId).toBe(9);
   });
 
+  it('listActivities: 이미지 퀴즈 필드를 그대로 넘긴다', async () => {
+    api.mockResolvedValueOnce({
+      activities: [{ id: 31, type: 'QUIZ_SENT', createdAt: '2026-11-19T10:02:00', quizId: 1011, content: 'c', imageUrl: 'u.jpeg', quizType: 'IMAGE', imageSourceType: 'MATH_CONCEPT', imageSourceId: 12 }],
+    });
+    const [a] = await createStudyLogFetchers().listActivities(5);
+    expect(a).toMatchObject({ imageUrl: 'u.jpeg', quizType: 'IMAGE', imageSourceType: 'MATH_CONCEPT', imageSourceId: 12 });
+  });
+
   it('토큰이 없으면 reject', async () => {
     authStore.dispatch({ type: 'SIGN_OUT' } as never);
     await expect(createStudyLogFetchers().listNotes('2026-11-09')).rejects.toThrow('로그인');

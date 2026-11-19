@@ -25,6 +25,9 @@ export type ReviewActivity = {
   /** 오프셋 없는 KST 문자열 yyyy-MM-ddTHH:mm:ss */
   createdAt: string;
   quizId?: number;
+  quizType?: string | null;
+  imageSourceType?: string | null;
+  imageSourceId?: number | null;
 };
 
 export interface StudyLogFetchers {
