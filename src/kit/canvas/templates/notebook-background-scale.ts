@@ -20,3 +20,18 @@ function notebookBackgroundOffset(canvasHeight) {
     return 10 * canvasHeight / 1920;
 }
 `;
+
+/**
+ * 핫라인 라이브 캔버스 배경 스케일 — 멘토 캔버스(PortraitScriptDynamicSizeCanvas)와 같은 규칙.
+ * 이미지 너비가 810이 되도록 하고, 높이가 1900을 넘으면 높이 1440 기준. classScale 적용 전 값을 돌려준다.
+ */
+export const LIVE_BG_SCALE_JS = `
+function liveBackgroundScale(imgWidth, imgHeight) {
+    if (!(imgWidth > 0)) return 810 / 1280;
+    var scale = 810 / imgWidth;
+    if (imgHeight * scale > 1900) {
+        scale = 1440 / imgHeight;
+    }
+    return scale;
+}
+`;

@@ -1,4 +1,4 @@
-import { NOTEBOOK_BG_SCALE_JS } from './notebook-background-scale';
+import { NOTEBOOK_BG_SCALE_JS, LIVE_BG_SCALE_JS } from './notebook-background-scale';
 import { scriptPlayScale } from '../canvasSize';
 import { ERASER_CURSOR_JS } from './eraser-cursor';
 
@@ -688,6 +688,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             });
         }
 
+        ${LIVE_BG_SCALE_JS}
         function changeBackgroundImage(imageUrl) {
             console.log('changeBackgroundImage: ', imageUrl);
             // window.ReactNativeWebView.postMessage(JSON.stringify({contentMeta:'CLEANCUTS', method: 'changeBackgroundImage', image: imageUrl, classScale: classScale}));
@@ -699,7 +700,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                     imageUrl,
                     function (oImg) {
                         console.log('@@@@@@@@@@@ changeBackgroundImage: ', oImg);
-                        let instanceScale = 810/1280*classScale;
+                        let instanceScale = liveBackgroundScale(oImg.width, oImg.height)*classScale;
                         window.ReactNativeWebView.postMessage(JSON.stringify({contentMeta:'CLEANCUTS', method: 'changeBackgroundImage', image: imageUrl, instanceScale: instanceScale}));
                         canvas.setBackgroundImage(oImg, canvas.renderAll.bind(canvas), {
                             top: 10*classScale,
@@ -720,12 +721,12 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             console.log('changeFeedbackBackgroundImage: ', imageUrl);
             canvas.isDrawingMode = true;
             if (imageUrl != null) {
-                let instanceScale = 810/1280*classScale;
                 resetEpoch += 1;
                 canvas.clear();
                 fabric.Image.fromURL(
                     imageUrl,
                     function (oImg) {
+                        let instanceScale = liveBackgroundScale(oImg.width, oImg.height)*classScale;
                         canvas.setBackgroundImage(oImg, canvas.renderAll.bind(canvas), {
                             backgroundImageOpacity: 1,
                             top: 10*classScale,
