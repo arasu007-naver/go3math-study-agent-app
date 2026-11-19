@@ -1,7 +1,8 @@
 import { NOTEBOOK_BG_SCALE_JS } from './notebook-background-scale';
 import { ERASER_CURSOR_JS } from './eraser-cursor';
 
-export default function liveClassCanvasTemplate(width: number, height: number, pencilColor: string, pencilWidth: number) {
+export default function liveClassCanvasTemplate(width: number, height: number, pencilColor: string, pencilWidth: number, cssWidth: number = width, cssHeight: number = height) {
+    const cssScaled = cssWidth !== width || cssHeight !== height;
     return `
 <!DOCTYPE html>
 <html>
@@ -12,9 +13,9 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
     <script src="https://cdn.jsdelivr.net/npm/fabric@4.3.0/dist/fabric.min.js"></script>
     </script> 
     <style>
-            html, body {
-                margin: 0;
-            }
+            html, body { margin: 0; padding: 0; overflow: hidden; }
+        canvas { display: block; margin: 0; padding: 0; }
+        .canvas-container { margin: 0 !important; padding: 0 !important; }
             .board {
                 width: 100%; 
                 height: 100%;
@@ -27,7 +28,8 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
     
 <script>
         const firstCommand = {"actionType": "NOTEBOOK", "obj": {"imageUrl": "https://qoolla1storage1account.blob.core.windows.net/qoollastoragecontainer/math-files/images/units/4220.png"}}
-        var canvas = new fabric.Canvas('canvas');
+        var canvas = new fabric.Canvas('canvas', { enableRetinaScaling: ${cssScaled ? 'false' : 'true'} });
+        ${cssScaled ? `canvas.setDimensions({ width: '${cssWidth}px', height: '${cssHeight}px' }, { cssOnly: true });` : ''}
         canvas.isDrawingMode = true;
         canvas.freeDrawingBrush.color = '${pencilColor}';
         canvas.freeDrawingBrush.width = ${pencilWidth};
@@ -35,7 +37,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
         const canvasWidth = ${width};
         const canvasHeight = ${height};
         var classBoardScript = [];
-        var classScale = ${height}/1920;
+        var classScale = ${width}/1280;
         var classBoardCuts = [];
         var lastSupplementaryYPos = 0;
         var lastScriptCutIdx = 0;
@@ -805,7 +807,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             let dataUrl;
             dataUrl = canvas.toDataURL({
               format: "png",
-              multiplier: 1/classScale, // 높이 1920 기준으로 맞춘다
+              multiplier: 1/classScale, // 폭 1280 기준으로 맞춘다
             });
             setTimeout(async () => {
               window.ReactNativeWebView.postMessage(JSON.stringify({content: dataUrl, contentMeta:'SNAPSHOT' }));
@@ -816,7 +818,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             let dataUrl;
             dataUrl = canvas.toDataURL({
               format: "png",
-              multiplier: 1/classScale, // 높이 1920 기준으로 맞춘다
+              multiplier: 1/classScale, // 폭 1280 기준으로 맞춘다
             });
             window.ReactNativeWebView.postMessage(JSON.stringify({content: dataUrl, contentMeta:'SNAPSHOT' }));
             setTimeout(async () => {

@@ -17,9 +17,9 @@ export default function classCanvasTemplate(width: number, height: number, cssWi
     <script src="https://cdn.jsdelivr.net/npm/fabric@4.3.0/dist/fabric.min.js"></script>
     </script> 
     <style>
-            html, body {
-                margin: 0;
-            }
+            html, body { margin: 0; padding: 0; overflow: hidden; }
+        canvas { display: block; margin: 0; padding: 0; }
+        .canvas-container { margin: 0 !important; padding: 0 !important; }
             .board {
                 width: 100%; 
                 height: 100%;

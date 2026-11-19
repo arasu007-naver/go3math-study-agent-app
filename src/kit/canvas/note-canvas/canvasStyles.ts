@@ -2,10 +2,10 @@ import { StyleSheet } from 'react-native';
 import { colors, radius, shadow, space, type } from '../../../ui/theme';
 
 // 캔버스 패널 공통 스타일(design-spec P2-2). topic-live-canvas·hotline-class-canvas·notebook·topic-notebook이 같이 쓴다.
-// frame의 padding 3은 유지한다: topic-live/hotline은 이 View의 onLayout 크기로 캔버스 템플릿 크기를 정한다.
+// frame·loading의 padding은 0: 캔버스를 상단 시스템 바 바로 아래에 붙이고 세로 여백을 없앤다(크기는 canvasScreenSize로 정한다).
 export const canvasStyles = StyleSheet.create({
-  frame: { flex: 1, height: '100%', padding: 3, backgroundColor: colors.card, borderRadius: radius.md, overflow: 'hidden' },
-  loading: { flex: 1, height: '100%', padding: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderRadius: radius.md },
+  frame: { flex: 1, height: '100%', padding: 0, backgroundColor: colors.card, borderRadius: radius.md, overflow: 'hidden' },
+  loading: { flex: 1, height: '100%', padding: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderRadius: radius.md },
   // 메모 토스트(실황 수업 캔버스 오른쪽 위)
   memoToast: {
     position: 'absolute',

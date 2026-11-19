@@ -7,20 +7,10 @@ describe('solve canvas size', () => {
     expect(canvasScreenSize({ width: 1024, height: 1366 }, { top: 24, bottom: 20 })).toEqual({ width: 1024 - 12, height: 1366 - 24 - layout.toolbarH - 20 });
   });
 
-  it('wider than 1280:1920 → context height 1920, width scaled by 1920/screen height', () => {
-    const ctx = canvasContextSize({ width: 1018, height: 1270 }); // iPad 12.9" portrait
-    expect(ctx.height).toBe(BOARD_HEIGHT);
-    expect(ctx.width).toBe(Math.round(1018 * (1920 / 1270)));
-  });
-
-  it('exactly 1280:1920 → 1280×1920', () => {
+  it('context width is always 1280, height = screen height × 1280 / screen width', () => {
+    expect(canvasContextSize({ width: 1018, height: 1270 })).toEqual({ width: 1280, height: Math.round((1270 * 1280) / 1018) });
     expect(canvasContextSize({ width: 640, height: 960 })).toEqual({ width: BOARD_WIDTH, height: BOARD_HEIGHT });
-  });
-
-  it('narrower than 1280:1920 → context width 1280, height = 1280 / screen width × screen height', () => {
-    const ctx = canvasContextSize({ width: 600, height: 1200 });
-    expect(ctx.width).toBe(BOARD_WIDTH);
-    expect(ctx.height).toBe(Math.round((1280 / 600) * 1200));
+    expect(canvasContextSize({ width: 600, height: 1200 })).toEqual({ width: 1280, height: 2560 });
   });
 
   it('template uses the context size for the canvas and the screen size for CSS', () => {

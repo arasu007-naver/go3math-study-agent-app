@@ -69,7 +69,9 @@ export function buildCanvasTemplate(options: CanvasTemplateOptions): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="${FABRIC_JS_CDN}"></script>
     <style>
-        html, body { margin: 0; }
+        html, body { margin: 0; padding: 0; overflow: hidden; }
+        canvas { display: block; margin: 0; padding: 0; }
+        .canvas-container { margin: 0 !important; padding: 0 !important; }
         .board { width: 100%; height: 100%; }
     </style>
 </head>

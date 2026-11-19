@@ -33,6 +33,9 @@ import liveClassCanvasTemplate from '../templates/live-class-canvas-template'
 import { AppCtx } from './legacy';
 import { requestStorageUrl } from '../../../api/rest';
 import FullScreenWrapper from './screen-wrapper'
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { canvasContextSize, canvasScreenSize } from '../canvasSize';
+import { layout } from '../../../ui/theme';
 import { storage } from './legacy';
 import { getBase64StringFromDataURL, sleep, findLargestSmallerThan } from './legacy'
 import { DEFAULT_IMAGE_URL, CACHE_URL } from '../../../config/api.constants';
@@ -77,7 +80,9 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
     const [visiblePopup, setVisiblePopup] = useState(false);
     const [visibleMemoPopup, setVisibleMemoPopup] = useState(false);
     const [targetGuide, setTargetGuide] = useState<any>();
-    const [canvasDimensions, setCanvasDimensions] = useState({ width: width, height: height - 96 })
+    const insets = useSafeAreaInsets();
+    const screenSize = canvasScreenSize({ width, height }, insets);
+    const contextSize = canvasContextSize(screenSize);
 
 
     const [canvasStrokeWidth, setCanvasStrokeWidth] = useState(6);
@@ -663,18 +668,11 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
         })
     }
 
-    const onLayout = (event) => {
-        const { width, height } = event.nativeEvent.layout;
-        setCanvasDimensions({ width: width, height: height - 12 })
-
-        // console.log('TopicLiveClassCanvasPanel 🟡🟡 🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡 canvas container onLayout Width:', width, 'Height:', height);
-    };
-
     const canvasHTMLTemplate = useMemo(() => {
         const sketchColor = storage.getString('canvasStrokeColor') || 'orange';
         const pencilWidth = storage.getNumber('canvasStrokeWidth') || 6;
-        return liveClassCanvasTemplate(canvasDimensions.width, canvasDimensions.height, sketchColor, pencilWidth)
-    }, [canvasDimensions])
+        return liveClassCanvasTemplate(contextSize.width, contextSize.height, sketchColor, pencilWidth, screenSize.width, screenSize.height)
+    }, [contextSize.width, contextSize.height, screenSize.width, screenSize.height])
 
     const webViewSource = useMemo(() => {
         return { html: canvasHTMLTemplate };
@@ -760,7 +758,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
     }, [isFocused]);
 
     return (
-        <FullScreenWrapper>
+        <FullScreenWrapper edges={[]}>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
                 <Sheet visible={visiblePopup} onDismiss={hideModal} style={[canvasStyles.popup, { maxHeight: 960 }]}>
                         <View>
@@ -775,11 +773,11 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                         </View>
                 </Sheet>
                 {studySequences.length > 0 ?
-                    <View style={[canvasStyles.frame, { width: width }]} onLayout={onLayout}>
+                    <View style={[canvasStyles.frame, { width: screenSize.width, height: screenSize.height, flex: 0, padding: 0, paddingVertical: 0, marginVertical: 0, marginHorizontal: layout.canvasMargin, justifyContent: 'flex-start' }]}>
                         <WebView
                             ref={webCanvasRef}
                             originWhitelist={['*']}
-                            style={{ width: width - 6, height: height - 96 }}
+                            style={{ width: screenSize.width, height: screenSize.height, padding: 0, margin: 0, backgroundColor: 'transparent' }}
                             source={webViewSource}
                             javaScriptEnabled={true}
                             onLoadEnd={initBackground}
@@ -799,7 +797,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                                 <MathJaxWrapper statement={memoMessage.content} fontSize={48} color="#ea580c" fullView={true} autoSize={true} maxWidth={640} />
                             </View>
                         )}
-                    </View> : <View style={[canvasStyles.loading, { width: width }]} >
+                    </View> : <View style={[canvasStyles.loading, { width: screenSize.width, height: screenSize.height, flex: 0, padding: 0, marginHorizontal: layout.canvasMargin }]} >
                         <ActivityIndicator size={'large'} color={colors.accent} />
                     </View>}
                 {/* 기존 상단 버튼 줄을 하단 가운데 떠 있는 툴바로 옮겼다(design-spec P2-1). 부르는 함수·액션은 같다. */}

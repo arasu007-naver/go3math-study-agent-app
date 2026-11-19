@@ -11,6 +11,7 @@ jest.mock('react-native-webview', () => {
       return null;
     }),
   };
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 24, bottom: 0, left: 0, right: 0 }) }));
 });
 jest.mock('@react-navigation/native', () => ({ useNavigation: () => ({}), useIsFocused: () => true }));
 jest.mock('../src/kit/ui/web-view', () => () => null);

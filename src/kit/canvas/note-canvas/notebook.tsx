@@ -158,11 +158,11 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
     return (
         <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
             <View style={{ flex: 1, width: '100%', height: '100%', padding: 0 }}>
-                <View style={[canvasStyles.frame, { width: screenSize.width, height: screenSize.height, flex: 0, padding: 0, marginHorizontal: layout.canvasMargin }]}>
+                <View style={[canvasStyles.frame, { width: screenSize.width, height: screenSize.height, flex: 0, padding: 0, paddingVertical: 0, marginVertical: 0, marginHorizontal: layout.canvasMargin }]}>
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['*']}
-                        style={{ width: screenSize.width, height: screenSize.height }}
+                        style={{ width: screenSize.width, height: screenSize.height, padding: 0, margin: 0 }}
                         source={{ html: classCanvasTemplate(contextSize.width, contextSize.height, screenSize.width, screenSize.height) }}
                         javaScriptEnabled={true}
                         onLoadEnd={() => loaded()}
