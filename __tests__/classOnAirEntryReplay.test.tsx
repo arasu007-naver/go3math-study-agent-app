@@ -333,3 +333,46 @@ describe.each([
     expect(mockLog).toEqual(expected);
   });
 });
+
+describe.each([
+  ['hotline', HotlineClassCanvasPanel],
+  ['topic', TopicLiveClassCanvasPanel],
+])('%s canvas 연속 재생 fromPt', (_n, Panel: any) => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPosted.length = 0;
+    mockLog.length = 0;
+    mockCtx = null;
+    mockSleepDelay = 0;
+    (storage as any).store['live-scripts'] = JSON.stringify([{ id: 12, sourceType: 'UNIT', sourceId: 1, releaseScriptUrl: 'u12' }]);
+    delete (storage as any).store.syncPoint;
+  });
+
+  it('앞선 재생이 진행 중일 때 온 재생은 lastPlayedRef부터 이어서 재생한다', async () => {
+    mockMenu = {
+      contents: [{ actionType: 'BACKGROUND' }, add('a'), { actionType: 'CLEAN' }, add('b'), { actionType: 'CLEAN' }, add('c'), add('d'), { actionType: 'CLEAN' }, add('e')],
+      backgroundCut: { actionType: 'BG' },
+    };
+    mockSleepDelay = 15;
+    const ref = createRef<any>();
+    await render(<Panel ref={ref} topicUnits={[]} changeUnit={jest.fn()} />);
+    await act(async () => { await ref.current.onReceiveGuide(guide(3)); });
+    await waitFor(() => expect(mockLog).toContain('ADD:b'));
+    await act(async () => { await ref.current.onReceiveGuide(guide(3)); });
+    const stale = { studyIdx: 0, step: 'main' };
+    await act(async () => {
+      // 낡은 fromPt(stale)를 넘기는 것과 같은 상황: 렌더 클로저의 lastGuide가 갱신되기 전
+      mockCtx.setLastGuide(stale);
+      const p1 = mockCtx.playToPoint({ studyIdx: 6, step: 'main' });
+      const p2 = mockCtx.playToPoint({ studyIdx: 8, step: 'main' });
+      await Promise.all([p1, p2]);
+    });
+    await act(async () => { await new Promise((r) => setTimeout(r, 300)); });
+    const log = mockLog.filter((l) => !l.startsWith('sleep'));
+    const entryEnd = log.indexOf('ADD:b');
+    const rest = log.slice(entryEnd + 1);
+    expect(rest).toEqual(['CLEAN', 'ADD:c', 'ADD:d', 'CLEAN', 'ADD:e']);
+    expect(log[log.length - 1]).toBe('ADD:e');
+    expect(log.filter((l) => l === 'ADD:a').length).toBeLessThanOrEqual(1);
+  });
+});

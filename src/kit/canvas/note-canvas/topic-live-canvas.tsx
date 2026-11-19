@@ -427,7 +427,9 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
             }
             await fastforward(studySequences, targetPt, callbacks);
         } else {
-            await playToPoint(studySequences, targetPt, fromPt, callbacks);
+            // 앞선 재생이 끝난 뒤 실제 진행 지점부터 이어서 재생(낡은 fromPt 방지)
+            const actualFrom: GuideTarget = !opts?.force && lastPlayedRef.current ? (lastPlayedRef.current as GuideTarget) : fromPt;
+            await playToPoint(studySequences, targetPt, actualFrom, callbacks);
         }
         hasPlayedSinceLoadRef.current = true;
         lastPlayedRef.current = { studyIdx: targetPt.studyIdx ?? 0, step: targetStep };

@@ -57,6 +57,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
         var prepMembers = [];
         var backgroundSubs=[];
         var lastObj ={};
+        var resetEpoch = 0;
 
         if (navigator.appVersion.includes('Android')) {
             document.addEventListener("message", function (data) {
@@ -144,8 +145,10 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                             canvas.remove(obj);
                         });
                         hideSyncMembersOfId(action.obj.id);
+                        const addEpoch = resetEpoch;
                         setTimeout(()=>{
-                            addObjToCanvas(action.obj);
+                            if (addEpoch !== resetEpoch) return;
+                            addObjToCanvas(action.obj, addEpoch);
                         }, 10)
                     }catch(err){
                         ReactNativeWebView.postMessage(JSON.stringify({ err: err, actionType: action.actionType, contentMeta: 'ADD'}));
@@ -245,20 +248,26 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                     break;
                 case 'PROLOGUE':
                     removeObjectWithId(action.obj.id);
+                    const prologueEpoch = resetEpoch;
                     setTimeout(()=>{
-                        addObjToCanvas(action.obj);
+                        if (prologueEpoch !== resetEpoch) return;
+                        addObjToCanvas(action.obj, prologueEpoch);
                     }, 10)
                     break;
                 case 'FOLLOW':
                     removeObjectWithId(action.obj.id);
+                    const followEpoch = resetEpoch;
                     setTimeout(()=>{
-                        addObjToCanvas(action.obj);
+                        if (followEpoch !== resetEpoch) return;
+                        addObjToCanvas(action.obj, followEpoch);
                     }, 10)
                     break;
                 case 'EPILOGUE':
                     removeObjectWithId(action.obj.id);
+                    const epilogueEpoch = resetEpoch;
                     setTimeout(()=>{
-                        addObjToCanvas(action.obj);
+                        if (epilogueEpoch !== resetEpoch) return;
+                        addObjToCanvas(action.obj, epilogueEpoch);
                     }, 10)
                     break;
                 case 'SYNCH': case 'SYNC_CANVAS_OBJECTS': case 'SYNC_OBJECTS':
@@ -279,7 +288,9 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
         }
 
         exeObjMovingAnimation = (ani) => {
+            const epoch = resetEpoch;
             window.fabric.util.enlivenObjects([ani.obj], function (objects) {
+            if (epoch !== resetEpoch) return;
             objects.forEach(async function (o, index) {
                 o.scaleX = o.scaleX * classScale;
                 o.scaleY = o.scaleY * classScale;
@@ -290,6 +301,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                     duration: 1200,
                     easing: fabric.util.ease.easeInOutQuart,
                     onChange: function (value) {
+                        if (epoch !== resetEpoch) return;
                         o.set({
                             left: ( ani.start.x  + (ani.end.x  - ani.start.x) * value) * classScale,
                             top: (ani.start.y + (ani.end.y - ani.start.y) * value) * classScale
@@ -349,7 +361,9 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                     preps.push(members[i].obj)
                 }
 
+                const epoch = resetEpoch;
                 window.fabric.util.enlivenObjects(preps, function (objects) {
+                    if (epoch !== resetEpoch) return;
                     objects.forEach(function (o) {
                         const left = o.left;
                         o.left = canvasWidth;
@@ -490,7 +504,9 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             }
 
             if (missingObjects.length > 0) {
+                const epoch = resetEpoch;
                 window.fabric.util.enlivenObjects(missingObjects, function (enlivenedObjects) {
+                    if (epoch !== resetEpoch) return;
                     enlivenedObjects.forEach(function (o) {
                         if (!o) return;
                         delete o.canvas;
@@ -515,12 +531,15 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             }
         }
 
-        function addObjToCanvas(obj) {
+        function addObjToCanvas(obj, epochArg) {
+            const epoch = epochArg === undefined ? resetEpoch : epochArg;
+            if (epoch !== resetEpoch) return;
             console.log('add Object to canvas: ', obj)
             hideAppendix();
             
             
             fabric.util.enlivenObjects([obj], function (objects) {
+                if (epoch !== resetEpoch) return;
                 objects.forEach(function (o) {
                     o.opacity = 0;
                     // showAppendix(o);
@@ -530,14 +549,16 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                     enlivenPaatternedRect(o);
                     
                     setTimeout(()=>{
-                        showSyncMembers(o.id);
+                        if (epoch !== resetEpoch) return;
+                        showSyncMembers(o.id, epoch);
                     }, 360)
                         
                 });
             });
         };
 
-        showSyncMembers = (leadId) => {
+        showSyncMembers = (leadId, epochArg) => {
+            const epoch = epochArg === undefined ? resetEpoch : epochArg;
             try {
                 if (leadId == null) return;
 
@@ -550,12 +571,14 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                 console.log('😘😘😘 show members : ', synchs)
 
                 window.fabric.util.enlivenObjects(synchs, function (objects) {
+                    if (epoch !== resetEpoch) return;
                     objects.forEach(function (o) {
                         o.left = o.left*classScale;
                         o.top = o.top * classScale;
                         o.scaleX = o.scaleX * classScale;
                         o.scaleY = o.scaleY * classScale;
                         setTimeout(() => {
+                            if (epoch !== resetEpoch) return;
                             o.moveTo(canvas.getObjects().length - 2);
                             o.animate('opacity', 1, {
                                 duration: 480,
@@ -585,7 +608,9 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                 let baseObj = canvas.getObjects().filter(obj => obj.id === leadId);
                 const startLeft = baseObj[0].left  + baseObj[0].width * baseObj[0].scaleX;
                 const startTop = baseObj[0].top  + baseObj[0].height * baseObj[0].scaleY;
+                const epoch = resetEpoch;
                 window.fabric.util.enlivenObjects(epilogues, function (objects) {
+                    if (epoch !== resetEpoch) return;
                     objects.forEach(function (o) {
                         const l = o.left * classScale;
                         const t = o.top * classScale;
@@ -596,6 +621,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                         o.scaleX = 0;
                         o.scaleY = 0;
                         setTimeout(() => {
+                            if (epoch !== resetEpoch) return;
                             o.moveTo(canvas.getObjects().length - 2);
                             canvas.add(o);
                             o.animate('left', l, {
@@ -665,6 +691,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             // window.ReactNativeWebView.postMessage(JSON.stringify({contentMeta:'CLEANCUTS', method: 'changeBackgroundImage', image: imageUrl, classScale: classScale}));
             canvas.isDrawingMode = true;
             if (imageUrl != null) {
+                resetEpoch += 1;
                 canvas.clear();
                 fabric.Image.fromURL(
                     imageUrl,
@@ -692,6 +719,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             canvas.isDrawingMode = true;
             if (imageUrl != null) {
                 let instanceScale = 810/1280*classScale;
+                resetEpoch += 1;
                 canvas.clear();
                 fabric.Image.fromURL(
                     imageUrl,
@@ -717,6 +745,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             canvas.isDrawingMode = true;
             const classboardBackgroundScale = 810/1280;
             if (imageUrl != null) {
+                resetEpoch += 1;
                 canvas.clear();
                 fabric.Image.fromURL(
                     imageUrl,
@@ -745,7 +774,9 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             //     return;
             // }
             
+            const epoch = resetEpoch;
             window.fabric.util.enlivenObjects([obj], function (objects) {
+                if (epoch !== resetEpoch) return;
                 objects.forEach(function (o) {
                 o.selectable = false;
                 o.top = o.top * classScale;
@@ -753,6 +784,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                 o.scaleX = o.scaleX * classScale;
                 o.scaleY = o.scaleY * classScale;
                 setTimeout(()=>{
+                    if (epoch !== resetEpoch) return;
                     canvas.add(o);
                     canvas.discardActiveObject().renderAll();
                     // canvas.renderAll();
@@ -844,24 +876,21 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
         }
 
         clearCanvas = () => {
-            let dataUrl;
-            dataUrl = canvas.toDataURL({
-              format: "png",
-              multiplier: 1280/canvasWidth,
-            });
-            
-            setTimeout(async () => {
+            resetEpoch += 1;
+            try {
+                const dataUrl = canvas.toDataURL({
+                  format: "png",
+                  multiplier: 1280/canvasWidth,
+                });
                 window.ReactNativeWebView.postMessage(JSON.stringify({content: dataUrl, contentMeta:'SAVE' }));
-                let minions = canvas.getObjects();
-                // 2. filter와 includes를 사용하여 삭제 대상(ID가 리스트에 없는 것)을 골라냅니다.
-                
-                const targetsToRemove = minions.filter(obj => !backgroundSubs.includes(obj.id));
-                
-                targetsToRemove.forEach((o, index)=>{
-                    canvas.remove(o)
-                })
-                canvas.renderAll();
-            }, 60)
+            } catch (e) {
+                console.log('clearCanvas snapshot failed', e);
+            }
+            const targetsToRemove = canvas.getObjects().filter(obj => !backgroundSubs.includes(obj.id));
+            targetsToRemove.forEach((o)=>{
+                canvas.remove(o)
+            })
+            canvas.renderAll();
         }
 
         function toggleCanvasMode(color, brushWidth) {
