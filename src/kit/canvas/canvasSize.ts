@@ -2,7 +2,7 @@ import { layout } from '../../ui/theme';
 
 /** 서비스 화이트보드 기본 크기(context px) */
 export const BOARD_WIDTH = 1280;
-/** 참고용(context 높이는 화면 비율로 정해진다) */
+/** 스크립트 좌표계의 높이(재생 배율 계산에 사용) */
 export const BOARD_HEIGHT = 1920;
 
 export type Size = { width: number; height: number };
@@ -21,4 +21,10 @@ export function canvasScreenSize(window: Size, insets: { top: number; bottom: nu
  */
 export function canvasContextSize(screen: Size): Size {
   return { width: BOARD_WIDTH, height: Math.round((screen.height * BOARD_WIDTH) / screen.width) };
+}
+
+/** 스크립트 재생 배율(cScale): 1280×1920 스크립트를 캔버스 안에 맞춘다(높이 기준, 폭이 넘치면 폭 기준). */
+export function scriptPlayScale(canvas: Size): number {
+  const s = canvas.height / BOARD_HEIGHT;
+  return BOARD_WIDTH * s <= canvas.width ? s : canvas.width / BOARD_WIDTH;
 }

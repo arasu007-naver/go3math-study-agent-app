@@ -21,3 +21,14 @@ describe('solve canvas size', () => {
     expect(html).toContain('multiplier: 1280/1539'); // 저장 이미지는 폭 1280 기준 그대로
   });
 });
+
+import { scriptPlayScale } from '../src/kit/canvas/canvasSize';
+describe('scriptPlayScale', () => {
+  it.each([
+    [1280, 1920, 1],
+    [1280, 1900, 1900 / 1920],
+    [1280, 2560, 1],
+    [788, 1170, 1170 / 1920],
+    [600, 1200, 600 / 1280],
+  ])('%i x %i', (w, h, e) => expect(scriptPlayScale({ width: w, height: h })).toBeCloseTo(e, 10));
+});

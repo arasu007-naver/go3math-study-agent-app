@@ -11,7 +11,8 @@ describe('live class canvas template snapshot scale', () => {
 
   it('resetCanvas and uploadSnapshot scale the board to the 1280 reference width', () => {
     for (const name of ['resetCanvas', 'uploadSnapshot']) {
-      expect(body(name)).toContain('multiplier: 1/classScale');
+      expect(body(name)).toContain('multiplier: 1280/canvasWidth');
+      expect(body(name)).not.toContain('multiplier: 1/classScale');
     }
     expect(html).not.toContain('1920/classScale');
   });
@@ -19,7 +20,8 @@ describe('live class canvas template snapshot scale', () => {
   it('uses 1280-width classScale and CSS-only scaling when a css size is given', () => {
     const h = liveClassCanvasTemplate(1280, 1900, 'orange', 6, 788, 1170);
     expect(h).toContain("<canvas id='canvas' width='1280' height='1900'");
-    expect(h).toContain('var classScale = 1280/1280');
+    expect(h).toContain(`var classScale = ${1900 / 1920};`);
+    expect(liveClassCanvasTemplate(1280, 2560, 'orange', 6)).toContain('var classScale = 1;');
     expect(h).toContain('enableRetinaScaling: false');
     expect(h).toContain("canvas.setDimensions({ width: '788px', height: '1170px' }, { cssOnly: true });");
     expect(h).not.toMatch(/classScale = \d+\/1920/);

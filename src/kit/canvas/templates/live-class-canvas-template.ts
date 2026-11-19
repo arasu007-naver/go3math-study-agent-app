@@ -1,4 +1,5 @@
 import { NOTEBOOK_BG_SCALE_JS } from './notebook-background-scale';
+import { scriptPlayScale } from '../canvasSize';
 import { ERASER_CURSOR_JS } from './eraser-cursor';
 
 export default function liveClassCanvasTemplate(width: number, height: number, pencilColor: string, pencilWidth: number, cssWidth: number = width, cssHeight: number = height) {
@@ -37,7 +38,8 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
         const canvasWidth = ${width};
         const canvasHeight = ${height};
         var classBoardScript = [];
-        var classScale = ${width}/1280;
+        // script play scale (cScale): fit the 1280×1920 script inside the canvas (height basis, width basis if width overflows)
+        var classScale = ${scriptPlayScale({ width, height })};
         var classBoardCuts = [];
         var lastSupplementaryYPos = 0;
         var lastScriptCutIdx = 0;
@@ -839,7 +841,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             let dataUrl;
             dataUrl = canvas.toDataURL({
               format: "png",
-              multiplier: 1/classScale, // 폭 1280 기준으로 맞춘다
+              multiplier: 1280/canvasWidth, // 폭 1280 기준으로 맞춘다
             });
             setTimeout(async () => {
               window.ReactNativeWebView.postMessage(JSON.stringify({content: dataUrl, contentMeta:'SNAPSHOT' }));
@@ -850,7 +852,7 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             let dataUrl;
             dataUrl = canvas.toDataURL({
               format: "png",
-              multiplier: 1/classScale, // 폭 1280 기준으로 맞춘다
+              multiplier: 1280/canvasWidth, // 폭 1280 기준으로 맞춘다
             });
             window.ReactNativeWebView.postMessage(JSON.stringify({content: dataUrl, contentMeta:'SNAPSHOT' }));
             setTimeout(async () => {
