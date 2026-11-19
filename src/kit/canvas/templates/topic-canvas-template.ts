@@ -1,3 +1,4 @@
+import { ERASER_CURSOR_JS } from './eraser-cursor';
 export default function topicCanvasTemplate(width: number, height: number) {
     return `
 <!DOCTYPE html>
@@ -118,6 +119,7 @@ export default function topicCanvasTemplate(width: number, height: number) {
         }
 
         canvas.selection = false;
+        ${ERASER_CURSOR_JS}
 
         canvas.on("object:added", (e) => {
             const mObj = e.target.toJSON();

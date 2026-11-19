@@ -1,4 +1,5 @@
 import { NOTEBOOK_BG_SCALE_JS } from './notebook-background-scale';
+import { ERASER_CURSOR_JS } from './eraser-cursor';
 
 export default function liveClassCanvasTemplate(width: number, height: number, pencilColor: string, pencilWidth: number) {
     return `
@@ -72,6 +73,8 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
             });
         }
         canvas.selection = false;
+
+        ${ERASER_CURSOR_JS}
 
 
         function getHighestId (){

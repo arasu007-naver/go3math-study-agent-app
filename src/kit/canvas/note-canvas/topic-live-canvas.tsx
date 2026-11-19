@@ -22,7 +22,7 @@ import * as _ from 'lodash'
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { Sheet } from '../../../ui/Sheet';
 import { IconButton } from '../../../ui/IconButton';
-import { INK_LABELS } from './canvas-utils';
+import { INK_LABELS, eraserWidth, inkWidth } from './canvas-utils';
 import PencilPropsModal from './pencil-props-modal';
 import { colors, type } from '../../../ui/theme';
 import { CanvasChrome, canvasTool } from '../CanvasChrome';
@@ -621,6 +621,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
     const drawPencilColorOptions = () => {
         return strokeColors.map((color, index) => {
             return <GoButton onPress={() => {
+                setCanvasStrokeWidth(inkWidth(storage, canvasStrokeColor, canvasStrokeWidth));
                 setCanvasStrokeColor(color);
                 storage.set('canvasStrokeColor', color);
             }} title={INK_LABELS[color]} key={'pencil-color-' + index}
@@ -630,8 +631,9 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 rippleColor={color}
             />
         }).concat(
-            // 지우개: 펜 색을 흰색으로 바꿔 덧칠해 지운다.
+            // 지우개: 펜 색을 흰색, 굵기를 72px로 바꿔 덧칠해 지운다(색 버튼을 누르면 지우개 전 굵기로 돌아간다).
             <GoButton onPress={() => {
+                setCanvasStrokeWidth(eraserWidth(storage, canvasStrokeColor, canvasStrokeWidth));
                 setCanvasStrokeColor('white');
                 storage.set('canvasStrokeColor', 'white');
             }} title="지우개" key="pencil-color-eraser"

@@ -18,6 +18,22 @@ export const strokeColors = ['orange', 'blue', 'black', 'red', 'green'];
 /** 펜 색 저장값 → 보이는 라벨(02-roles.json names, Gate B Q6). 저장·동기화·MMKV에는 여전히 저장값을 넘긴다 */
 export const INK_LABELS: Record<string, string> = { orange: '주황', blue: '파랑', black: '검정', red: '빨강', green: '초록' };
 
+/** 지우개(흰 펜) 굵기 */
+export const ERASER_WIDTH = 72;
+const WIDTH_BEFORE_ERASER = 'canvasStrokeWidthBeforeEraser';
+type WidthStore = { set: (k: string, v: number) => void; getNumber: (k: string) => number | undefined };
+
+/** 지우개를 고를 때: 지우개 전 굵기를 기억하고 지우개 굵기를 돌려준다(이미 지우개면 기억을 덮어쓰지 않는다) */
+export function eraserWidth(store: WidthStore, color: string, width: number): number {
+    if (color !== 'white') store.set(WIDTH_BEFORE_ERASER, width);
+    return ERASER_WIDTH;
+}
+
+/** 색 펜을 고를 때: 지우개였으면 지우개 전 굵기로, 아니면 지금 굵기 그대로 */
+export function inkWidth(store: WidthStore, color: string, width: number): number {
+    return color === 'white' ? (store.getNumber(WIDTH_BEFORE_ERASER) || 6) : width;
+}
+
 // --- 유틸리티 ---
 export const getBase64StringFromDataURL = (dataURL: string): string =>
     dataURL.replace('data:', '').replace(/^.+,/, '');

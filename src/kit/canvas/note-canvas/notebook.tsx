@@ -25,6 +25,8 @@ import {
     strokeWidths,
     strokeColors,
     INK_LABELS,
+    eraserWidth,
+    inkWidth,
     sendBoardAction as sendAction,
     uploadWorkoutToStorage,
     uploadSnapshotToStorage,
@@ -103,15 +105,15 @@ const NotebookCanvasPanel: FC = forwardRef((props, ref) => {
 
     const drawPencilColorOptions = () => {
         return strokeColors.map((color, index) => (
-            <GoButton onPress={() => setCanvasStrokeColor(color)} title={INK_LABELS[color]} key={'pencil-color-' + index}
+            <GoButton onPress={() => { setCanvasStrokeWidth(inkWidth(storage, canvasStrokeColor, canvasStrokeWidth)); setCanvasStrokeColor(color); }} title={INK_LABELS[color]} key={'pencil-color-' + index}
                 variant={canvasStrokeColor === color ? 'filled' : 'outline'}
                 color={color}
                 textColor={canvasStrokeColor === color ? 'white' : 'black'}
                 rippleColor={color}
             />
         )).concat(
-            // 지우개: 펜 색을 흰색으로 바꿔 덧칠해 지운다.
-            <GoButton onPress={() => setCanvasStrokeColor('white')} title="지우개" key="pencil-color-eraser"
+            // 지우개: 펜 색을 흰색, 굵기를 72px로 바꿔 덧칠해 지운다(색 버튼을 누르면 지우개 전 굵기로 돌아간다).
+            <GoButton onPress={() => { setCanvasStrokeWidth(eraserWidth(storage, canvasStrokeColor, canvasStrokeWidth)); setCanvasStrokeColor('white'); }} title="지우개" key="pencil-color-eraser"
                 variant={canvasStrokeColor === 'white' ? 'filled' : 'outline'}
                 color="gray"
                 textColor={canvasStrokeColor === 'white' ? 'white' : 'black'}
