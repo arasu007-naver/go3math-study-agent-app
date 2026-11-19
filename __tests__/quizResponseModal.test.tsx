@@ -17,7 +17,9 @@ jest.mock('react-native-webview', () => {
 });
 jest.mock('../src/kit/math/MathJaxWrapper', () => () => null);
 const mockUpload = jest.fn();
-jest.mock('../src/kit/canvas/note-canvas/canvas-utils', () => ({ uploadQuizAnswerToStorage: (...a: unknown[]) => mockUpload(...a) }));
+jest.mock('react-native-blob-util', () => ({ fetch: jest.fn() }));
+jest.mock('../src/api/rest', () => ({ requestStorageUrl: jest.fn() }));
+jest.mock('../src/kit/canvas/note-canvas/canvas-utils', () => ({ ...jest.requireActual('../src/kit/canvas/note-canvas/canvas-utils'), uploadQuizAnswerToStorage: (...a: unknown[]) => mockUpload(...a) }));
 const mockAddResponse = jest.fn();
 jest.mock('@apollo/client/react', () => ({ useMutation: () => [mockAddResponse] }));
 const mockApiV3 = jest.fn();
@@ -27,11 +29,11 @@ jest.mock('../src/api/rest/apiV3', () => {
 });
 const { ApiV3Error } = jest.requireActual('../src/api/rest/apiV3');
 // 캔버스 화면의 펜 설정(기존 MMKV 키 canvasStrokeColor·canvasStrokeWidth)
-const mockPen: { color?: string; width?: number } = {};
+const mockPen: { color?: string; width?: number; beforeColor?: string; beforeWidth?: number } = {};
 jest.mock('../src/kit/canvas/note-canvas/legacy', () => ({
   storage: {
-    getString: (k: string) => (k === 'canvasStrokeColor' ? mockPen.color : undefined),
-    getNumber: (k: string) => (k === 'canvasStrokeWidth' ? mockPen.width : undefined),
+    getString: (k: string) => (k === 'canvasStrokeColor' ? mockPen.color : k === 'canvasStrokeColorBeforeEraser' ? mockPen.beforeColor : undefined),
+    getNumber: (k: string) => (k === 'canvasStrokeWidth' ? mockPen.width : k === 'canvasStrokeWidthBeforeEraser' ? mockPen.beforeWidth : undefined),
   },
 }));
 
@@ -53,6 +55,8 @@ describe('QuizResponseModal', () => {
     afterEach(() => {
       delete mockPen.color;
       delete mockPen.width;
+      delete mockPen.beforeColor;
+      delete mockPen.beforeWidth;
     });
 
     it('draws with the canvas screen pen color and width', async () => {
@@ -61,6 +65,26 @@ describe('QuizResponseModal', () => {
       await render(<QuizResponseModal {...props} />);
       expect(mockWebView.html).toContain('ctx.strokeStyle = "blue";');
       expect(mockWebView.html).toContain('ctx.lineWidth = 10;');
+    });
+
+    it('uses the pen from before the eraser when the canvas pen is the white eraser', async () => {
+      mockPen.color = 'white';
+      mockPen.width = 72;
+      mockPen.beforeColor = 'blue';
+      mockPen.beforeWidth = 9;
+      await render(<QuizResponseModal {...props} />);
+      expect(mockWebView.html).toContain('ctx.strokeStyle = "blue";');
+      expect(mockWebView.html).toContain('ctx.lineWidth = 9;');
+      expect(mockWebView.html).not.toContain('ctx.strokeStyle = "white";');
+      expect(mockWebView.html).not.toContain('ctx.lineWidth = 72;');
+    });
+
+    it('falls back to orange·6 for the eraser without a stored previous pen', async () => {
+      mockPen.color = 'white';
+      mockPen.width = 72;
+      await render(<QuizResponseModal {...props} />);
+      expect(mockWebView.html).toContain('ctx.strokeStyle = "orange";');
+      expect(mockWebView.html).toContain('ctx.lineWidth = 6;');
     });
 
     it('falls back to the canvas defaults (orange, 6) when nothing is stored', async () => {

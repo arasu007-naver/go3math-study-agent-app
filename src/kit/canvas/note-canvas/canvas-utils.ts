@@ -21,12 +21,34 @@ export const INK_LABELS: Record<string, string> = { orange: '주황', blue: '파
 /** 지우개(흰 펜) 굵기 */
 export const ERASER_WIDTH = 72;
 const WIDTH_BEFORE_ERASER = 'canvasStrokeWidthBeforeEraser';
-type WidthStore = { set: (k: string, v: number) => void; getNumber: (k: string) => number | undefined };
+const COLOR_BEFORE_ERASER = 'canvasStrokeColorBeforeEraser';
+type WidthStore = {
+    set: (k: string, v: number | string) => void;
+    getNumber: (k: string) => number | undefined;
+    getString?: (k: string) => string | undefined;
+};
 
-/** 지우개를 고를 때: 지우개 전 굵기를 기억하고 지우개 굵기를 돌려준다(이미 지우개면 기억을 덮어쓰지 않는다) */
+/** 지우개를 고를 때: 지우개 전 굵기·색을 기억하고 지우개 굵기를 돌려준다(이미 지우개면 기억을 덮어쓰지 않는다) */
 export function eraserWidth(store: WidthStore, color: string, width: number): number {
-    if (color !== 'white') store.set(WIDTH_BEFORE_ERASER, width);
+    if (color !== 'white') {
+        store.set(WIDTH_BEFORE_ERASER, width);
+        if (typeof color === 'string' && color) store.set(COLOR_BEFORE_ERASER, color);
+    }
     return ERASER_WIDTH;
+}
+
+/** 퀴즈 답안 펜: 캔버스 펜 설정. 지우개(흰색)면 지우개 전 색·굵기(없으면 orange·6) */
+export function quizPen(store: {
+    getString(k: string): string | undefined;
+    getNumber(k: string): number | undefined;
+}): { color: string; width: number } {
+    const color = store.getString('canvasStrokeColor') || 'orange';
+    if (color !== 'white') return { color, width: store.getNumber('canvasStrokeWidth') || 6 };
+    const before = store.getString(COLOR_BEFORE_ERASER);
+    return {
+        color: before && before !== 'white' ? before : 'orange',
+        width: store.getNumber(WIDTH_BEFORE_ERASER) || 6,
+    };
 }
 
 /** 색 펜을 고를 때: 지우개였으면 지우개 전 굵기로, 아니면 지금 굵기 그대로 */

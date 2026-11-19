@@ -13,7 +13,8 @@ import { useMutation } from '@apollo/client/react';
 import MathJaxWrapper from '../math/MathJaxWrapper';
 import { ADD_LIVE_CLASS_QUIZ_RESPONSE } from '../../api/graphql/mutations';
 import { apiV3, isUnavailable } from '../../api/rest/apiV3';
-import { uploadQuizAnswerToStorage } from '../canvas/note-canvas/canvas-utils';import { Button } from '../../ui/Button';
+import { uploadQuizAnswerToStorage, quizPen } from '../canvas/note-canvas/canvas-utils';
+import { Button } from '../../ui/Button';
 import { storage } from '../canvas/note-canvas/legacy';
 import { IconButton } from '../../ui/IconButton';
 import { colors, shadow, type } from '../../ui/theme';
@@ -38,7 +39,7 @@ interface QuizResponseModalProps {
 }
 
 
-/** 펜은 캔버스 화면의 설정(MMKV canvasStrokeColor·canvasStrokeWidth, 기본 orange·6)을 그대로 쓴다 */
+/** 펜은 캔버스 화면의 설정(MMKV canvasStrokeColor·canvasStrokeWidth, 기본 orange·6)을 쓴다. 지우개(흰색)면 지우개 전 색·굵기를 쓴다 */
 const drawingCanvasHtml = (penColor: string, penWidth: number) => `
 <!DOCTYPE html>
 <html>
@@ -195,10 +196,10 @@ export default function QuizResponseModal({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [addQuizResponse] = useMutation(ADD_LIVE_CLASS_QUIZ_RESPONSE);
     // 퀴즈가 올 때마다 캔버스 화면의 지금 펜 설정을 읽는다
-    const html = useMemo(
-        () => drawingCanvasHtml(storage.getString('canvasStrokeColor') || 'orange', storage.getNumber('canvasStrokeWidth') || 6),
-        [quiz?.quizId],
-    );
+    const html = useMemo(() => {
+        const pen = quizPen(storage);
+        return drawingCanvasHtml(pen.color, pen.width);
+    }, [quiz?.quizId]);
 
     useEffect(() => {
         setIsSubmitting(false);
