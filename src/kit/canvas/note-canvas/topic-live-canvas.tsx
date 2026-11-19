@@ -239,6 +239,11 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
             }
 
             if (guide.action === 'canvas-synch') {
+                // 선생님이 CLEAN 등 컷으로 넘어가면 그 지점(studyIdx)이 함께 온다. SYNCH는 빠진 객체를 더하기만 하므로 재생해야 CLEAN이 적용된다
+                if (guide.studyIdx != null) {
+                    await playToPointInternal(guide, lastGuide);
+                    return;
+                }
                 sendBoardAction({ actionType: 'SYNCH', objects: guide.objects });
                 return;
             }
