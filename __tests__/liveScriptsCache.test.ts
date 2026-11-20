@@ -44,7 +44,7 @@ test('starts a list when none is stored yet', () => {
 test('hotline panel caches the guide release url before it picks the script', () => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'src/kit/canvas/note-canvas/hotline-class-canvas.tsx'), 'utf8');
   const cache = src.indexOf('cacheLiveReleaseScriptUrl(guide)');
-  const pick = src.indexOf('if (guide.scriptId == null)');
+  const pick = src.indexOf('if (!hasScriptId(guide.scriptId) && guide.sourceType)');
   expect(cache).toBeGreaterThan(-1);
   expect(pick).toBeGreaterThan(cache);
 });

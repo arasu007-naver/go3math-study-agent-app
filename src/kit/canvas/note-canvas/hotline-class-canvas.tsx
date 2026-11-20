@@ -57,6 +57,7 @@ import type {
     ScriptPlayerCallbacks,
     LiveClassMessageContext,
 } from './script-maker';
+import { hasScriptId, normalizeGuideScriptId } from './live-script-id';
 import MathJaxWrapper from '../../math/MathJaxWrapper'
 const strokeWidths = [3, 4, 6, 9, 15, 24];
 const strokeColors = ['orange', 'blue', 'black', 'red', 'green']
@@ -124,17 +125,19 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                 return;
             }
 
+            guide = normalizeGuideScriptId(guide, JSON.parse(storage.getString('live-scripts') || '[]'));
+
             if (guide.action === CLASS_ON_AIR) {
                 cacheLiveReleaseScriptUrl(guide);
                 const onAirScriptId = Number(guide.scriptId);
-                const differs = onAirScriptId > 0
+                const differs = hasScriptId(onAirScriptId)
                     ? currentScriptId != onAirScriptId
                     : currentScript?.sourceType != guide.sourceType || currentScript?.sourceId != guide.sourceId;
                 if (differs) {
                     storage.set('syncPoint', JSON.stringify(guide));
                     setLastGuide({ studyIdx: 0, step: 'refresh' });
                     setTargetGuide(guide);
-                    if (onAirScriptId > 0) {
+                    if (hasScriptId(onAirScriptId)) {
                         setCurrentScriptId(onAirScriptId);
                     } else {
                         setCurrentScript({ sourceType: guide.sourceType, sourceId: guide.sourceId });
@@ -164,7 +167,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                 return;
             }
 
-            if (guide.scriptId == null) {
+            if (!hasScriptId(guide.scriptId) && guide.sourceType) {
                 if (currentScript?.sourceType != guide.sourceType || currentScript?.sourceId != guide.sourceId) {
                     storage.set('syncPoint', JSON.stringify(guide))
                     setLastGuide({ studyIdx: 0, step: 'refresh' })
@@ -174,7 +177,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                     setCurrentScriptId(0);
                     return;
                 }
-            } else if (Number(guide.scriptId) > 0) {
+            } else if (hasScriptId(guide.scriptId)) {
                 if (currentScriptId != Number(guide.scriptId)) {
                     setLastGuide({ studyIdx: 0, step: 'refresh' })
                     setTargetGuide(guide);
@@ -311,7 +314,7 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
             if (scriptsArray && scriptsArray.length > 0) {
                 let targetScript = currentScript;
                 let targetScriptId = currentScriptId;
-                if (Number(targetScriptId) > 0) {
+                if (hasScriptId(targetScriptId)) {
                     let tScript = _.filter(scriptsArray, (src: any) => (Number(src.id) == Number(targetScriptId)));
                     if (tScript.length > 0) {
                         setCurrentScript(tScript[0])
@@ -323,9 +326,12 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
 
                 // 아직 현재 스크립트가 없으면(화면에 막 들어왔을 때) 맞춰 볼 대상이 없다 — 예전에는 여기서 targetScript.id를 읽다 오류가 났다
                 if (!targetScript) return;
-                let dScript = _.filter(scriptsArray, (src: any) => (src.id == targetScript.id) && (src.sourceType == targetScript.sourceType) && (src.sourceId == targetScript.sourceId));
-                if (dScript.length > 0) {
-                    setReleaseScriptUrl('default');
+                const sameSource = _.filter(scriptsArray, (src: any) => src.sourceType == targetScript.sourceType && String(src.sourceId) == String(targetScript.sourceId));
+                const found = hasScriptId(targetScript.id)
+                    ? sameSource.find((src: any) => Number(src.id) == Number(targetScript.id))
+                    : (sameSource.find((src: any) => !hasScriptId(src.id)) ?? sameSource[0]);
+                if (found) {
+                    setReleaseScriptUrl(found.releaseScriptUrl || 'default');
                 }
 
             }

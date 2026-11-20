@@ -8,7 +8,7 @@ const read = (f: string) => fs.readFileSync(path.join(__dirname, '..', 'src/kit/
 test('hotline refreshMenuscript does not read targetScript.id before there is a current script', () => {
   const src = read('hotline-class-canvas.tsx');
   const guard = src.indexOf('if (!targetScript) return;');
-  const use = src.indexOf('src.id == targetScript.id');
+  const use = src.indexOf('hasScriptId(targetScript.id)');
   expect(guard).toBeGreaterThan(-1);
   expect(use).toBeGreaterThan(guard);
 });
