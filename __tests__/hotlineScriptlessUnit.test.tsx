@@ -91,6 +91,9 @@ describe('hotline 스크립트 없는 유닛(scriptId 0)', () => {
     await act(async () => ref.current.onReceiveGuide(unit(2)));
     await waitFor(() => expect(makeTemporaryScript).toHaveBeenCalledWith('UNIT', 2));
     await waitFor(() => expect(changeUnit).toHaveBeenCalledWith(expect.objectContaining({ sourceType: 'UNIT', sourceId: 2 })));
+    // syncPoint에 guide가 저장되고, 재생 후 지워진다
+    expect((storage.set as jest.Mock).mock.calls.some(([k, v]) => k === 'syncPoint' && JSON.parse(v).sourceId === 2 && JSON.parse(v).scriptId === 0)).toBe(true);
+    await waitFor(() => expect((storage as any).store.syncPoint).toBeUndefined());
   });
 
   it('재진입: 새로 마운트해 guide 하나만 받아도 로딩이 사라진다', async () => {
