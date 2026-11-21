@@ -227,6 +227,23 @@ describe('CLASS_ON_AIR', () => {
     expect(mockPanelProps.initScript).toBe(12);
   });
 
+  // renewScript/reload는 패널이 스크립트를 비우고 다시 받는 일회성 명령이다. 마지막 지점으로 남기면
+  // 다시 받기 → 캔버스 로드 → loaded() → 같은 명령 재전달이 끝없이 돌아 로딩 표시가 깜박인다
+  it.each(['renewScript', 'reload'])('topic: %s는 패널로 한 번만 넘기고 loaded()가 되풀이하지 않는다', async (action) => {
+    mockQueries = { STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [] } } }), LAST_LIVE_TOPIC_MESSAGE: jest.fn(async () => ({ data: {} })) };
+    render(<TopicLiveClassScreen />);
+    await waitFor(() => expect(screen.getByTestId('live-class-waiting')).toBeTruthy());
+    const position = { action: 'refresh', scriptId: 12, studyIdx: 3, step: 'main' };
+    await act(async () => mockSubs.TOPIC_LIVE_MESSAGE_ADDED.onData(guideMsg(position)));
+    const renew = { action, scriptId: 12, studyIdx: 0, step: 'main' };
+    await act(async () => mockSubs.TOPIC_LIVE_MESSAGE_ADDED.onData(guideMsg(renew)));
+    expect(mockPanel.onReceiveGuide).toHaveBeenLastCalledWith(renew);
+    mockPanel.onReceiveGuide.mockClear();
+    await act(async () => mockPanelProps.loaded());
+    expect(mockPanel.onReceiveGuide).toHaveBeenCalledTimes(1);
+    expect(mockPanel.onReceiveGuide).toHaveBeenCalledWith(position);
+  });
+
   it('topic: 마지막 메시지가 CLASS_ON_AIR → live + 패널 전달', async () => {
     mockQueries = {
       STUDY_TOPIC: async () => ({ data: { topicForStudy: { units: [unit] } } }),
