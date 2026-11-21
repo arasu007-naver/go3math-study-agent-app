@@ -94,6 +94,8 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
     const hasPlayedSinceLoadRef = useRef(false);
     // 재생 직렬화(이전 재생이 끝나야 다음 재생 시작)와 직전 재생 목표(중복 재생 건너뛰기용)
     const playChainRef = useRef<Promise<void>>(Promise.resolve());
+    const reloadSeqRef = useRef(0);
+    const currentScriptRef = useRef<any>();
     const lastPlayedRef = useRef<{ studyIdx: number; step: string } | null>(null);
     const [prologues, setPrologues] = useState<any>()
     const [epilogues, setEpilogues] = useState<any>()
@@ -105,6 +107,8 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
 
     const [popupUrl, setPopupUrl] = useState<string>();
     const [memoMessage, setMemoMessage] = useState<any>();
+
+    currentScriptRef.current = currentScript;
 
     useImperativeHandle(ref, () => ({
         async onReceiveGuide(guide: any) {
@@ -214,11 +218,7 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 setPrepMembers: (m) => setPrologues(m),
                 setSyncMembers: (m) => setSynchs(m as any),
                 setGroupMembers: (m) => setEpilogues(m),
-                downloadScript: () => {
-                    setStudySequences([]);
-                    reloadScript();
-                    synchToCurrent();
-                },
+                downloadScript: () => reloadScript(guide),
                 playToPoint: async (tgt) => {
                     await playToPointInternal(tgt, lastGuide);
                 },
@@ -267,6 +267,17 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 } else {
                     setLastGuide(guide);
                 }
+                return;
+            }
+
+            // 선생님 flying object 의 마지막 상태(위치·배율·회전·반전)를 먼저 맞춘 뒤 select/magnify 를 처리한다
+            if ((guide.action === 'select' || guide.action === 'magnify') && guide.objState) {
+                sendBoardAction({ actionType: 'APPLY_OBJ_STATE', obj: guide.objState });
+            }
+
+            // reload 는 scriptId 0 guide 가 공용 처리기에서 걸러지지 않게 패널에서 직접 처리한다
+            if (guide.action === 'reload' || guide.action === 'renewScript') {
+                await ctx.downloadScript();
                 return;
             }
 
@@ -592,15 +603,36 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
 
     }
 
-    const reloadScript = async () => {
-
-        const cuts = await scriptMaker(`${currentScript.releaseScriptUrl}?ts=${uuid.v4()}`);
-        initClassroomStuffs(cuts);
-        setMenuScript(cuts)
-        hasPlayedSinceLoadRef.current = false;
-        lastPlayedRef.current = null;
-        setStudySequences(cuts.contents)
-
+    // reload: 기존 WebView·보드를 유지한 채 새 스크립트를 받아 복귀 지점까지 다시 재생한다(실패해도 로딩에 갇히지 않는다)
+    const scriptKey = (s: any) => `${s?.id}|${s?.sourceType}|${s?.sourceId}`;
+    const reloadScript = async (guide: any) => {
+        if (!currentScript) return;
+        const seq = ++reloadSeqRef.current;
+        const key = scriptKey(currentScript);
+        try {
+            const returnPt = {
+                studyIdx: guide.studyIdx ?? lastGuide?.studyIdx,
+                step: guide.step ?? lastGuide?.step ?? 'main',
+            };
+        const url = currentScript?.releaseScriptUrl;
+        if (!url) return;
+        const cuts = await scriptMaker(`${url}?ts=${uuid.v4()}`);
+            await playChainRef.current;
+            if (seq !== reloadSeqRef.current || scriptKey(currentScriptRef.current) !== key) return;
+            if (!cuts || !cuts.contents || cuts.contents.length === 0) {
+                console.log('reload: empty script');
+                return;
+            }
+            storage.set('syncPoint', JSON.stringify(returnPt));
+            sendBoardAction({ actionType: 'RESET_BOARD' });
+            initClassroomStuffs(cuts);
+            hasPlayedSinceLoadRef.current = false;
+            lastPlayedRef.current = null;
+            setMenuScript({ ...cuts });
+            setStudySequences(cuts.contents);
+        } catch (e) {
+            console.log('reload failed', e);
+        }
     }
 
     const handleMessage = async (message) => {

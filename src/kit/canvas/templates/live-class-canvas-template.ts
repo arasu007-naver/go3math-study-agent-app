@@ -120,7 +120,20 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                     break;
                 case 'REMOVE_OBJ':
                     console.log('REMOVE_OBJ action: ' +  JSON.stringify(action))
-                    removeObjectWithId(action.obj.id)
+                    if (typeof action.obj.id === 'string' && action.obj.id.startsWith('magnifier:')) {
+                        removeMagnifiers();
+                    } else {
+                        removeObjectWithId(action.obj.id)
+                    }
+                    break;
+                case 'RESET_BOARD':
+                    resetBoard();
+                    break;
+                case 'APPLY_OBJ_STATE':
+                    if (action.obj && action.obj.id != null) {
+                        var stateTarget = canvas.getObjects().find(function (o) { return String(o.id) === String(action.obj.id); });
+                        if (stateTarget) applyObjectState(stateTarget, action.obj);
+                    }
                     break;
                 case 'BACKGROUND':
                     classBoardScript = [];
@@ -210,7 +223,11 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                     importObjectFromClipboard(action.obj);
                     break;
                 case 'STAND_OUT':
-                    magnifyObj(action.objId);
+                    if (action.objId) {
+                        magnifyObj(action.objId);
+                    } else if (action.obj && typeof action.obj.left === 'number' && typeof action.obj.top === 'number' && typeof action.obj.width === 'number' && typeof action.obj.height === 'number') {
+                        magnifyArea(action.obj);
+                    }
                     break;
                 case 'CLEAN_ADHOCS':
                     removeFlyingObjs();
@@ -394,10 +411,123 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
         }
 
         function removeFlyingObjs() {
-            const minions = canvas.getObjects().filter((p) => typeof p.id === 'string' && p.id.startsWith('fly:'));
+            const minions = canvas.getObjects().filter((p) => typeof p.id === 'string' && (p.id.startsWith('fly:') || p.id.startsWith('magnifier:')));
             minions.forEach((obj) => {
                 canvas.remove(obj);
             });
+        }
+
+        function removeMagnifiers() {
+            canvas.getObjects().filter((p) => typeof p.id === 'string' && p.id.startsWith('magnifier:')).forEach((obj) => {
+                canvas.remove(obj);
+            });
+            canvas.requestRenderAll();
+        }
+
+        // SAVE 메시지 없이 보드를 초기화한다(reload 용)
+        function resetBoard() {
+            resetEpoch += 1;
+            canvas.getObjects().filter(obj => !backgroundSubs.includes(obj.id)).forEach((o) => {
+                canvas.remove(o);
+            });
+            canvas.renderAll();
+        }
+
+        // 선생님 flying object 상태 적용. 좌표/배율은 스크립트 좌표계 값 * classScale. opacity/src/width/height 는 적용하지 않는다.
+        function applyObjectState(target, raw) {
+            if (!target || !raw) return;
+            var isNum = function (v) { return typeof v === 'number' && isFinite(v); };
+            var patch = {};
+            ['left', 'top', 'scaleX', 'scaleY'].forEach(function (k) {
+                if (isNum(raw[k])) patch[k] = raw[k] * classScale;
+            });
+            if (isNum(raw.angle)) patch.angle = raw.angle;
+            if (typeof raw.flipX === 'boolean') patch.flipX = raw.flipX;
+            if (typeof raw.flipY === 'boolean') patch.flipY = raw.flipY;
+            target.set(patch);
+            target.setCoords();
+            canvas.requestRenderAll();
+        }
+
+        // 영역 돋보기: tutor-web PortraitScriptDynamicSizeCanvas.magnifyArea 의 배치 규칙을 따른다
+        function magnifyArea(area) {
+            if (!canvas || !window.fabric) return;
+            var left = area.left * classScale, top = area.top * classScale, width = area.width * classScale, height = area.height * classScale;
+            if (!(width > 0) || !(height > 0)) return;
+            var startEpoch = resetEpoch;
+            removeMagnifiers();
+            var dataURL;
+            try {
+                dataURL = canvas.toDataURL({ format: 'png', left: left, top: top, width: width, height: height });
+            } catch (e) {
+                return;
+            }
+            if (!dataURL) return;
+            window.fabric.Image.fromURL(dataURL, function (img) {
+                if (startEpoch !== resetEpoch) return;
+                if (!img) return;
+                removeMagnifiers();
+                // 레티나에서 캡처 픽셀 크기가 영역과 달라도 표시 크기는 영역 크기와 같게
+                img.set({ scaleX: width / img.width, scaleY: height / img.height });
+                var clipRect = new window.fabric.Rect({ width: width, height: height, rx: 12, ry: 12, originX: 'center', originY: 'center' });
+                img.set({ clipPath: clipRect, originX: 'center', originY: 'center' });
+                var bgRect = new window.fabric.Rect({ width: width, height: height, rx: 12, ry: 12, fill: '#ffffff', originX: 'center', originY: 'center', selectable: false, evented: false });
+                var borderRect = new window.fabric.Rect({ width: width, height: height, rx: 12, ry: 12, fill: 'transparent', stroke: '#f97316', strokeWidth: 2, originX: 'center', originY: 'center', selectable: false, evented: false });
+                var canvasW = 1280 * classScale;
+                var canvasH = 1920 * classScale;
+                var targetScale = typeof area.scale === 'number' && area.scale > 0 ? area.scale : 1.38;
+                if (width * targetScale > canvasW) targetScale = canvasW / width;
+                if (height * targetScale > canvasH) targetScale = canvasH / height;
+                var finalW = width * targetScale;
+                var finalH = height * targetScale;
+
+                var originX = 'center';
+                var groupLeft = left + width / 2;
+                if (left < canvasW / 3) {
+                    originX = 'left';
+                    groupLeft = left;
+                    if (groupLeft + finalW > canvasW) groupLeft = canvasW - finalW;
+                    if (groupLeft < 0) groupLeft = 0;
+                } else if (left >= (canvasW * 2) / 3) {
+                    originX = 'right';
+                    groupLeft = left + width;
+                    if (groupLeft - finalW < 0) groupLeft = finalW;
+                    if (groupLeft > canvasW) groupLeft = canvasW;
+                } else {
+                    if (groupLeft - finalW / 2 < 0) groupLeft = finalW / 2;
+                    if (groupLeft + finalW / 2 > canvasW) groupLeft = canvasW - finalW / 2;
+                }
+
+                var originY = 'center';
+                var groupTop = top + height / 2;
+                if (top < canvasH / 3) {
+                    originY = 'top';
+                    groupTop = top;
+                    if (groupTop + finalH > canvasH) groupTop = canvasH - finalH;
+                    if (groupTop < 0) groupTop = 0;
+                } else if (top >= (canvasH * 2) / 3) {
+                    originY = 'bottom';
+                    groupTop = top + height;
+                    if (groupTop - finalH < 0) groupTop = finalH;
+                    if (groupTop > canvasH) groupTop = canvasH;
+                } else {
+                    if (groupTop - finalH / 2 < 0) groupTop = finalH / 2;
+                    if (groupTop + finalH / 2 > canvasH) groupTop = canvasH - finalH / 2;
+                }
+
+                var group = new window.fabric.Group([bgRect, img, borderRect], {
+                    left: groupLeft, top: groupTop, originX: originX, originY: originY,
+                    id: 'magnifier:' + new Date().getTime(),
+                    selectable: false, evented: false, hasControls: false, hasBorders: false, hoverCursor: 'default'
+                });
+                canvas.add(group);
+                group.setCoords();
+                canvas.requestRenderAll();
+                var ease = window.fabric.util.ease.easeOutBack || window.fabric.util.ease.easeInOutCubic;
+                var onChange = function () { group.setCoords(); canvas.requestRenderAll(); };
+                group.animate('scaleX', targetScale, { duration: 500, onChange: onChange, easing: ease });
+                group.animate('scaleY', targetScale, { duration: 500, onChange: onChange, easing: ease });
+            }, { crossOrigin: 'anonymous' });
         }
 
         /**
@@ -499,7 +629,11 @@ export default function liveClassCanvasTemplate(width: number, height: number, p
                 }
                 var objId = parsedObj.id != null ? String(parsedObj.id) : null;
                 if (objId && existingIdSet.has(objId)) {
-                    // 이미 캔버스에 존재하는 객체는 건너뜀(skip)
+                    // 이미 캔버스에 존재하는 객체는 선생님 상태(위치·배율·회전·반전)로 갱신. 돋보기/임시 객체는 제외
+                    if (!objId.startsWith('magnifier:') && !objId.startsWith('temporary:')) {
+                        var existing = currentObjects.find(function (o) { return o.id != null && String(o.id) === objId; });
+                        if (existing) applyObjectState(existing, parsedObj);
+                    }
                     continue;
                 }
                 missingObjects.push(parsedObj);
