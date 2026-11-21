@@ -57,7 +57,7 @@ import type {
     ScriptPlayerCallbacks,
     LiveClassMessageContext,
 } from './script-maker';
-import { hasScriptId, normalizeGuideScriptId } from './live-script-id';
+import { dropEmptyScriptId, hasScriptId, normalizeGuideScriptId } from './live-script-id';
 import MathJaxWrapper from '../../math/MathJaxWrapper'
 const strokeWidths = [3, 4, 6, 9, 15, 24];
 const strokeColors = ['orange', 'blue', 'black', 'red', 'green']
@@ -291,6 +291,8 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                 return;
             }
 
+            // 스크립트 없는 유닛(scriptId 0)의 guide가 처리기에서 '스크립트 전환'으로 걸러지지 않게 한다(주석 adhoc 등이 버려졌다)
+            guide = dropEmptyScriptId(guide);
             await handleLiveClassMessage(guide, ctx, { platform: 'mobile' });
         },
 
