@@ -42,3 +42,17 @@ describe('topic-live-canvas source', () => {
     expect(src).not.toMatch(/Number\(guide\.scriptId\) > 0/);
   });
 });
+
+describe('dropEmptyScriptId', () => {
+  const { dropEmptyScriptId } = require('../src/kit/canvas/note-canvas/live-script-id');
+  it('scriptId 0/null이면 비운다', () => {
+    expect(dropEmptyScriptId({ action: 'adhoc', scriptId: 0, sourceId: 2 })).toEqual({ action: 'adhoc', scriptId: undefined, sourceId: 2 });
+    expect(dropEmptyScriptId({ action: 'adhoc', scriptId: null }).scriptId).toBeUndefined();
+  });
+  it('id가 있으면(음수 포함) 그대로 돌려준다', () => {
+    const g = { action: 'adhoc', scriptId: -12 };
+    expect(dropEmptyScriptId(g)).toBe(g);
+    const h = { action: 'adhoc', scriptId: 12 };
+    expect(dropEmptyScriptId(h)).toBe(h);
+  });
+});

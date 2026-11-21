@@ -31,7 +31,7 @@ import { topicLiveSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
 import { canvasActivityStore } from '@/src/state/canvasActivity';
 import { colors, type } from '@/src/ui/theme';
-import { toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
+import { isPositionGuide, toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 
 // 주제 실황 수업 화면: 기존 qoolla-student-app `pages/notebook/topic-live-class.tsx`를 옮김. 패널은 note-canvas/topic-live-canvas.tsx 그대로.
 // 실황 수업 dock에서 주제를 누르면 Stage에 그 주제 문제 목록(ProblemListPanel)을 띄우고 이 화면으로 온다. 나가면 문제 목록이 그대로 남는다.
@@ -114,7 +114,7 @@ export default function TopicLiveClassScreen() {
           return;
         }
         if (guide.action !== 'snapshot') setLiveState((cur) => (cur === 'waiting' ? 'live' : cur));
-        if (guide.action !== 'snapshot' && guide.action !== 'canvas-synch') setLastPoint(guide);
+        if (isPositionGuide(guide)) setLastPoint(guide);
         panelRef.current?.onReceiveGuide(guide);
       }
       setSavedMessage('🟡 ' + moment().format('MM/DD HH:mm'));
