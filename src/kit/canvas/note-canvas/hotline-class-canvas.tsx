@@ -659,10 +659,10 @@ const HotlineClassCanvasPanel = forwardRef(({ changeUnit, saveWorkout, loaded, t
                 studyIdx: guide.studyIdx ?? lastGuide?.studyIdx,
                 step: guide.step ?? lastGuide?.step ?? 'main',
             };
-        const url = currentScript?.releaseScriptUrl || releaseScriptUrl;
-        const cuts = url && url !== 'default'
-            ? await scriptMaker(`${url}?ts=${uuid.v4()}`)
-            : makeTemporaryScript(currentScript.sourceType, currentScript.sourceId);
+            const url = currentScript?.releaseScriptUrl || releaseScriptUrl;
+            const cuts = url && url !== 'default'
+                ? await scriptMaker(`${url}?ts=${uuid.v4()}`)
+                : makeTemporaryScript(currentScript.sourceType, currentScript.sourceId);
             await playChainRef.current;
             if (seq !== reloadSeqRef.current || scriptKey(currentScriptRef.current) !== key) return;
             if (!cuts || !cuts.contents || cuts.contents.length === 0) {

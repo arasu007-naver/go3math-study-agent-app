@@ -614,9 +614,9 @@ const TopicLiveClassCanvasPanel: FC<any> = forwardRef(({ changeUnit, saveWorkout
                 studyIdx: guide.studyIdx ?? lastGuide?.studyIdx,
                 step: guide.step ?? lastGuide?.step ?? 'main',
             };
-        const url = currentScript?.releaseScriptUrl;
-        if (!url) return;
-        const cuts = await scriptMaker(`${url}?ts=${uuid.v4()}`);
+            const url = currentScript?.releaseScriptUrl;
+            if (!url) return;
+            const cuts = await scriptMaker(`${url}?ts=${uuid.v4()}`);
             await playChainRef.current;
             if (seq !== reloadSeqRef.current || scriptKey(currentScriptRef.current) !== key) return;
             if (!cuts || !cuts.contents || cuts.contents.length === 0) {
