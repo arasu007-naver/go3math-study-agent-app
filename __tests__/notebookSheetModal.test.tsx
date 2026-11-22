@@ -53,9 +53,13 @@ jest.mock('react-native-webview', () => {
   };
 });
 
+const mockChangeBg = jest.fn();
 jest.mock('../src/kit/canvas/note-canvas/notebook', () => {
+  const React = require('react');
   const { View, Text, TouchableOpacity } = require('react-native');
-  return ({ screenActions }: any) => (
+  return React.forwardRef(({ screenActions, loaded }: any, ref: any) => {
+    React.useImperativeHandle(ref, () => ({ changeNotebookBackgroundImage: mockChangeBg }));
+    return (
     <View testID="mock-notebook-panel">
       {screenActions?.map((act: any) => (
         <TouchableOpacity key={act.id} onPress={act.onPress}>
@@ -63,7 +67,8 @@ jest.mock('../src/kit/canvas/note-canvas/notebook', () => {
         </TouchableOpacity>
       ))}
     </View>
-  );
+    );
+  });
 });
 
 jest.mock('../src/kit/canvas/note-canvas/image-adjust-card', () => {
@@ -91,6 +96,7 @@ jest.mock('../src/state/solve', () => ({
 }));
 
 import NotebookScreen from '../app/notebook';
+import { bumpContentVersions } from '../src/kit/problem-list/contentVersion';
 
 describe('NotebookScreen - Problem List Modal', () => {
   beforeEach(() => {
@@ -225,5 +231,27 @@ describe('NotebookScreen - canvas sheets (Gate B Q4)', () => {
     expect(screen.getByText('개념·해답')).toBeTruthy();
     expect(screen.queryByText('해답')).toBeNull();
     expect(screen.queryByText('개념')).toBeNull();
+  });
+});
+
+describe('NotebookScreen - content version', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('uses the plain urls for problems that were never refreshed', async () => {
+    await render(<NotebookScreen />);
+    fireEvent.press(screen.getByText('목록'));
+    await waitFor(() => expect(screen.getAllByTestId('mock-problem-image').length).toBe(2));
+    expect(screen.getAllByTestId('mock-problem-image').map((n) => n.props.accessibilityLabel)).toEqual(['https://img/101.png', 'https://img/102.png']);
+    expect(mockChangeBg).toHaveBeenCalledWith('https://img/101.png');
+  });
+
+  it('applies the refreshed version to the background and the replace list, not to the problems', async () => {
+    bumpContentVersions([{ sourceType: 'UNIT', sourceId: 101 }, { sourceType: 'UNIT', sourceId: 102 }], 4242);
+    await render(<NotebookScreen />);
+    fireEvent.press(screen.getByText('목록'));
+    await waitFor(() => expect(screen.getAllByTestId('mock-problem-image').length).toBe(2));
+    expect(screen.getAllByTestId('mock-problem-image').map((n) => n.props.accessibilityLabel)).toEqual(['https://img/101.png?v=4242', 'https://img/102.png?v=4242']);
+    expect(mockChangeBg).toHaveBeenCalledWith('https://img/101.png?v=4242');
+    expect(mockProblems.map((p) => p.image)).toEqual(['https://img/101.png', 'https://img/102.png']);
   });
 });
