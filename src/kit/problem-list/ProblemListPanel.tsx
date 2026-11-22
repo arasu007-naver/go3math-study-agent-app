@@ -17,6 +17,7 @@ import { colors } from '../../ui/theme';
 import { ConceptStatement, isConceptType, type ConceptBody } from '../concepts/ConceptStatement';
 import DynamicDimensionsImage from '../ui/image-dynamic-dims';
 import { PencilFab } from '../ui/PencilFab';
+import { bumpContentVersions, versionedUrl } from './contentVersion';
 import { AnswerBubble } from './AnswerBubble';
 import { placeAnswerBubble, type BubblePlacement, type Rect } from './answerBubblePlacement';
 
@@ -55,12 +56,15 @@ export function ProblemListPanel({
   onSelectProblem,
   onSolve,
   renderFooter,
+  refresh,
 }: {
   fetchers: ProblemListFetchers;
   source: ProblemSource;
   onSelectProblem(a: { index: number; problem: Problem }): void;
   onSolve?(a: { index: number; set: ProblemSet }): void;
   renderFooter?(a: { index: number; problem: Problem; set: ProblemSet }): ReactNode;
+  /** Stage 새로고침: token이 마지막으로 처리한 값보다 커지면 목록을 다시 받고 그 문제들의 이미지·해답 버전을 올린다 */
+  refresh?: { token: number; onDone(ok: boolean): void };
 }) {
   const { width, height } = useWindowDimensions();
   const [set, setSet] = useState<ProblemSet | null>(null);
@@ -98,6 +102,41 @@ export function ProblemListPanel({
       alive = false;
     };
   }, [fetchers, key]);
+
+  // 새로고침: 첫 마운트·source 변경만으로는 하지 않고, token이 늘 때만 목록을 비우지 않은 채 다시 받는다
+  const lastToken = useRef(refresh?.token ?? 0);
+  const sourceRef = useRef(key);
+  sourceRef.current = key;
+  const onDoneRef = useRef(refresh?.onDone);
+  onDoneRef.current = refresh?.onDone;
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const token = refresh?.token;
+  useEffect(() => {
+    if (token === undefined || token <= lastToken.current) return;
+    lastToken.current = token;
+    const requestKey = key;
+    setAnswer(null);
+    fetchers
+      .fetchProblems(JSON.parse(requestKey))
+      .then((s) => {
+        if (!mounted.current || sourceRef.current !== requestKey) return;
+        bumpContentVersions(s.problems);
+        setSet(s);
+        setSelected((prev) => (s.problems.length === 0 ? null : prev !== null && prev < s.problems.length ? prev : 0));
+        onDoneRef.current?.(true);
+      })
+      .catch((e) => {
+        console.warn('[ProblemListPanel] refresh failed:', e);
+        if (mounted.current && sourceRef.current === requestKey) onDoneRef.current?.(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   // 문제가 바뀌었다는 알림이 오면 목록을 비우지 않고 새로 받아 바꾼다(고른 문제는 범위 안이면 그대로)
   useEffect(() => {
@@ -239,7 +278,8 @@ export function ProblemListPanel({
         {set.problems.map((problem, index) => {
           const itemKey = itemKeyOf(problem, index);
           const isShowingAnswer = answer?.itemKey === itemKey;
-          const itemAnswerUrl = UNITANSWER(problem.sourceType, problem.sourceId);
+          const itemAnswerUrl = versionedUrl(UNITANSWER(problem.sourceType, problem.sourceId), problem.sourceType, problem.sourceId);
+          const imageUrl = versionedUrl(problem.image, problem.sourceType, problem.sourceId);
           const isBookmarked = bookmarkedKeys.has(itemKey);
 
           return (
@@ -262,7 +302,7 @@ export function ProblemListPanel({
                 pressed && styles.pressed,
               ]}>
               <Text style={styles.cardLabel}>{index + 1}번</Text>
-              <DynamicDimensionsImage source={{ uri: problem.image }} width={cardWidth - 16} />
+              <DynamicDimensionsImage key={imageUrl} source={{ uri: imageUrl }} width={cardWidth - 16} />
               {renderFooter ? (
                 renderFooter({ index, problem, set })
               ) : (

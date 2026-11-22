@@ -10,6 +10,7 @@ import { useEffect, useRef, useState, type ReactElement, type ReactNode, type Re
 import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UNITANSWER } from '../config/api.constants';
+import { versionedUrl } from '../kit/problem-list/contentVersion';
 import { ConceptLookupPanel } from '../kit/concepts/ConceptLookupPanel';
 import QoollaWebView from '../kit/ui/web-view';
 import { pickedConceptsStore } from '../state/concepts';
@@ -54,7 +55,7 @@ export function useAnswerSheet(): { show(problem: { sourceType: string; sourceId
   const [url, setUrl] = useState<string>();
   return {
     show(problem) {
-      setUrl(UNITANSWER(problem.sourceType, problem.sourceId) ?? undefined);
+      setUrl(versionedUrl(UNITANSWER(problem.sourceType, problem.sourceId), problem.sourceType, problem.sourceId) ?? undefined);
       ref.current?.present();
     },
     sheet: (

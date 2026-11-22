@@ -13,6 +13,7 @@ import { CanvasStudySheet } from '@/src/kit/canvas/CanvasStudySheet';
 import { centerListItem } from '@/src/kit/canvas/centerListItem';
 import { CANVAS_SHEET_SNAPS, CANVAS_SHEET_VIEW, useCanvasSheetBottomInset, type FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import ImageAdjustCard from '@/src/kit/canvas/note-canvas/image-adjust-card';
+import { versionedUrl } from '@/src/kit/problem-list/contentVersion';
 import LegacyNotebookCanvasPanel from '@/src/kit/canvas/note-canvas/notebook';
 import { ensureTaskId } from '@/src/adapters/ensureTask';
 import { fetchConcept } from '@/src/adapters/problemListFetchers';
@@ -84,7 +85,7 @@ export default function NotebookScreen() {
   // 문제가 바뀌면 배경을 바꾸고 내 이전 풀이를 불러온다(있으면 바로 보여 준다) — 기존과 같음
   useEffect(() => {
     if (!currentSheet) return;
-    panelRef.current?.changeNotebookBackgroundImage(currentSheet.image);
+    panelRef.current?.changeNotebookBackgroundImage(versionedUrl(currentSheet.image, currentSheet.sourceType, currentSheet.sourceId));
     setSheetListVisible(false);
     let alive = true;
     getTries({ variables: { sourceType: currentSheet.sourceType, sourceId: Number(currentSheet.sourceId) } })
@@ -177,7 +178,7 @@ export default function NotebookScreen() {
                   {/* 카드 바디 (문제 이미지) */}
                   <View style={[styles.itemBody, { height: bodyHeight }]}>
                     <ScrollView style={styles.problemScrollView} contentContainerStyle={styles.problemScrollContent} showsVerticalScrollIndicator={false}>
-                      <ImageAdjustCard imgPath={item.image} imgWidth={itemWidth} index={index}>
+                      <ImageAdjustCard key={versionedUrl(item.image, item.sourceType, item.sourceId)} imgPath={versionedUrl(item.image, item.sourceType, item.sourceId)} imgWidth={itemWidth} index={index}>
                         <></>
                       </ImageAdjustCard>
                     </ScrollView>
@@ -205,7 +206,7 @@ export default function NotebookScreen() {
       </Modal>
       <NotebookCanvasPanel
         ref={panelRef}
-        loaded={() => panelRef.current?.changeNotebookBackgroundImage(currentSheet.image)}
+        loaded={() => panelRef.current?.changeNotebookBackgroundImage(versionedUrl(currentSheet.image, currentSheet.sourceType, currentSheet.sourceId))}
         saveWorkout={onSave}
         saveMentorRequestShot={onMentoringRequestSave}
         screenActions={[

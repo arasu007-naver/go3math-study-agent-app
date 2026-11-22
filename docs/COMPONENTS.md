@@ -198,6 +198,7 @@
 - **ScriptMaker**: `src/kit/canvas/note-canvas/script-maker.ts`
 - **ExamSearchQuery**: `src/kit/exam-search/query.ts`
 - **AnswerBubblePlacement**: `src/kit/problem-list/answerBubblePlacement.ts`
+- **contentVersion**: `src/kit/problem-list/contentVersion.ts`
 - **StudyLogModel**: `src/kit/study-log/model.ts`
 - **TopicTitles**: `src/kit/study-log/topicTitles.ts`
 - **StudyNoteActivity**: `src/kit/study-note/activity.ts`

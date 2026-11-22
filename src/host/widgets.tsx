@@ -42,7 +42,7 @@ async function fetchSentQuizzes(taskId: number): Promise<{ quizId: number; conte
   return out;
 }
 
-export type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
+export type WidgetProps = { props: Record<string, unknown>; session: AgentSession; refresh?: { token: number; onDone(ok: boolean): void } };
 
 /**
  * 캔버스는 task 없이 연다. task(study)는 풀이를 처음 올릴 때 만든다 — 캔버스에는 유형(spec)만 넘기고,
@@ -166,11 +166,12 @@ export async function solveDiaryProblem(session: AgentSession, target: DiarySolv
   return openNotebook(title, problems, index, taskId, undefined, listSpec(problems));
 }
 
-function ProblemListWidget({ props, session }: WidgetProps) {
+function ProblemListWidget({ props, session, refresh }: WidgetProps) {
   const source = props.source as ProblemSource;
   return (
     <ProblemListPanel
       fetchers={problemListFetchers}
+      refresh={refresh}
       source={source}
       onSelectProblem={({ index, problem }) =>
         session.emit('problem_selected', {
@@ -192,11 +193,12 @@ function ProblemListWidget({ props, session }: WidgetProps) {
   );
 }
 
-function BookmarksWidget({ props, session }: WidgetProps) {
+function BookmarksWidget({ props, session, refresh }: WidgetProps) {
   const source = (props.source as ProblemSource | undefined) ?? { kind: 'bookmarks' };
   return (
     <BookmarksPanel
       fetchers={problemListFetchers}
+      refresh={refresh}
       source={source}
       onSelectProblem={({ index, problem }) =>
         session.emit('problem_selected', {

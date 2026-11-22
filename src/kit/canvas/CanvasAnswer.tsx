@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { UNITANSWER } from '../../config/api.constants';
+import { versionedUrl } from '../problem-list/contentVersion';
 import { colors, radius } from '../../ui/theme';
 import { ConceptStatement, isConceptType, type ConceptBody } from '../concepts/ConceptStatement';
 import { ANSWER_PAGE_STYLE_JS } from '../ui/answerPageStyle';
@@ -21,7 +22,7 @@ export function CanvasAnswer({
   fetchConcept(conceptId: number): Promise<ConceptBody>;
 }) {
   const [pageLoadProgress, setPageLoadProgress] = useState(0);
-  const answerUrl = UNITANSWER(sourceType, sourceId);
+  const answerUrl = versionedUrl(UNITANSWER(sourceType, sourceId), sourceType, sourceId);
 
   return (
     <View style={styles.row}>

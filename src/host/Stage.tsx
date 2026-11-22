@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AgentSession, SessionSnapshot } from '../agent/session';
 import { widgets } from './widgets';
@@ -11,11 +12,23 @@ const emptyLogo = require('../../assets/images/splash-icon.png'); // launch scre
 // 콘텐츠 영역(컴포넌트 호스트). 한 시점에 위젯 1개, 에이전트 명령으로만 교체된다(§4.1). 위젯이 없으면 가운데 로고만 보인다.
 // 태블릿 Stage는 두 모드만: 빈 화면(로고)과 문제 목록(problem_list · problem_preview). 검색·주제 목록은 drawer dock이 맡는다(registry mode).
 // 화면 전환(풀이 화면 등)에서 돌아와도 세션 상태라 그대로 남는다. 상단 뒤로 버튼은 두지 않는다.
+const REFRESHABLE = ['problem_list', 'bookmarks', 'bookmarks_panel'];
+
 export function Stage({ state, session }: { state: SessionSnapshot; session: AgentSession }) {
   const view = state.stage;
   const Widget = view ? widgets[view.componentId] : undefined;
   // 내 책갈피가 떠 있으면 헤더 버튼은 '문제 목록'(이전 화면으로 되돌리기)
   const showingBookmarks = view?.componentId === 'problem_list' && (view.props.source as { kind?: string } | undefined)?.kind === 'bookmarks';
+
+  const refreshable = !!view && REFRESHABLE.includes(view.componentId);
+  const [refreshState, setRefreshState] = useState({ token: 0, busy: false, failed: false });
+  // Stage 화면이 바뀌면 진행 상태와 실패 안내를 해제한다
+  useEffect(() => {
+    setRefreshState((prev) => (prev.busy || prev.failed ? { ...prev, busy: false, failed: false } : prev));
+  }, [view]);
+  const startRefresh = () => setRefreshState((prev) => (prev.busy ? prev : { token: prev.token + 1, busy: true, failed: false }));
+  const onRefreshDone = useCallback((ok: boolean) => setRefreshState((prev) => ({ ...prev, busy: false, failed: !ok })), []);
+  const refresh = refreshable ? { token: refreshState.token, onDone: onRefreshDone } : undefined;
 
   return (
     <View style={styles.root}>
@@ -23,6 +36,19 @@ export function Stage({ state, session }: { state: SessionSnapshot; session: Age
         <View style={styles.title}>
           <Image source={logo} resizeMode="contain" style={styles.logo} accessibilityLabel="Go3Math" />
         </View>
+        {refreshable && (
+          <Pressable
+            testID="stage-refresh"
+            accessibilityRole="button"
+            accessibilityLabel="새로고침"
+            accessibilityState={{ disabled: refreshState.busy }}
+            disabled={refreshState.busy}
+            hitSlop={8}
+            onPress={startRefresh}
+            style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+            {refreshState.busy ? <ActivityIndicator size="small" color={colors.text} /> : <Ionicons name="refresh-outline" size={20} color={colors.text} />}
+          </Pressable>
+        )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={showingBookmarks ? '문제 목록' : '내 책갈피'}
@@ -36,9 +62,10 @@ export function Stage({ state, session }: { state: SessionSnapshot; session: Age
         <View style={[styles.status, { backgroundColor: state.connected ? colors.online : colors.offline }]} />
       </View>
       {state.fallbackText && <Text style={styles.fallback}>{state.fallbackText}</Text>}
+      {refreshState.failed && <Text style={styles.fallback}>새로고침하지 못했어요. 잠시 후 다시 시도해 주세요.</Text>}
       <View style={styles.body}>
         {Widget && view ? (
-          <Widget props={view.props} session={session} />
+          <Widget props={view.props} session={session} refresh={refresh} />
         ) : (
           <View style={styles.empty}>
             <Image source={emptyLogo} resizeMode="contain" style={styles.emptyLogo} accessibilityLabel="Go3Math" />
