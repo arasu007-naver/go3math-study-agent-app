@@ -80,3 +80,20 @@ describe('ExamSearchPanel rows (spec 4b D4)', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('ExamSearchPanel this_year 수능 (2026-11)', () => {
+  it('defaults to 수능 and submits months [11]', async () => {
+    const onSubmit = jest.fn();
+    await render(<ExamSearchPanel mode="this_year" store={store()} onSubmit={onSubmit} />);
+    expect(checked('수능')).toBe(true);
+    expect(checked('10월')).toBe(false);
+    await fireEvent.press(screen.getByRole('button', { name: '가자!!!' }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ years: [2026], months: [11] }));
+  });
+
+  it('preset months [10] selects 10월 only', async () => {
+    await render(<ExamSearchPanel mode="this_year" preset={{ months: [10] }} store={store()} onSubmit={jest.fn()} />);
+    expect(checked('10월')).toBe(true);
+    expect(checked('수능')).toBe(false);
+  });
+});

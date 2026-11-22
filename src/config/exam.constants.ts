@@ -172,6 +172,7 @@ const thisMonths: MonthOption[] = [
     { label: '7월', value: 7 },
     { label: '9월', value: 9 },
     { label: '10월', value: 10 },
+    { label: '수능', value: 11 },
 ];
 
 // === 수학 과목 및 챕터 ===

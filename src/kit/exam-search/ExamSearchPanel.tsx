@@ -39,7 +39,7 @@ export function ExamSearchPanel({ mode, preset, store, onSubmit }: Props) {
     return subjects.some((s) => s.value === pick) ? pick : 'CALCULUS';
   });
   const [years, setYears] = useState<number[]>(preset?.years ?? (mode === 'this_year' ? [2026] : defaultYearsFor(subject)));
-  const [months, setMonths] = useState<number[]>(preset?.months ?? (mode === 'this_year' ? [10] : [11]));
+  const [months, setMonths] = useState<number[]>(preset?.months ?? [11]);
   const [numbers, setNumbers] = useState<number[]>(preset?.numbers ?? []);
   const [notice, setNotice] = useState<string | null>(null);
 
