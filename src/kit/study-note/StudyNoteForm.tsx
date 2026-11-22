@@ -36,11 +36,13 @@ export type StudyNoteFormProps = {
   title: string;
   topicHints?: string[];
   fetchers: StudyNoteFetchers;
+  /** 실황 양식에서 받은 퀴즈 본문을 조회한다. 실패해도 저장·입력을 막지 않는다 */
+  fetchSentQuizzes?: (taskId: number) => Promise<{ quizId: number; content: string }[]>;
   store: KeyValueStore;
   onDone(result: 'saved' | 'dismissed'): void;
 };
 
-export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store, onDone }: StudyNoteFormProps) {
+export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetchSentQuizzes, store, onDone }: StudyNoteFormProps) {
   const [form, setForm] = useState<FormState>(() => loadDraft(store, taskId) ?? emptyForm());
   // undefined = 조회 실패(또는 아직 조회 전), null = 노트 없음
   const [existing, setExisting] = useState<StudyNote | null | undefined>(undefined);
@@ -64,6 +66,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
     [topicHints, activities],
   );
   const quizCount = activities.quizIds.length;
+  const [quizContents, setQuizContents] = useState<Map<number, string>>(() => new Map());
 
   useEffect(() => {
     let alive = true;
@@ -86,6 +89,27 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
     // 열 때 한 번만 조회한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId]);
+
+  // 실황 양식: 받은 퀴즈가 있으면 열릴 때 한 번 본문을 조회한다(실패하면 Quiz #id로 보인다)
+  const quizFetched = useRef(false);
+  useEffect(() => {
+    if (mode !== 'live' || !fetchSentQuizzes || !loaded || quizFetched.current || quizCount === 0) return;
+    quizFetched.current = true;
+    let alive = true;
+    fetchSentQuizzes(taskId).then(
+      (list) => {
+        if (!alive) return;
+        const m = new Map<number, string>();
+        for (const q of list) if (q.content && !m.has(q.quizId)) m.set(q.quizId, q.content);
+        setQuizContents(m);
+      },
+      () => {},
+    );
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, quizCount, mode]);
 
   const change = useCallback(
     (patch: (prev: FormState) => FormState) => {
@@ -193,7 +217,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
             onChangeText={(t) => change((p) => ({ ...p, description: t.slice(0, MAX_TEXT) }))}
             textAlignVertical="top"
           />
-          {quizCount > 0 ? <Text style={styles.caption}>{`수업 퀴즈 ${quizCount}개`}</Text> : null}
+          {!live && quizCount > 0 ? <Text style={styles.caption}>{`수업 퀴즈 ${quizCount}개`}</Text> : null}
 
           {!live ? (
             <>
@@ -218,6 +242,29 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, store
               ) : null}
             </>
           ) : null}
+
+          {live && quizCount > 0 ? (
+            <View style={styles.section} testID="study-note-quiz-section">
+              <Text style={styles.question}>Quiz</Text>
+              <Text style={styles.caption}>{`수업 퀴즈 ${quizCount}개`}</Text>
+              {activities.quizIds.map((id) => (
+                <Text key={id} style={styles.body}>
+                  {quizContents.has(id) ? cleanMathText(quizContents.get(id) as string) : `Quiz #${id}`}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+
+          {live && activities.concepts.length > 0 ? (
+            <View style={styles.section} testID="study-note-concepts-section">
+              <Text style={styles.question}>조회 내용</Text>
+              {activities.concepts.map((c) => (
+                <Text key={c.id} style={styles.body}>
+                  {cleanMathText(c.title)}
+                </Text>
+              ))}
+            </View>
+          ) : null}
         </>
       )}
 
@@ -238,6 +285,7 @@ const styles = StyleSheet.create({
   skeleton: { marginHorizontal: -space.lg },
   notice: { ...type.body, color: colors.muted },
   tutorBox: { backgroundColor: colors.cardMuted, borderRadius: radius.md, padding: space.md, gap: space.xs },
+  section: { gap: space.xs },
   caption: { ...type.caption, color: colors.muted },
   body: { ...type.body, color: colors.text },
   question: { ...type.bodyStrong, color: colors.text },

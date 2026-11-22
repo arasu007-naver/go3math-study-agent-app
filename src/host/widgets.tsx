@@ -14,6 +14,7 @@ import { ResearchPanel, type ResearchCategory } from '../kit/research/ResearchPa
 import type { ExamSelection } from '../kit/exam-search/query';
 import { ProblemListPanel, BookmarksPanel, type ProblemSource } from '../kit/problem-list/ProblemListPanel';
 import { StudyNoteForm } from '../kit/study-note/StudyNoteForm';
+import { createStudyLogFetchers } from '../adapters/studyLogFetchers';
 import { createStudyNoteFetchers } from '../adapters/studyNoteFetchers';
 import { TopicTabsPanel } from '../kit/topic-panel/TopicTabsPanel';
 import { TopicUnitList } from '../kit/topic-panel/TopicUnitList';
@@ -27,6 +28,19 @@ import { isCanvasOpen } from './useSolveFinished';
 export const topicFetchers = createTopicFetchers(apolloClient);
 const problemListFetchers = createProblemListFetchers(apolloClient);
 const studyNoteFetchers = createStudyNoteFetchers(apolloClient);
+
+/** 실황 학습장 양식용: 받은 퀴즈 본문(QUIZ_SENT). 같은 quizId는 처음 하나만 쓴다 */
+async function fetchSentQuizzes(taskId: number): Promise<{ quizId: number; content: string }[]> {
+  const list = await createStudyLogFetchers().listActivities(taskId);
+  const seen = new Set<number>();
+  const out: { quizId: number; content: string }[] = [];
+  for (const a of list) {
+    if (a.type !== 'QUIZ_SENT' || a.quizId == null || !a.content || seen.has(a.quizId)) continue;
+    seen.add(a.quizId);
+    out.push({ quizId: a.quizId, content: a.content });
+  }
+  return out;
+}
 
 export type WidgetProps = { props: Record<string, unknown>; session: AgentSession };
 
@@ -263,6 +277,7 @@ function StudyNoteWidget({ props, session, dismissRef }: SheetWidgetProps) {
       title={(props.title as string | undefined) ?? solveTitleFor(taskId) ?? '학습장 기록'}
       topicHints={props.topicHints as string[] | undefined}
       fetchers={studyNoteFetchers}
+      fetchSentQuizzes={props.mode === 'live' ? fetchSentQuizzes : undefined}
       store={storage}
       onDone={(result) => finish(taskId, result)}
     />

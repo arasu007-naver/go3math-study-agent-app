@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { StudyNoteForm } from '../src/kit/study-note/StudyNoteForm';
 import { colors, layout } from '../src/ui/theme';
 
@@ -471,5 +471,79 @@ describe('StudyNoteForm - shared components (stage 4a)', () => {
     expect(flat(screen.getByRole('button', { name: '저장' }))).toMatchObject({ backgroundColor: colors.cardMuted });
     await fireEvent.press(screen.getByText('거의'));
     expect(flat(screen.getByRole('button', { name: '저장' }))).toMatchObject({ backgroundColor: colors.accent });
+  });
+});
+
+describe('StudyNoteForm - 실황 Quiz·조회 내용', () => {
+  const acts = (over: Partial<Activities>): Activities => ({ ...emptyActivities(), ...over });
+  const storeWith = (a: Activities) => {
+    const store = memoryStore();
+    appendActivity(store, 7, a);
+    return store;
+  };
+  const live = (a: Activities, fetchSentQuizzes?: jest.Mock) =>
+    setup({}, { mode: 'live', store: storeWith(a), fetchSentQuizzes });
+
+  it('받은 퀴즈 본문을 Quiz 영역에 보여 주고, 받지 않은 퀴즈는 숨긴다', async () => {
+    const fetchSentQuizzes = jest.fn(async () => [
+      { quizId: 1011, content: '등차수열 &amp; 일반항' },
+      { quizId: 1011, content: '중복' },
+      { quizId: 999, content: '받지 않음' },
+    ]);
+    const { ui } = live(acts({ quizIds: [1011, 1012] }), fetchSentQuizzes);
+    await render(ui);
+    await settle();
+    const sec = await screen.findByTestId('study-note-quiz-section');
+    await waitFor(() => expect(within(sec).getByText('등차수열 & 일반항')).toBeTruthy());
+    expect(within(sec).getByText('Quiz')).toBeTruthy();
+    expect(within(sec).getByText('Quiz #1012')).toBeTruthy();
+    expect(within(sec).getByText('수업 퀴즈 2개')).toBeTruthy();
+    expect(screen.queryByText('받지 않음')).toBeNull();
+    expect(screen.queryByText('중복')).toBeNull();
+    expect(fetchSentQuizzes).toHaveBeenCalledWith(7);
+  });
+
+  it('조회가 실패하면 Quiz #id로 보이고 저장은 된다', async () => {
+    const fetchSentQuizzes = jest.fn(async () => {
+      throw new Error('x');
+    });
+    const { fetchers, onDone, ui } = live(acts({ quizIds: [1011] }), fetchSentQuizzes);
+    await render(ui);
+    await settle();
+    expect(within(await screen.findByTestId('study-note-quiz-section')).getByText('Quiz #1011')).toBeTruthy();
+    await fireEvent.press(screen.getByText('조금'));
+    await fireEvent.press(screen.getByText('저장'));
+    await waitFor(() => expect(onDone).toHaveBeenCalledWith('saved'));
+    expect(JSON.parse((fetchers.register as jest.Mock).mock.calls[0][1].activities)).toEqual({ v: 1, concepts: [], quizIds: [1011] });
+  });
+
+  it('조회 내용 영역에 개념 제목을 정리해 보여 준다', async () => {
+    const { ui } = live(acts({ concepts: [{ id: 1, title: '일반항 &amp; 합' }] }), jest.fn());
+    await render(ui);
+    await settle();
+    const sec = screen.getByTestId('study-note-concepts-section');
+    expect(within(sec).getByText('조회 내용')).toBeTruthy();
+    expect(within(sec).getByText('일반항 & 합')).toBeTruthy();
+    expect(screen.queryByTestId('study-note-quiz-section')).toBeNull();
+  });
+
+  it('비어 있으면 두 영역이 없고, self에서는 조회하지 않는다', async () => {
+    const f = jest.fn(async () => []);
+    const a = live(acts({}), f);
+    await render(a.ui);
+    await settle();
+    expect(screen.queryByTestId('study-note-quiz-section')).toBeNull();
+    expect(screen.queryByTestId('study-note-concepts-section')).toBeNull();
+    expect(f).not.toHaveBeenCalled();
+  });
+
+  it('self에서는 영역도 조회도 없다', async () => {
+    const f = jest.fn(async () => []);
+    const { ui } = setup({}, { mode: 'self', store: storeWith(acts({ quizIds: [1], concepts: [{ id: 1, title: '가' }] })), fetchSentQuizzes: f });
+    await render(ui);
+    await settle();
+    expect(screen.queryByTestId('study-note-quiz-section')).toBeNull();
+    expect(screen.queryByTestId('study-note-concepts-section')).toBeNull();
+    expect(f).not.toHaveBeenCalled();
   });
 });
