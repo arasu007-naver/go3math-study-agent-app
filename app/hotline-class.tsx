@@ -19,6 +19,7 @@ import type { FloatingAction } from '@/src/kit/canvas/FloatingToolbar';
 import LegacyHotlineClassCanvasPanel from '@/src/kit/canvas/note-canvas/hotline-class-canvas';
 import { storage } from '@/src/kit/canvas/note-canvas/legacy';
 import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
+import LiveClassStartTime from '@/src/kit/live-class/LiveClassStartTime';
 import LiveClassWaiting from '@/src/kit/live-class/LiveClassWaiting';
 import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizResponseModal';
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
@@ -227,7 +228,10 @@ export default function HotlineClassScreen() {
           <Text style={styles.toastText}>{toastMessage}</Text>
         </View>
       )}
-      <Text style={styles.savedMessage}>{savedMessage}</Text>
+      <View style={styles.topRow}>
+        <Text style={styles.savedMessage}>{savedMessage}</Text>
+        <LiveClassStartTime classType="HOTLINE" classKey={tutorId} active={isFocused} />
+      </View>
       <Modal animationType="fade" transparent visible={sheetListVisible} onRequestClose={() => setSheetListVisible(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setSheetListVisible(false)} />
         <View
@@ -291,7 +295,8 @@ export default function HotlineClassScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   fullSize: { flex: 1, width: '100%', height: '100%' },
-  savedMessage: { position: 'absolute', top: 8, left: 12, zIndex: 10, ...type.caption, color: colors.danger },
+  topRow: { position: 'absolute', top: 8, left: 12, zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  savedMessage: { ...type.caption, color: colors.danger },
   toast: {
     position: 'absolute',
     top: 40,

@@ -40,6 +40,8 @@
 - **Button**: `src/ui/Button.tsx`
 - **Chip**: `src/ui/Chip.tsx`
 - **LiveClassWaiting**: `src/kit/live-class/LiveClassWaiting.tsx`
+- **LiveClassStartTime**: `src/kit/live-class/LiveClassStartTime.tsx`
+- **formatStartTime**: `src/kit/live-class/formatStartTime.ts`
 - **Dialog**: `src/ui/Dialog.tsx`
 - **IconButton**: `src/ui/IconButton.tsx`
 - **Sheet**: `src/ui/Sheet.tsx`

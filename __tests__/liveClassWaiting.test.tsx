@@ -49,6 +49,8 @@ jest.mock('../src/api/graphql/subscriptions', () => ({
   ONLINE_TUTOR_CLASS_MESSAGE_ADDED: { __name: 'ONLINE_TUTOR_CLASS_MESSAGE_ADDED' },
 }));
 
+jest.mock('../src/kit/live-class/LiveClassStartTime', () => ({ __esModule: true, default: () => null }));
+
 import TopicLiveClassScreen from '../app/topic-live-class';
 import HotlineClassScreen from '../app/hotline-class';
 import { storage } from '../src/kit/canvas/note-canvas/legacy';

@@ -169,3 +169,15 @@ export const UNIT_VIDEO_LIST = gql`
     }
   }
 `;
+
+export const LIVE_CLASS_CLOCK = gql`
+  query liveClassClockQuery($classType: String!, $classKey: String!) {
+    liveClassClock(classType: $classType, classKey: $classKey) {
+      classType
+      classKey
+      startedAt
+      elapsedMinutes
+      serverTime
+    }
+  }
+`;

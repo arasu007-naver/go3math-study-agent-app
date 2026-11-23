@@ -70,3 +70,15 @@ subscription OnTopicLiveGuideReceived($topicId: Int!) {
   }
 }
 `;
+
+export const LIVE_CLASS_CLOCK_TICK = gql`
+subscription OnLiveClassClockTick($classType: String!, $classKey: String!) {
+  liveClassClockTick(classType: $classType, classKey: $classKey) {
+    classType
+    classKey
+    startedAt
+    elapsedMinutes
+    serverTime
+  }
+}
+`;
