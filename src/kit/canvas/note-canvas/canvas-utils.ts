@@ -5,7 +5,7 @@
 /**
  * 캔버스 패널 공통 유틸리티
  *
- * notebook.tsx와 topic-notebook.tsx에서 공유하는 유틸리티 함수,
+ * notebook.tsx 등 캔버스 패널이 공유하는 유틸리티 함수,
  * 상수, 업로드 로직을 모아놓은 모듈입니다.
  */
 import { MutableRefObject } from 'react';

@@ -82,7 +82,7 @@ describe.each([
   });
 });
 
-describe.each(['hotline-class-canvas.tsx', 'topic-live-canvas.tsx', 'notebook.tsx', 'topic-notebook.tsx'])('%s 펜 옵션', (file) => {
+describe.each(['hotline-class-canvas.tsx', 'topic-live-canvas.tsx', 'notebook.tsx'])('%s 펜 옵션', (file) => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'src/kit/canvas/note-canvas', file), 'utf8');
   it('지우개는 72px로, 색 버튼은 지우개 전 굵기로 바꾼다', () => {
     expect(src).toContain('setCanvasStrokeWidth(eraserWidth(storage, canvasStrokeColor, canvasStrokeWidth));');
