@@ -1,14 +1,12 @@
-// 앱 전역 시트 호스트: 에이전트 세션의 sheet 슬롯에 든 위젯을 backdrop 없는 Bottom Sheet로 띄운다(Gate B Q5, 단계 4a).
-// 시트는 자기 영역만 덮고, 바깥 터치는 아래 화면으로 간다.
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
+// 앱 전역 시트 호스트: 에이전트 세션의 sheet 슬롯에 든 위젯을 가운데 카드 모달(공용 Sheet: RN Modal + scrim)로 띄운다.
+// 키보드 회피는 Sheet의 KeyboardAvoidingView가 맡고, 카드 최대 높이는 키보드를 뺀 가용 높이의 90%다. 넘치는 내용은 위젯의 ScrollView가 스크롤한다.
+// scrim·Android 뒤로 가기·"나중에"는 모두 위젯의 dismissRef(study_note_dismissed)로 보낸다. 세션이 비워서 닫을 때는 이벤트를 내지 않는다.
 import { useEffect, useRef, useState } from 'react';
-import { BackHandler, StyleSheet, useWindowDimensions } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+import { Keyboard, useWindowDimensions, type KeyboardEvent } from 'react-native';
 import type { AgentSession, SessionSnapshot } from '../agent/session';
 import { useAgentSession } from '../agent/useAgentSession';
-import { useDeviceMode } from '../layout/deviceMode';
-import { SheetHandle } from '../ui/SheetHandle';
-import { colors, radius } from '../ui/theme';
+import { Sheet } from '../ui/Sheet';
+import { layout, radius } from '../ui/theme';
 import { sheetWidgets } from './widgets';
 
 const TABLET_CARD_MAX_W = 560;
@@ -19,93 +17,49 @@ export function SheetHost(props: Props) {
   const live = useAgentSession();
   const state = props.state ?? live.state;
   const session = props.session ?? live.session;
-  const mode = useDeviceMode();
-  const reduceMotion = useReducedMotion();
   const { width, height } = useWindowDimensions();
-  const modalRef = useRef<BottomSheetModal>(null);
   const dismissRef = useRef<(() => void) | null>(null);
-  // 지금 시트가 화면에 올라와 있는가 / 세션이 시트를 비워서 닫는 중인가
-  const presented = useRef(false);
-  const closingBySession = useRef(false);
-  // 올릴 때마다 늘린다: 다시 올린 시트의 위젯은 새로 마운트되어 이전 finishedFor를 갖지 않는다
-  const [generation, setGeneration] = useState(0);
+  const [keyboardH, setKeyboardH] = useState(0);
 
   const sheet = state.sheet && sheetWidgets[state.sheet.componentId] ? state.sheet : null;
-  // 닫히는 동안에도 내용을 그리도록 마지막 시트를 들고 있는다
+  const open = sheet !== null;
+  // 닫히는 페이드 동안에도 내용을 그리도록 마지막 시트를 들고 있는다
   const [shown, setShown] = useState(sheet);
   if (sheet && sheet !== shown) setShown(sheet);
-  const open = sheet !== null;
-  const openRef = useRef(open);
-  openRef.current = open;
-
-  const present = () => {
-    presented.current = true;
-    closingBySession.current = false;
-    setGeneration((g) => g + 1);
-    modalRef.current?.present();
-  };
+  // 닫혔다가 다시 열릴 때마다 늘린다: 다시 연 시트의 위젯은 새로 마운트되어 이전 finishedFor를 갖지 않는다
+  const [generation, setGeneration] = useState(0);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setGeneration((g) => g + 1);
+  }
 
   useEffect(() => {
-    if (open) {
-      if (!presented.current) present();
-    } else if (presented.current) {
-      closingBySession.current = true;
-      modalRef.current?.dismiss();
-    } else {
-      setShown(null);
-    }
-  }, [open]);
-
-  // gorhom은 Android 뒤로 가기를 받지 않는다: 시트가 떠 있는 동안만 받아서 닫는다
-  useEffect(() => {
-    if (!open) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (!presented.current) return false;
-      modalRef.current?.dismiss();
-      return true;
-    });
-    return () => sub.remove();
-  }, [open]);
-
-  const onDismiss = () => {
-    presented.current = false;
-    if (closingBySession.current) {
-      closingBySession.current = false;
-      // 닫히는 동안 세션이 새 시트를 열었으면 다시 올린다
-      if (openRef.current) present();
-      else setShown(null);
+    if (!open) {
+      setKeyboardH(0);
       return;
     }
-    // 끌어 내리기·뒤로 가기: 위젯이 정한 닫기 동작으로 보낸다. 이미 끝낸 위젯은 finishedFor가 두 번째 이벤트를 막는다
-    dismissRef.current?.();
-  };
+    const show = Keyboard.addListener('keyboardDidShow', (e: KeyboardEvent) => setKeyboardH(e.endCoordinates?.height ?? 0));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardH(0));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, [open]);
 
   const Widget = shown ? sheetWidgets[shown.componentId] : undefined;
   if (!shown || !Widget) return null;
 
-  const sideInset = mode === 'tablet' ? Math.max(0, (width - TABLET_CARD_MAX_W) / 2) : 0;
+  const cardWidth = Math.min(width - layout.gutter * 2, TABLET_CARD_MAX_W);
+  const maxHeight = Math.max(0, height - keyboardH) * 0.9;
 
   return (
-    <BottomSheetModal
-      ref={modalRef}
-      onDismiss={onDismiss}
-      enableDynamicSizing
-      maxDynamicContentSize={height * 0.9}
-      handleComponent={SheetHandle}
-      keyboardBehavior="interactive"
-      keyboardBlurBehavior="restore"
-      android_keyboardInputMode="adjustResize"
-      animateOnMount={!reduceMotion}
-      style={[styles.sheet, { marginHorizontal: sideInset }]}
-      backgroundStyle={styles.background}
+    <Sheet
+      visible={open}
+      onDismiss={() => dismissRef.current?.()}
+      style={{ width: cardWidth, maxHeight, padding: 0, overflow: 'hidden', borderRadius: radius.lg }}
     >
-      {/* 위젯의 루트가 gorhom 스크롤 뷰다(학습장: BottomSheetScrollView). 내용 높이로 재고, 90%를 넘으면 스크롤한다 */}
       <Widget key={generation} props={shown.props} session={session} dismissRef={dismissRef} />
-    </BottomSheetModal>
+    </Sheet>
   );
 }
-
-const styles = StyleSheet.create({
-  sheet: { borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, overflow: 'hidden' },
-  background: { backgroundColor: colors.card, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
-});

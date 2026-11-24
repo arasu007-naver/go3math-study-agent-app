@@ -3,11 +3,10 @@
  * 처음 값은 초안 → 조회한 노트 → 빈 양식 순. 입력마다 초안을 저장하고, 저장에 성공하면 지운다.
  * 캔버스 활동 기록(조회한 개념·받은 퀴즈)은 서버 노트의 것과 로컬 기록을 합쳐 추천 칩·퀴즈 개수로 보여 주고, 저장할 때 함께 보낸다.
  * 이전 학습장을 조회하는 동안은 양식 대신 스켈레톤을 보여 준다 — 조회 전에 입력을 시작하면 이전 내용을 채우지 못한 채 덮어쓰게 된다.
- * 키보드 회피는 이 컴포넌트가 아니라 시트(SheetHost)가 맡는다.
+ * 키보드 회피는 이 컴포넌트가 아니라 시트(SheetHost → Sheet의 KeyboardAvoidingView)가 맡는다. 카드 높이가 줄면 이 ScrollView가 스크롤한다.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { cleanMathText } from '../math/MathJaxWrapper';
 import type { KeyValueStore } from '../../storage/types';
 import { Button } from '../../ui/Button';
@@ -155,7 +154,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetch
   const goalVisible = goalOpen || form.expectations !== '';
 
   return (
-    <BottomSheetScrollView contentContainerStyle={styles.root} keyboardShouldPersistTaps="handled">
+    <ScrollView testID="form-scroll" contentContainerStyle={styles.root} keyboardShouldPersistTaps="handled">
       <Text style={styles.header} accessibilityRole="header">{`학습장 · ${title}`}</Text>
 
       {fetchFailed ? <Text style={styles.notice}>이전 메모를 불러오지 못했어요</Text> : null}
@@ -208,7 +207,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetch
               ))}
             </View>
           ) : null}
-          <BottomSheetTextInput
+          <TextInput
             accessibilityLabel={memoLabel}
             style={styles.input}
             multiline
@@ -230,7 +229,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetch
                 style={styles.toggle}
               />
               {goalVisible ? (
-                <BottomSheetTextInput
+                <TextInput
                   accessibilityLabel="다음 목표"
                   style={styles.input}
                   multiline
@@ -274,7 +273,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetch
         <Button variant="text" title="나중에" onPress={() => onDone('dismissed')} />
         <Button variant="primary" title={saveLabel} disabled={saveDisabled} loading={saving} onPress={save} />
       </View>
-    </BottomSheetScrollView>
+    </ScrollView>
   );
 }
 

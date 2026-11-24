@@ -6,16 +6,6 @@ import { colors, layout } from '../src/ui/theme';
 // 양식이 개념 제목을 정리하려고 MathJaxWrapper(cleanMathText)를 가져온다 — WebView 네이티브 모듈은 Jest에 없다
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 
-// 시트 밖에서 그리므로 gorhom 입력칸은 RN TextInput으로 바꾼다
-// 스크롤 영역은 testID를 붙여 gorhom 스크롤 뷰를 쓰는지 확인한다
-jest.mock('@gorhom/bottom-sheet', () => {
-  const React = require('react');
-  const { TextInput, ScrollView } = require('react-native');
-  return {
-    BottomSheetTextInput: TextInput,
-    BottomSheetScrollView: (p: any) => React.createElement(ScrollView, { ...p, testID: 'sheet-scroll' }),
-  };
-});
 import { appendActivity, emptyActivities, loadActivity, type Activities } from '../src/kit/study-note/activity';
 import { draftKey } from '../src/kit/study-note/draft';
 import type { StudyNote } from '../src/kit/study-note/model';
@@ -434,11 +424,11 @@ describe('StudyNoteForm - 활동 기록', () => {
 describe('StudyNoteForm - shared components (stage 4a)', () => {
   const flat = (node: any) => StyleSheet.flatten(node.props.style);
 
-  it('scrolls inside the bottom sheet with gorhom BottomSheetScrollView (review I2)', async () => {
+  it('scrolls with an RN ScrollView that keeps taps while the keyboard is up', async () => {
     const { ui } = setup();
     await render(ui);
     await settle();
-    const scroll = screen.getByTestId('sheet-scroll');
+    const scroll = screen.getByTestId('form-scroll');
     expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
   });
 
