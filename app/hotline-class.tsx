@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import debounce from 'lodash/debounce';
 import moment from 'moment';
 import { CREATE_RECORD } from '@/src/api/graphql/mutations';
+import { useWsReconnected } from '@/src/api/graphql/useWsReconnected';
 import { LAST_ONLINE_CLASS_MESSAGE, ONLINE_CLASS_OF_TUTOR } from '@/src/api/graphql/queries';
 import { ONLINE_TUTOR_CLASS_MESSAGE_ADDED } from '@/src/api/graphql/subscriptions';
 import { UNITIMAGE } from '@/src/config/api.constants';
@@ -32,7 +33,7 @@ import { hotlineSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
 import { canvasActivityStore } from '@/src/state/canvasActivity';
 import { colors, type } from '@/src/ui/theme';
-import { toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
+import { isPositionGuide, toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 
 // 선생님 수업(hotline class) 화면: 기존 qoolla-student-app `pages/notebook/hotline-class.tsx`를 옮김. 패널은 note-canvas/hotline-class-canvas.tsx 그대로.
 // 실황 수업 dock에서 선생님 수업을 누르면 Stage에 그 선생님 수업 문제 목록(ProblemListPanel)을 띄우고 이 화면으로 온다. 나가면 문제 목록이 그대로 남는다.
@@ -52,6 +53,10 @@ const HotlineClassCanvasPanel = LegacyHotlineClassCanvasPanel as unknown as Comp
   onQuizReceived(q: LiveQuiz): void;
   screenActions?: FloatingAction[];
 }>;
+
+function positionKey(guide: Guide): string {
+  return `${guide.scriptId}|${guide.studyIdx}|${guide.step}`;
+}
 
 export default function HotlineClassScreen() {
   const params = useLocalSearchParams<{ tutorId?: string; taskId?: string }>();
@@ -73,6 +78,7 @@ export default function HotlineClassScreen() {
   const { width, height } = useWindowDimensions();
   const isFocused = useIsFocused();
   const panelRef = useRef<PanelHandle | null>(null);
+  const lastAppliedPositionRef = useRef<string | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
   const sheetListRef = useRef<FlatList>(null);
 
@@ -129,6 +135,7 @@ export default function HotlineClassScreen() {
       }
       const guide = toPositionGuide(parsed);
       setLiveState('live');
+      if (isPositionGuide(guide)) lastAppliedPositionRef.current = positionKey(guide);
       if (panelRef.current) panelRef.current.onReceiveGuide(guide);
       else storage.set('syncPoint', JSON.stringify(guide));
     } catch (e) {
@@ -153,12 +160,33 @@ export default function HotlineClassScreen() {
         }
         if (guide.action === 'units') void loadAgenda();
         else if (guide.action !== 'snapshot') setLiveState((cur) => (cur === 'waiting' ? 'live' : cur));
+        if (isPositionGuide(guide)) lastAppliedPositionRef.current = positionKey(guide);
         panelRef.current?.onReceiveGuide(guide);
       }
       setSavedMessage('🟡 ' + moment().format('MM/DD HH:mm'));
     },
     onError: (e) => console.warn('[hotline-class] subscription error:', e.message),
   });
+
+  // 웹소켓이 다시 연결되면 끊긴 동안 바뀐 수업 위치로 따라잡는다. 실패해도 화면은 그대로 둔다
+  const recoverLivePosition = useCallback(async () => {
+    try {
+      const { data } = await getLastMessage({ variables: { tutorId } });
+      const parsed = safeJsonParse(data?.lastOnlineClassMessage?.content, null) as Guide | null;
+      if (!parsed) return;
+      const guide = toPositionGuide(parsed) as Guide;
+      if (!isPositionGuide(guide)) return;
+      const key = positionKey(guide);
+      if (key === lastAppliedPositionRef.current) return;
+      lastAppliedPositionRef.current = key;
+      setLiveState('live');
+      if (panelRef.current) panelRef.current.onReceiveGuide(guide);
+      else storage.set('syncPoint', JSON.stringify(guide));
+    } catch (e) {
+      console.warn('[hotline-class] recoverLivePosition failed:', e);
+    }
+  }, [getLastMessage, tutorId]);
+  useWsReconnected(() => void recoverLivePosition(), isFocused);
 
   // 화면에 들어올 때마다 수업 문제(스크립트 포함)를 새로 받는다. 떠나면 비워 캔버스를 내린다 — 기존과 같음
   useEffect(() => {

@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import debounce from 'lodash/debounce';
 import moment from 'moment';
 import { CREATE_RECORD } from '@/src/api/graphql/mutations';
+import { useWsReconnected } from '@/src/api/graphql/useWsReconnected';
 import { LAST_LIVE_TOPIC_MESSAGE, STUDY_TOPIC } from '@/src/api/graphql/queries';
 import { TOPIC_LIVE_MESSAGE_ADDED } from '@/src/api/graphql/subscriptions';
 import { UNITIMAGE } from '@/src/config/api.constants';
@@ -53,6 +54,10 @@ const TopicLiveClassCanvasPanel = LegacyTopicLiveClassCanvasPanel as unknown as 
   screenActions?: FloatingAction[];
 }>;
 
+function positionKey(guide: Guide): string {
+  return `${guide.scriptId}|${guide.studyIdx}|${guide.step}`;
+}
+
 export default function TopicLiveClassScreen() {
   const params = useLocalSearchParams<{ topicId?: string; taskId?: string }>();
   const topicId = Number(params.topicId);
@@ -73,6 +78,7 @@ export default function TopicLiveClassScreen() {
   const { width, height } = useWindowDimensions();
   const isFocused = useIsFocused();
   const panelRef = useRef<PanelHandle | null>(null);
+  const lastAppliedPositionRef = useRef<string | null>(null);
   const sheetRef = useRef<BottomSheetModal>(null);
   const sheetListRef = useRef<FlatList>(null);
 
@@ -115,7 +121,10 @@ export default function TopicLiveClassScreen() {
           return;
         }
         if (guide.action !== 'snapshot') setLiveState((cur) => (cur === 'waiting' ? 'live' : cur));
-        if (isPositionGuide(guide)) setLastPoint(guide);
+        if (isPositionGuide(guide)) {
+          setLastPoint(guide);
+          lastAppliedPositionRef.current = positionKey(guide);
+        }
         panelRef.current?.onReceiveGuide(guide);
       }
       setSavedMessage('🟡 ' + moment().format('MM/DD HH:mm'));
@@ -144,6 +153,7 @@ export default function TopicLiveClassScreen() {
       }
       const guide = toPositionGuide(parsed);
       setLiveState('live');
+      if (isPositionGuide(guide)) lastAppliedPositionRef.current = positionKey(guide);
       if (panelRef.current) panelRef.current.onReceiveGuide(guide);
       else storage.set('syncPoint', JSON.stringify(guide));
     } catch (e) {
@@ -151,6 +161,27 @@ export default function TopicLiveClassScreen() {
       notReady();
     }
   }, [getLastTopicMessage, topicId, notReady]);
+
+  // 웹소켓이 다시 연결되면 끊긴 동안 바뀐 수업 위치로 따라잡는다. 실패해도 화면은 그대로 둔다
+  const recoverLivePosition = useCallback(async () => {
+    try {
+      const { data } = await getLastTopicMessage({ variables: { topicId } });
+      const parsed = safeJsonParse(data?.lastLiveTopicMessage?.content, null) as Guide | null;
+      if (!parsed) return;
+      const guide = toPositionGuide(parsed) as Guide;
+      if (!isPositionGuide(guide)) return;
+      const key = positionKey(guide);
+      if (key === lastAppliedPositionRef.current) return;
+      lastAppliedPositionRef.current = key;
+      setLiveState('live');
+      setLastPoint(guide as Guide);
+      if (panelRef.current) panelRef.current.onReceiveGuide(guide);
+      else storage.set('syncPoint', JSON.stringify(guide));
+    } catch (e) {
+      console.warn('[topic-live-class] recoverLivePosition failed:', e);
+    }
+  }, [getLastTopicMessage, topicId]);
+  useWsReconnected(() => void recoverLivePosition(), isFocused);
 
   // 화면에 들어올 때마다 주제 문제(스크립트 포함)를 새로 받는다. 떠나면 비워 캔버스를 내린다 — 기존과 같음
   useEffect(() => {

@@ -138,6 +138,8 @@
 ## API
 
 - **GraphqlClient**: `src/api/graphql/client.ts`
+- **WsRecovery**: `src/api/graphql/wsRecovery.ts` — graphql-ws 연결 복구(pong 감시·재연결 알림·4500 재구독)
+- **useWsReconnected**: `src/api/graphql/useWsReconnected.ts` — 웹소켓 재연결 알림 훅
 - **MutationIndex**: `src/api/graphql/mutations/index.ts`
 - **MutationRecord**: `src/api/graphql/mutations/record.ts`
 - **MutationStudy**: `src/api/graphql/mutations/study.ts`
