@@ -95,6 +95,33 @@ describe('StudyNoteForm', () => {
     expect(screen.getByText('한 줄 메모 (선택)')).toBeTruthy();
   });
 
+  it('live mode prefills an existing note: achievement, difficulties, memo, 수정', async () => {
+    const note: StudyNote = { taskId: 7, description: '지난 메모', achievementRate: 75, difficulties: 'concept,calc' };
+    const { ui } = setup({ fetchNote: jest.fn(async () => note) }, { mode: 'live' });
+    await render(ui);
+    await waitFor(() => expect(screen.getByDisplayValue('지난 메모')).toBeTruthy());
+    expect(screen.getByRole('radio', { name: '거의' }).props.accessibilityState.checked).toBe(true);
+    expect(screen.getByRole('checkbox', { name: '개념' }).props.accessibilityState.checked).toBe(true);
+    expect(screen.getByRole('checkbox', { name: '계산' }).props.accessibilityState.checked).toBe(true);
+    expect(screen.getByRole('checkbox', { name: '시간' }).props.accessibilityState.checked).toBe(false);
+    expect(screen.getByRole('button', { name: '수정' })).toBeTruthy();
+  });
+
+  it('live mode prefers the local draft over the server note', async () => {
+    const store = memoryStore();
+    store.set(draftKey(7), JSON.stringify({ achievement: 100, difficulties: ['time'], description: '초안 글', expectations: '' }));
+    const note: StudyNote = { taskId: 7, description: '서버 글', achievementRate: 25, difficulties: 'concept' };
+    const { ui } = setup({ fetchNote: jest.fn(async () => note) }, { mode: 'live', store });
+    await render(ui);
+    await settle();
+    expect(screen.getByDisplayValue('초안 글')).toBeTruthy();
+    expect(screen.queryByDisplayValue('서버 글')).toBeNull();
+    expect(screen.getByRole('radio', { name: '다 했어요' }).props.accessibilityState.checked).toBe(true);
+    expect(screen.getByRole('radio', { name: '조금' }).props.accessibilityState.checked).toBe(false);
+    expect(screen.getByRole('checkbox', { name: '시간' }).props.accessibilityState.checked).toBe(true);
+    expect(screen.getByRole('checkbox', { name: '개념' }).props.accessibilityState.checked).toBe(false);
+  });
+
   it('live mode shows the tutor description when present', async () => {
     const note: StudyNote = { taskId: 7, tutorDescription: '등차수열 정리' };
     const { ui } = setup({ fetchNote: jest.fn(async () => note) }, { mode: 'live' });

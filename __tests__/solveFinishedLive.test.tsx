@@ -15,6 +15,7 @@ jest.mock('../src/storage', () => ({
   },
 }));
 
+import * as leave from '../src/host/liveStudyNoteOnLeave';
 import { useSolveFinished } from '../src/host/useSolveFinished';
 import { canvasActivityStore } from '../src/state/canvasActivity';
 
@@ -93,4 +94,26 @@ it('수업 종료 뒤 taskId가 없으면 ensureTaskId로 시트를 열고, unde
   await v2.unmount();
   await waitFor(() => expect(mockEnsure).toHaveBeenCalledTimes(2));
   expect(mockShow).not.toHaveBeenCalled();
+});
+
+it('행동도 종료도 없이 나가면 acted:false로 불리고 시트는 없다', async () => {
+  const spy = jest.spyOn(leave, 'openLiveStudyNoteOnLeave');
+  const view = await render(<Probe taskId={7} />);
+  await view.unmount();
+  expect(spy).toHaveBeenCalledTimes(1);
+  expect(spy.mock.calls[0][0].acted).toBe(false);
+  expect(mockShow).not.toHaveBeenCalled();
+  spy.mockRestore();
+});
+
+it.each(['hotline', 'topic_live'] as const)('%s: markClassClosed만 부르면 acted:true로 한 번 불린다', async (kind) => {
+  const spy = jest.spyOn(leave, 'openLiveStudyNoteOnLeave');
+  const view = await render(<Probe taskId={7} kind={kind} />);
+  api.markClassClosed();
+  await view.unmount();
+  expect(spy).toHaveBeenCalledTimes(1);
+  expect(spy.mock.calls[0][0].acted).toBe(true);
+  await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+  expect(mockEmit).not.toHaveBeenCalled();
+  spy.mockRestore();
 });
