@@ -34,6 +34,10 @@ export type StudyNoteFormProps = {
   mode: 'self' | 'live';
   title: string;
   topicHints?: string[];
+  /** 종료 메시지의 선생님 정리. 서버 노트에 값이 없을 때 쓴다 */
+  tutorDescription?: string;
+  /** 종료 메시지의 퀴즈 본문. fetchSentQuizzes 결과보다 먼저 쓴다 */
+  quizContents?: { quizId: number; content: string }[];
   fetchers: StudyNoteFetchers;
   /** 실황 양식에서 받은 퀴즈 본문을 조회한다. 실패해도 저장·입력을 막지 않는다 */
   fetchSentQuizzes?: (taskId: number) => Promise<{ quizId: number; content: string }[]>;
@@ -41,7 +45,7 @@ export type StudyNoteFormProps = {
   onDone(result: 'saved' | 'dismissed'): void;
 };
 
-export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetchSentQuizzes, store, onDone }: StudyNoteFormProps) {
+export function StudyNoteForm({ taskId, mode, title, topicHints, tutorDescription, quizContents: givenQuizzes, fetchers, fetchSentQuizzes, store, onDone }: StudyNoteFormProps) {
   const [form, setForm] = useState<FormState>(() => loadDraft(store, taskId) ?? emptyForm());
   // undefined = 조회 실패(또는 아직 조회 전), null = 노트 없음
   const [existing, setExisting] = useState<StudyNote | null | undefined>(undefined);
@@ -65,7 +69,11 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetch
     [topicHints, activities],
   );
   const quizCount = activities.quizIds.length;
-  const [quizContents, setQuizContents] = useState<Map<number, string>>(() => new Map());
+  const [quizContents, setQuizContents] = useState<Map<number, string>>(() => {
+    const m = new Map<number, string>();
+    for (const q of givenQuizzes ?? []) if (q.content && !m.has(q.quizId)) m.set(q.quizId, q.content);
+    return m;
+  });
 
   useEffect(() => {
     let alive = true;
@@ -98,9 +106,11 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetch
     fetchSentQuizzes(taskId).then(
       (list) => {
         if (!alive) return;
-        const m = new Map<number, string>();
-        for (const q of list) if (q.content && !m.has(q.quizId)) m.set(q.quizId, q.content);
-        setQuizContents(m);
+        setQuizContents((prev) => {
+          const m = new Map(prev);
+          for (const q of list) if (q.content && !m.has(q.quizId)) m.set(q.quizId, q.content);
+          return m;
+        });
       },
       () => {},
     );
@@ -168,7 +178,7 @@ export function StudyNoteForm({ taskId, mode, title, topicHints, fetchers, fetch
           {live ? (
             <View style={styles.tutorBox}>
               <Text style={styles.caption}>선생님 정리</Text>
-              <Text style={styles.body}>{existing?.tutorDescription || '선생님 정리가 아직 없어요'}</Text>
+              <Text style={styles.body}>{existing?.tutorDescription || tutorDescription || '선생님 정리가 아직 없어요'}</Text>
             </View>
           ) : null}
 

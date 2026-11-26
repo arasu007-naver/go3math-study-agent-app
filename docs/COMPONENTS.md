@@ -42,6 +42,7 @@
 - **LiveClassWaiting**: `src/kit/live-class/LiveClassWaiting.tsx`
 - **LiveClassStartTime**: `src/kit/live-class/LiveClassStartTime.tsx`
 - **formatStartTime**: `src/kit/live-class/formatStartTime.ts`
+- **pickLiveClassClosing**: `src/kit/live-class/closing.ts`
 - **Dialog**: `src/ui/Dialog.tsx`
 - **IconButton**: `src/ui/IconButton.tsx`
 - **Sheet**: `src/ui/Sheet.tsx`

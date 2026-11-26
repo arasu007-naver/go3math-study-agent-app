@@ -278,6 +278,8 @@ function StudyNoteWidget({ props, session, dismissRef }: SheetWidgetProps) {
       mode={props.mode as 'self' | 'live'}
       title={(props.title as string | undefined) ?? solveTitleFor(taskId) ?? '학습장 기록'}
       topicHints={props.topicHints as string[] | undefined}
+      tutorDescription={props.tutorDescription as string | undefined}
+      quizContents={props.quizContents as { quizId: number; content: string }[] | undefined}
       fetchers={studyNoteFetchers}
       fetchSentQuizzes={props.mode === 'live' ? fetchSentQuizzes : undefined}
       store={storage}

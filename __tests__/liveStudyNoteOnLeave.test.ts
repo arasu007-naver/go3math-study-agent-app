@@ -40,3 +40,21 @@ it('task를 만들지 못하면 시트를 열지 않는다', async () => {
   await openLiveStudyNoteOnLeave({ spec: topic, acted: true, activity, title: 'x' }, deps);
   expect(deps.showSheet).not.toHaveBeenCalled();
 });
+
+describe('closing', () => {
+  const closing = { description: 'd', concepts: [{ id: 7, title: 'A' }], quizzes: [{ quizId: 9, content: 'q' }] };
+  it('개념·퀴즈를 기록에 합치고 시트 props에 더한다', async () => {
+    const deps = { ensureTaskId: jest.fn(), store: mem(), showSheet: jest.fn() };
+    await openLiveStudyNoteOnLeave({ taskId: 3, spec: hotline, acted: true, activity: { v: 1, concepts: [], quizIds: [] }, title: 'T', closing }, deps);
+    const a = loadActivity(deps.store, 3);
+    expect(a.concepts).toEqual([{ id: 7, title: 'A' }]);
+    expect(a.quizIds).toEqual([9]);
+    expect(deps.showSheet).toHaveBeenCalledTimes(1);
+    expect(deps.showSheet).toHaveBeenCalledWith('study_note', { taskId: 3, mode: 'live', title: 'T', tutorDescription: 'd', quizContents: [{ quizId: 9, content: 'q' }] });
+  });
+  it('closing이 null이면 props가 그대로다', async () => {
+    const deps = { ensureTaskId: jest.fn(), store: mem(), showSheet: jest.fn() };
+    await openLiveStudyNoteOnLeave({ taskId: 3, spec: hotline, acted: true, activity, title: 'T', closing: null }, deps);
+    expect(deps.showSheet).toHaveBeenCalledWith('study_note', { taskId: 3, mode: 'live', title: 'T' });
+  });
+});

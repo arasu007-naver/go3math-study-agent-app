@@ -60,6 +60,8 @@ export const registry: Record<string, RegistryEntry> = {
       mode: z.enum(['self', 'live']),
       title: z.string().optional(),
       topicHints: z.array(z.string()).max(5).optional(),
+      tutorDescription: z.string().max(2000).optional(),
+      quizContents: z.array(z.object({ quizId: z.number().int(), content: z.string() })).max(50).optional(),
     }),
   },
 };

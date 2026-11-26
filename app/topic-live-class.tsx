@@ -23,6 +23,7 @@ import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
 import LiveClassStartTime from '@/src/kit/live-class/LiveClassStartTime';
 import LiveClassWaiting from '@/src/kit/live-class/LiveClassWaiting';
 import LiveClassClosedModal from '@/src/kit/live-class/LiveClassClosedModal';
+import { pickLiveClassClosing } from '@/src/kit/live-class/closing';
 import { LIVE_CLASS_CLOSED } from '@/src/kit/live-class/constants';
 import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizResponseModal';
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
@@ -119,7 +120,7 @@ export default function TopicLiveClassScreen() {
       const guide = safeJsonParse(data?.data?.liveTopicClassMessage?.content, null) as Guide | null;
       if (guide) {
         if (guide.action === LIVE_CLASS_CLOSED) {
-          markClassClosed();
+          markClassClosed(pickLiveClassClosing(guide as Record<string, unknown>));
           setLiveQuiz(null);
           setClosedVisible(true);
           return;

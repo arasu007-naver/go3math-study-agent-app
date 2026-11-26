@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { getAgentSession } from '../agent/useAgentSession';
 import type { TaskSpec } from '../adapters/ensureTask';
+import type { LiveClassClosing } from '../kit/live-class/closing';
 import { openLiveStudyNoteOnLeave } from './liveStudyNoteOnLeave';
 import { appendActivity } from '../kit/study-note/activity';
 import { canvasActivityStore } from '../state/canvasActivity';
@@ -22,10 +23,11 @@ function flushActivity(a: Args) {
   canvasActivityStore.dispatch({ type: 'reset' });
 }
 
-export function useSolveFinished(a: Args): { countSolved(): void; markActed(): void; markClassClosed(): void } {
+export function useSolveFinished(a: Args): { countSolved(): void; markActed(): void; markClassClosed(closing?: LiveClassClosing | null): void } {
   const count = useRef(0);
   const acted = useRef(false);
   const closed = useRef(false);
+  const closing = useRef<LiveClassClosing | null>(null);
   const latest = useRef(a);
   latest.current = a;
   useEffect(() => {
@@ -44,7 +46,7 @@ export function useSolveFinished(a: Args): { countSolved(): void; markActed(): v
           const activity = canvasActivityStore.getState();
           const didAct = acted.current || count.current > 0 || activity.concepts.length > 0;
           canvasActivityStore.dispatch({ type: 'reset' });
-          void openLiveStudyNoteOnLeave({ taskId, spec: liveSpec, acted: didAct || closed.current, activity, title: title ?? '' });
+          void openLiveStudyNoteOnLeave({ taskId, spec: liveSpec, acted: didAct || closed.current, activity, title: title ?? '', closing: closing.current });
         } else flushActivity(latest.current);
         owner = null;
       }
@@ -59,8 +61,9 @@ export function useSolveFinished(a: Args): { countSolved(): void; markActed(): v
   const markActed = useCallback(() => {
     acted.current = true;
   }, []);
-  const markClassClosed = useCallback(() => {
+  const markClassClosed = useCallback((c?: LiveClassClosing | null) => {
     closed.current = true;
+    if (c) closing.current = c;
   }, []);
   return { countSolved, markActed, markClassClosed };
 }
