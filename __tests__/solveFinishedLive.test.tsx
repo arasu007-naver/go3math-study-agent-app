@@ -117,3 +117,17 @@ it.each(['hotline', 'topic_live'] as const)('%s: markClassClosed만 부르면 ac
   expect(mockEmit).not.toHaveBeenCalled();
   spy.mockRestore();
 });
+
+it('markClassClosed는 마지막 null 아닌 closing을 넘긴다', async () => {
+  const spy = jest.spyOn(leave, 'openLiveStudyNoteOnLeave');
+  const c1 = { description: 'a', concepts: [], quizzes: [] };
+  const c2 = { description: 'b', concepts: [], quizzes: [] };
+  const view = await render(<Probe taskId={7} />);
+  api.markClassClosed(c1);
+  api.markClassClosed(c2);
+  api.markClassClosed(null);
+  await view.unmount();
+  expect(spy.mock.calls[0][0].closing).toEqual(c2);
+  await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+  spy.mockRestore();
+});

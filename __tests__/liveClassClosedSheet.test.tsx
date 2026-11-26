@@ -109,4 +109,23 @@ describe.each([
     await act(async () => {});
     expect(mockShow).not.toHaveBeenCalled();
   });
+
+  it('정리 필드가 담긴 종료를 받으면 시트가 tutorDescription·quizContents와 함께 열린다 (두 번 받아도 한 번)', async () => {
+    const closing = { ...closed, description: 'd', concepts: [{ id: 7, title: 'A' }], quizzes: [{ quizId: 9, content: 'q' }] };
+    const view = await open();
+    await act(async () => mockSubs[sub].onData(msg(closing)));
+    await act(async () => mockSubs[sub].onData(msg(closing)));
+    await fireEvent.press(screen.getByText('확인'));
+    await act(async () => view.unmount());
+    await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+    await act(async () => {});
+    expect(mockShow).toHaveBeenCalledTimes(1);
+    expect(mockShow).toHaveBeenCalledWith('study_note', {
+      taskId: 11,
+      mode: 'live',
+      title,
+      tutorDescription: 'd',
+      quizContents: [{ quizId: 9, content: 'q' }],
+    });
+  });
 });

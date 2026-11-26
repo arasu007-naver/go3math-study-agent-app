@@ -564,3 +564,70 @@ describe('StudyNoteForm - 실황 Quiz·조회 내용', () => {
     expect(f).not.toHaveBeenCalled();
   });
 });
+
+describe('StudyNoteForm - 종료 메시지 prop', () => {
+  const withActs = (a: Partial<Activities>) => {
+    const store = memoryStore();
+    appendActivity(store, 7, { ...emptyActivities(), ...a });
+    return store;
+  };
+
+  it('서버 tutorDescription이 비면 prop 값을, 있으면 서버 값을 보여 준다', async () => {
+    const a = setup({}, { mode: 'live', tutorDescription: 'd' });
+    await render(a.ui);
+    await waitFor(() => expect(screen.getByText('d')).toBeTruthy());
+  });
+
+  it('서버 값이 prop보다 우선한다', async () => {
+    const note: StudyNote = { taskId: 7, tutorDescription: '서버 정리' };
+    const { ui } = setup({ fetchNote: jest.fn(async () => note) }, { mode: 'live', tutorDescription: 'd' });
+    await render(ui);
+    await waitFor(() => expect(screen.getByText('서버 정리')).toBeTruthy());
+    expect(screen.queryByText('d')).toBeNull();
+  });
+
+  it('quizContents prop 본문이 보이고 fetchSentQuizzes 실패에도 유지된다', async () => {
+    const fetchSentQuizzes = jest.fn(async () => {
+      throw new Error('x');
+    });
+    const { ui } = setup(
+      {},
+      { mode: 'live', store: withActs({ quizIds: [9] }), quizContents: [{ quizId: 9, content: 'q' }], fetchSentQuizzes },
+    );
+    await render(ui);
+    await settle();
+    expect(within(await screen.findByTestId('study-note-quiz-section')).getByText('q')).toBeTruthy();
+  });
+
+  it('fetchSentQuizzes는 Map에 없는 quizId만 더한다', async () => {
+    const fetchSentQuizzes = jest.fn(async () => [
+      { quizId: 9, content: '서버9' },
+      { quizId: 10, content: '서버10' },
+    ]);
+    const { ui } = setup(
+      {},
+      { mode: 'live', store: withActs({ quizIds: [9, 10] }), quizContents: [{ quizId: 9, content: 'q' }], fetchSentQuizzes },
+    );
+    await render(ui);
+    await settle();
+    const sec = await screen.findByTestId('study-note-quiz-section');
+    await waitFor(() => expect(within(sec).getByText('서버10')).toBeTruthy());
+    expect(within(sec).getByText('q')).toBeTruthy();
+    expect(within(sec).queryByText('서버9')).toBeNull();
+  });
+
+  it('활동 기록의 개념이 조회 내용·추천 칩에 보이고 저장 시 activities에 들어간다', async () => {
+    const { fetchers, onDone, ui } = setup(
+      {},
+      { mode: 'live', store: withActs({ concepts: [{ id: 7, title: 'A' }] }) },
+    );
+    await render(ui);
+    await settle();
+    expect(within(screen.getByTestId('study-note-concepts-section')).getByText('A')).toBeTruthy();
+    expect(screen.getByText('추천:')).toBeTruthy();
+    await fireEvent.press(screen.getByText('조금'));
+    await fireEvent.press(screen.getByText('저장'));
+    await waitFor(() => expect(onDone).toHaveBeenCalledWith('saved'));
+    expect(JSON.parse((fetchers.register as jest.Mock).mock.calls[0][1].activities).concepts).toEqual([{ id: 7, title: 'A' }]);
+  });
+});
