@@ -22,6 +22,8 @@ import { storage } from '@/src/kit/canvas/note-canvas/legacy';
 import { safeJsonParse } from '@/src/kit/canvas/note-canvas/script-maker';
 import LiveClassStartTime from '@/src/kit/live-class/LiveClassStartTime';
 import LiveClassWaiting from '@/src/kit/live-class/LiveClassWaiting';
+import LiveClassClosedModal from '@/src/kit/live-class/LiveClassClosedModal';
+import { LIVE_CLASS_CLOSED } from '@/src/kit/live-class/constants';
 import QuizResponseModal, { type LiveQuiz } from '@/src/kit/live-class/QuizResponseModal';
 import DynamicDimensionsImage from '@/src/kit/ui/image-dynamic-dims';
 import Go3MathLoader from '@/src/kit/ui/loading-view';
@@ -89,6 +91,7 @@ export default function HotlineClassScreen() {
   const [savedMessage, setSavedMessage] = useState('🟡 ' + moment().format('MM/DD HH:mm'));
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [liveQuiz, setLiveQuiz] = useState<LiveQuiz | null>(null);
+  const [closedVisible, setClosedVisible] = useState(false);
   // 진행 확인 중 / 진행 중 / 수업 전 대기
   const [liveState, setLiveState] = useState<'checking' | 'live' | 'waiting'>('checking');
   // 수업 진행 중에 '나가기'를 누르면 먼저 확인한다
@@ -153,6 +156,11 @@ export default function HotlineClassScreen() {
     onData: ({ data }) => {
       const guide = safeJsonParse(data?.data?.newOnlineClassMessage?.content, null) as Guide | null;
       if (guide) {
+        if (guide.action === LIVE_CLASS_CLOSED) {
+          setLiveQuiz(null);
+          setClosedVisible(true);
+          return;
+        }
         if (guide.action === 'quiz') {
           receiveQuiz({ quizId: guide.quizId as number, content: guide.quiz as string });
           return;
@@ -309,6 +317,13 @@ export default function HotlineClassScreen() {
           },
         }}
         cancel={{ title: '아니오' }}
+      />
+      <LiveClassClosedModal
+        visible={closedVisible}
+        onConfirm={() => {
+          setClosedVisible(false);
+          goBack();
+        }}
       />
       <QuizResponseModal
         quiz={liveQuiz}

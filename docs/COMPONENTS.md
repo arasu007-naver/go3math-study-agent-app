@@ -72,6 +72,7 @@
 - **ExamSearchPanel**: `src/kit/exam-search/ExamSearchPanel.tsx`
 - **LiveClassListPanel**: `src/kit/live-class/LiveClassListPanel.tsx`
 - **QuizResponseModal**: `src/kit/live-class/QuizResponseModal.tsx`
+- **LiveClassClosedModal**: `src/kit/live-class/LiveClassClosedModal.tsx`
 - **toPositionGuide**: `src/kit/live-class/toPositionGuide.ts`
 - **MathChipLabel**: `src/kit/math/MathChipLabel.tsx`
 - **MathJaxWrapper**: `src/kit/math/MathJaxWrapper.tsx`
