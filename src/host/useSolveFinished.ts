@@ -22,9 +22,10 @@ function flushActivity(a: Args) {
   canvasActivityStore.dispatch({ type: 'reset' });
 }
 
-export function useSolveFinished(a: Args): { countSolved(): void; markActed(): void } {
+export function useSolveFinished(a: Args): { countSolved(): void; markActed(): void; markClassClosed(): void } {
   const count = useRef(0);
   const acted = useRef(false);
+  const closed = useRef(false);
   const latest = useRef(a);
   latest.current = a;
   useEffect(() => {
@@ -43,7 +44,7 @@ export function useSolveFinished(a: Args): { countSolved(): void; markActed(): v
           const activity = canvasActivityStore.getState();
           const didAct = acted.current || count.current > 0 || activity.concepts.length > 0;
           canvasActivityStore.dispatch({ type: 'reset' });
-          void openLiveStudyNoteOnLeave({ taskId, spec: liveSpec, acted: didAct, activity, title: title ?? '' });
+          void openLiveStudyNoteOnLeave({ taskId, spec: liveSpec, acted: didAct || closed.current, activity, title: title ?? '' });
         } else flushActivity(latest.current);
         owner = null;
       }
@@ -58,5 +59,8 @@ export function useSolveFinished(a: Args): { countSolved(): void; markActed(): v
   const markActed = useCallback(() => {
     acted.current = true;
   }, []);
-  return { countSolved, markActed };
+  const markClassClosed = useCallback(() => {
+    closed.current = true;
+  }, []);
+  return { countSolved, markActed, markClassClosed };
 }

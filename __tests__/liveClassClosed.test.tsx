@@ -11,7 +11,8 @@ jest.mock('../src/kit/canvas/CanvasAnswer', () => ({ CanvasAnswer: () => null })
 jest.mock('../src/kit/ui/image-dynamic-dims', () => () => null);
 jest.mock('../src/adapters/ensureTask', () => ({ ensureTaskId: jest.fn(), findLiveClassTaskId: jest.fn(async () => 0) }));
 jest.mock('../src/adapters/problemListFetchers', () => ({ fetchConcept: jest.fn() }));
-jest.mock('../src/host/useSolveFinished', () => ({ useSolveFinished: () => ({ countSolved: jest.fn(), markActed: jest.fn() }) }));
+const mockMarkClosed = jest.fn();
+jest.mock('../src/host/useSolveFinished', () => ({ useSolveFinished: () => ({ countSolved: jest.fn(), markActed: jest.fn(), markClassClosed: mockMarkClosed }) }));
 jest.mock('../src/host/widgets', () => ({ topicLiveSpec: () => ({}), hotlineSpec: () => ({}) }));
 jest.mock('../src/kit/live-class/QuizResponseModal', () => ({ __esModule: true, default: ({ quiz }: any) => (quiz ? require('react').createElement(require('react-native').Text, null, 'QUIZ') : null) }));
 let mockNoPanel = false;
@@ -90,6 +91,12 @@ describe.each([
     expect(screen.getAllByText('확인')).toHaveLength(1);
     expect(screen.getAllByRole('button', { name: '확인' })).toHaveLength(1);
     expect(mockPanel.onReceiveGuide).not.toHaveBeenCalledWith(expect.objectContaining({ action: 'LIVE_CLASS_CLOSED' }));
+  });
+
+  it('수신하면 markClassClosed를 부른다(중복 수신해도 무방)', async () => {
+    await open();
+    await act(async () => mockSubs[sub].onData(msg(closed)));
+    expect(mockMarkClosed).toHaveBeenCalled();
   });
 
   it('퀴즈 모달이 닫힌다', async () => {

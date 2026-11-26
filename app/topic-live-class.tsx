@@ -66,7 +66,7 @@ export default function TopicLiveClassScreen() {
   const topicId = Number(params.topicId);
   // 이어 푸는 task가 있으면 그 id, 없으면 0 — 첫 풀이를 저장할 때 task를 만들어 채운다
   const [taskId, setTaskId] = useState(Number(params.taskId ?? 0));
-  const { countSolved, markActed } = useSolveFinished({ taskId: taskId || undefined, kind: 'topic_live', liveSpec: topicLiveSpec(topicId), title: '주제 실황 수업' });
+  const { countSolved, markActed, markClassClosed } = useSolveFinished({ taskId: taskId || undefined, kind: 'topic_live', liveSpec: topicLiveSpec(topicId), title: '주제 실황 수업' });
   // 같은 수업에 여러 번 들어올 수 있다: 이 수업(lesson_note)의 내 task가 이미 있으면 그 task를 이어서 쓴다(없으면 첫 풀이 저장 때 만든다)
   useEffect(() => {
     if (!topicId || Number(params.taskId ?? 0)) return;
@@ -119,6 +119,7 @@ export default function TopicLiveClassScreen() {
       const guide = safeJsonParse(data?.data?.liveTopicClassMessage?.content, null) as Guide | null;
       if (guide) {
         if (guide.action === LIVE_CLASS_CLOSED) {
+          markClassClosed();
           setLiveQuiz(null);
           setClosedVisible(true);
           return;

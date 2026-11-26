@@ -69,3 +69,28 @@ it('퀴즈를 받기만 하면 시트를 열지 않는다', async () => {
   expect(mockShow).not.toHaveBeenCalled();
   expect(mockEnsure).not.toHaveBeenCalled();
 });
+
+it('markClassClosed만 부르고 나가면 시트를 열고 solve_finished는 보내지 않는다', async () => {
+  const view = await render(<Probe taskId={7} />);
+  api.markClassClosed();
+  api.markClassClosed();
+  await view.unmount();
+  await waitFor(() => expect(mockShow).toHaveBeenCalledTimes(1));
+  expect(mockShow).toHaveBeenCalledWith('study_note', { taskId: 7, mode: 'live', title: '선생님 실황 수업' });
+  expect(mockEmit).not.toHaveBeenCalled();
+});
+
+it('수업 종료 뒤 taskId가 없으면 ensureTaskId로 시트를 열고, undefined면 열지 않는다', async () => {
+  const view = await render(<Probe />);
+  api.markClassClosed();
+  await view.unmount();
+  await waitFor(() => expect(mockShow).toHaveBeenCalledWith('study_note', { taskId: 11, mode: 'live', title: '선생님 실황 수업' }));
+  expect(mockEnsure).toHaveBeenCalledWith(undefined, spec);
+  mockShow.mockClear();
+  mockEnsure.mockResolvedValue(undefined);
+  const v2 = await render(<Probe />);
+  api.markClassClosed();
+  await v2.unmount();
+  await waitFor(() => expect(mockEnsure).toHaveBeenCalledTimes(2));
+  expect(mockShow).not.toHaveBeenCalled();
+});
