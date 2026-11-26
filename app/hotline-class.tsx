@@ -32,6 +32,7 @@ import { useSolveFinished } from '@/src/host/useSolveFinished';
 import { hotlineSpec } from '@/src/host/widgets';
 import { authStore } from '@/src/state/auth';
 import { canvasActivityStore } from '@/src/state/canvasActivity';
+import { Dialog } from '@/src/ui/Dialog';
 import { colors, type } from '@/src/ui/theme';
 import { isPositionGuide, toPositionGuide } from '@/src/kit/live-class/toPositionGuide';
 
@@ -90,6 +91,8 @@ export default function HotlineClassScreen() {
   const [liveQuiz, setLiveQuiz] = useState<LiveQuiz | null>(null);
   // 진행 확인 중 / 진행 중 / 수업 전 대기
   const [liveState, setLiveState] = useState<'checking' | 'live' | 'waiting'>('checking');
+  // 수업 진행 중에 '나가기'를 누르면 먼저 확인한다
+  const [exitConfirmVisible, setExitConfirmVisible] = useState(false);
   // 받은 퀴즈는 학습장 활동 기록에도 남긴다
   const receiveQuiz = useCallback((q: LiveQuiz) => {
     canvasActivityStore.dispatch({ type: 'quiz', quizId: Number(q.quizId) });
@@ -242,7 +245,7 @@ export default function HotlineClassScreen() {
   const modalHeight = Math.round(height * 0.65);
 
   const actions: FloatingAction[] = [
-    canvasAction('exit', '나가기', 'chevron-back', goBack),
+    canvasAction('exit', '나가기', 'chevron-back', () => (liveState === 'live' ? setExitConfirmVisible(true) : goBack())),
     canvasAction('sync', '필기 따라가기', 'sync-outline', syncBoard),
     canvasAction('lastStep', '마지막 단계', 'checkmark-done-outline', playLastStep),
     ...(topicUnits.length > 1 ? [canvasAction('list', '목록', 'albums-outline', () => setSheetListVisible(true))] : []),
@@ -294,6 +297,19 @@ export default function HotlineClassScreen() {
         <Go3MathLoader style={styles.fullSize} />
       )}
       {liveState === 'waiting' && <LiveClassWaiting onExit={goBack} />}
+      <Dialog
+        visible={exitConfirmVisible}
+        title="수업 진행 중입니다. 나가시겠습니까?"
+        onDismiss={() => setExitConfirmVisible(false)}
+        confirm={{
+          title: '예',
+          onPress: () => {
+            setExitConfirmVisible(false);
+            goBack();
+          },
+        }}
+        cancel={{ title: '아니오' }}
+      />
       <QuizResponseModal
         quiz={liveQuiz}
         appToken={authStore.getState().appToken ?? ''}
